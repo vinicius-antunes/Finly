@@ -1,7 +1,7 @@
 // shadcn/ui MIT; docs/licenses/shadcn-ui.txt
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+const MOBILE_BREAKPOINT = 769
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)

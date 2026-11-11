@@ -27,14 +27,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const SIDEBAR_WIDTH = "16.5rem"
+const SIDEBAR_WIDTH = "18rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "4.5rem"
+const SIDEBAR_WIDTH_ICON = "60px"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
   open: boolean
+  pinnedOpen: boolean
+  hoverEnabled: boolean
+  setHovered: (hovered: boolean) => void
+  setKeyboardFocus: (focused: boolean) => void
   setOpen: (open: boolean) => void
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
@@ -54,7 +58,7 @@ function useSidebar() {
 }
 
 function SidebarProvider({
-  defaultOpen = true,
+  defaultOpen = false,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
@@ -69,13 +73,31 @@ function SidebarProvider({
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
-  // This is the internal state of the sidebar.
-  // We use openProp and setOpenProp for control from outside the component.
+  // The existing open/setOpen contract controls manual pinning.
+  // Hover and keyboard focus contribute transient expansion, never a pin.
   const [_open, _setOpen] = React.useState(defaultOpen)
-  const open = openProp ?? _open
+  const pinnedOpen = openProp ?? _open
+  const [hovered, setHovered] = React.useState(false)
+  const [keyboardFocus, setKeyboardFocus] = React.useState(false)
+  const [finePointer, setFinePointer] = React.useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  )
+  React.useEffect(() => {
+    const media = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const update = () => { setFinePointer(media.matches); if (!media.matches) setHovered(false) }
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+  React.useEffect(() => {
+    if (isMobile) { setHovered(false); setKeyboardFocus(false) }
+  }, [isMobile])
+  const hoverEnabled = !isMobile && finePointer
+  // Manual pinning is independent of transient mouse/keyboard expansion.
+  const open = pinnedOpen || (!isMobile && ((hoverEnabled && hovered) || keyboardFocus))
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
-      const openState = typeof value === "function" ? value(open) : value
+      const openState = typeof value === "function" ? value(pinnedOpen) : value
       if (setOpenProp) {
         setOpenProp(openState)
       } else {
@@ -84,7 +106,7 @@ function SidebarProvider({
 
       // Finly keeps navigation state in memory; no cookie or financial writes.
     },
-    [setOpenProp, open]
+    [setOpenProp, pinnedOpen]
   )
 
   // Helper to toggle the sidebar.
@@ -116,13 +138,17 @@ function SidebarProvider({
     () => ({
       state,
       open,
+      pinnedOpen,
+      hoverEnabled,
+      setHovered,
+      setKeyboardFocus,
       setOpen,
       isMobile,
       openMobile,
       setOpenMobile,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, pinnedOpen, hoverEnabled, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
   )
 
   return (
@@ -162,7 +188,7 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, hoverEnabled, setHovered, setKeyboardFocus } = useSidebar()
 
   if (collapsible === "none") {
     return (
@@ -243,6 +269,28 @@ function Sidebar({
           className
         )}
         {...props}
+        onPointerEnter={event => {
+          props.onPointerEnter?.(event)
+          if (hoverEnabled && event.pointerType === 'mouse') setHovered(true)
+        }}
+        onPointerLeave={event => {
+          props.onPointerLeave?.(event)
+          // Ignore movement between descendants, including the planning submenu.
+          if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return
+          setHovered(false)
+        }}
+        onFocusCapture={event => {
+          props.onFocusCapture?.(event)
+          if (!hoverEnabled || event.target.matches(':focus-visible')) setKeyboardFocus(true)
+        }}
+        onBlurCapture={event => {
+          props.onBlurCapture?.(event)
+          if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) setKeyboardFocus(false)
+        }}
+        onPointerDownCapture={event => {
+          props.onPointerDownCapture?.(event)
+          if (hoverEnabled && event.pointerType === 'mouse') setKeyboardFocus(false)
+        }}
       >
         <div
           data-sidebar="sidebar"
@@ -261,12 +309,14 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar, open, openMobile, isMobile } = useSidebar()
+  const { toggleSidebar, open, openMobile, isMobile, pinnedOpen } = useSidebar()
 
   return (
     <Button
       aria-label="Alternar menu"
       aria-expanded={isMobile ? openMobile : open}
+      aria-pressed={isMobile ? undefined : pinnedOpen}
+      title={isMobile ? 'Abrir/fechar menu' : pinnedOpen ? 'Desafixar menu' : 'Fixar menu aberto'}
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
@@ -514,7 +564,7 @@ function SidebarMenuButton({
   tooltip?: string | React.ComponentProps<typeof TooltipContent>
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot : "button"
-  const { isMobile, state } = useSidebar()
+  const { isMobile, state, hoverEnabled } = useSidebar()
 
   const button = (
     <Comp
@@ -543,7 +593,7 @@ function SidebarMenuButton({
       <TooltipContent
         side="right"
         align="center"
-        hidden={state !== "collapsed" || isMobile}
+        hidden={state !== "collapsed" || isMobile || hoverEnabled}
         {...tooltip}
       />
     </Tooltip>

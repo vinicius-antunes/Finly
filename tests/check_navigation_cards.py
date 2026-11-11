@@ -41,22 +41,51 @@ try:
                         recording.send('Page.screencastFrameAck', {'sessionId': event['sessionId']})
                     recording.on('Page.screencastFrame', frame)
                     recording.send('Page.startScreencast', {'format': 'jpeg', 'quality': 75, 'maxWidth': 1440, 'maxHeight': 1000, 'everyNthFrame': 2})
+                page.mouse.move(1100, 120)
                 page.goto(f'http://127.0.0.1:{server.server_port}')
                 page.locator('input[type="month"]').fill('2026-11')
                 baseline = page.evaluate("localStorage.getItem('saldoclaro-v1')")
                 toggle = page.get_by_role('button', name='Alternar menu', exact=True)
-                toggle.click()
-                page.wait_for_function("document.querySelector('[data-slot=sidebar][data-collapsible]').dataset.state==='collapsed'")
-                toggle.focus()
-                page.keyboard.press('Enter')
-                page.wait_for_function("document.querySelector('[data-slot=sidebar][data-collapsible]').dataset.state==='expanded'")
+                desktop = page.locator('[data-slot="sidebar-container"]')
+                def state(expected):
+                    page.wait_for_function("expected => document.querySelector('[data-slot=sidebar][data-collapsible]').dataset.state===expected", arg=expected)
+                def assert_width(expected):
+                    page.wait_for_function("expected => Math.abs(document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width-expected)<1", arg=expected)
+                state('collapsed'); assert_width(60)
+                page.evaluate('document.fonts.ready')
+                page.screenshot(path=str(ART / f'{theme}-sidebar-collapsed.png'), full_page=True)
+                page.mouse.move(28, 220)
+                state('expanded'); assert_width(288)
+                page.screenshot(path=str(ART / f'{theme}-sidebar-expanded.png'), full_page=True)
+                for name in ('Lançamentos', 'Sobre a migração', 'Visão geral'):
+                    page.get_by_role('button', name=name, exact=True).hover()
+                    state('expanded')
+                assert page.get_by_role('tooltip').count() == 0
                 planning = page.get_by_role('button', name='Planejamentos', exact=True)
-                page.keyboard.press('Control+b')
-                planning.focus()
-                page.keyboard.press('Space')
-                page.wait_for_function("document.querySelector('[data-slot=sidebar][data-collapsible]').dataset.state==='expanded'")
+                planning.click()
                 assert planning.get_attribute('aria-expanded') == 'true'
+                page.get_by_role('button', name='Recursos disponíveis', exact=True).click()
+                page.mouse.move(1000, 120)
+                state('collapsed'); assert_width(60)
+                # Button pinning survives complete pointer enter/leave cycles.
+                toggle.click(); state('expanded'); assert toggle.get_attribute('aria-pressed') == 'true'
+                page.mouse.move(28, 220); page.mouse.move(1000, 120)
+                state('expanded')
+                toggle.click(); state('collapsed'); assert toggle.get_attribute('aria-pressed') == 'false'
+                toggle.focus(); page.keyboard.press('Enter'); state('expanded')
+                assert toggle.get_attribute('aria-pressed') == 'true'
+                page.keyboard.press('Space'); state('collapsed')
+                # Real keyboard navigation opens transiently without setting the pin.
+                toggle.focus(); page.keyboard.press('Shift+Tab')
+                state('expanded')
+                planning.focus()
+                if planning.get_attribute('aria-expanded') != 'true': page.keyboard.press('Space')
                 assert page.get_by_role('button', name='Recursos disponíveis', exact=True).is_visible()
+                page.mouse.move(1100, 120); state('expanded')
+                toggle.focus(); state('collapsed')
+                page.keyboard.press('Control+b'); state('expanded')
+                page.keyboard.press('Control+b'); state('collapsed')
+                # Keep a full-view reference of the preserved Magic UI hover.
                 page.evaluate('document.fonts.ready')
                 card = page.locator('[data-slot="magic-ui-card"]').first
                 before = card.get_attribute('style')
@@ -67,7 +96,7 @@ try:
                 card.locator('h3').evaluate('(e)=>window.getSelection().selectAllChildren(e)')
                 assert page.evaluate('window.getSelection().toString()') == 'Metas múltiplas'
                 page.evaluate('window.getSelection().removeAllRanges()')
-                for width, height in ((1366, 768), (768, 1024), (390, 844)):
+                for width, height in ((1366, 768), (1440, 1000), (768, 1024), (390, 844)):
                     page.set_viewport_size({'width': width, 'height': height})
                     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 toggle.click()
@@ -93,7 +122,12 @@ try:
                 page.get_by_role('button', name='Recursos disponíveis', exact=True).click()
                 dialog.wait_for(state='hidden')
                 page.screenshot(path=str(ART / f'{theme}-cards-mobile.png'), full_page=True)
+                page.set_viewport_size({'width':1440,'height':1000})
+                desktop.wait_for()
                 page.emulate_media(reduced_motion='reduce')
+                assert desktop.evaluate('(e)=>getComputedStyle(e).transitionDuration') == '0s'
+                page.mouse.move(28,220); state('expanded'); assert_width(288)
+                page.mouse.move(1100,120); state('collapsed'); assert_width(60)
                 card = page.locator('[data-slot="magic-ui-card"]').first
                 assert card.locator('.pointer-events-none').evaluate_all('(es)=>es.every(e=>getComputedStyle(e).display==="none")')
                 assert page.evaluate("localStorage.getItem('saldoclaro-v1')") == baseline
@@ -106,18 +140,21 @@ try:
                     playlist.write_text(''.join(f"file '{path}'\nduration {max(.04,min(1,(frames[i+1][1]-t) if i+1<len(frames) else .1))}\n" for i,(path,t) in enumerate(frames)))
                     subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', str(playlist), '-vf', 'scale=1440:1000:force_original_aspect_ratio=decrease,pad=1440:1000:(ow-iw)/2:(oh-ih)/2,format=yuv420p', '-c:v', 'libvpx-vp9', '-crf', '38', '-b:v', '0', str(ART / 'navigation-magic-card.webm')], check=True)
             context.close()
-        touch = browser.new_context(viewport={'width': 390, 'height': 844}, has_touch=True)
-        page = touch.new_page()
-        page.goto(f'http://127.0.0.1:{server.server_port}')
-        page.get_by_role('button', name='Alternar menu', exact=True).tap()
-        page.get_by_role('button', name='Planejamentos', exact=True).tap()
-        page.get_by_role('button', name='Recursos disponíveis', exact=True).tap()
-        page.get_by_role('dialog').wait_for(state='hidden')
-        assert page.locator('[data-slot="magic-ui-card"]').count() == 3
-        assert page.locator('[data-slot="magic-ui-card"] .pointer-events-none').evaluate_all('(es)=>es.every(e=>getComputedStyle(e).display==="none")')
-        touch.close()
+        for mobile_width in (390, 768):
+            touch = browser.new_context(viewport={'width': mobile_width, 'height': 844}, has_touch=True)
+            page = touch.new_page()
+            page.goto(f'http://127.0.0.1:{server.server_port}')
+            page.mouse.move(20, 200)
+            assert page.get_by_role('dialog').count() == 0
+            page.get_by_role('button', name='Alternar menu', exact=True).tap()
+            page.get_by_role('button', name='Planejamentos', exact=True).tap()
+            page.get_by_role('button', name='Recursos disponíveis', exact=True).tap()
+            page.get_by_role('dialog').wait_for(state='hidden')
+            assert page.locator('[data-slot="magic-ui-card"]').count() == 3
+            assert page.locator('[data-slot="magic-ui-card"] .pointer-events-none').evaluate_all('(es)=>es.every(e=>getComputedStyle(e).display==="none")')
+            touch.close()
         browser.close()
-    print('PASS: shadcn Sidebar collapse/keyboard/planning/mobile/focus trap/Escape, Magic UI hover/text selection/reduced motion, three themes and zero financial writes.')
+    print('PASS: Sidebar initial 60px, hover 288px, leave, descendants, pin/unpin, keyboard/planning/mobile 390/768/focus/Escape, Magic UI hover/text selection/reduced motion, three themes and zero financial writes.')
 finally:
     server.shutdown()
     server.server_close()

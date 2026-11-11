@@ -995,7 +995,7 @@ h2{
 .magic-feature > div:last-child { padding:30px; min-height:180px; }
 .magic-feature h3 { font-size:22px; font-weight:600; letter-spacing:-.6px; }
 .magic-feature .muted { line-height:1.9; font-size:13px; }
-@media(max-width:767px) {
+@media(max-width:768px) {
   .mobile-menu-close { display:block; }
   [data-slot="sidebar-header"] { padding:30px 18px 24px; }
   [data-slot="sidebar-group"] { padding-inline:18px; }
@@ -1006,3 +1006,16 @@ h2{
 }
 /* Keep informational copy readable at the brightest point of the hover. */
 .magic-feature .muted { color:color-mix(in srgb,var(--foreground) 70%,var(--muted-foreground)); }
+
+/* Desktop hover uses the whole shadcn container; mobile stays a modal Sheet. */
+[data-slot="sidebar-gap"], [data-slot="sidebar-container"] {
+  transition-duration:220ms;
+  transition-timing-function:ease-in-out;
+}
+[data-collapsible="icon"] [data-slot="sidebar-header"],
+[data-collapsible="icon"] [data-slot="sidebar-group"],
+[data-collapsible="icon"] [data-slot="sidebar-footer"] { padding-inline:8px; }
+[data-collapsible="icon"] [data-slot="sidebar-menu-button"] > span:not(.finance-monogram) { display:none; }
+@media(prefers-reduced-motion:reduce) {
+  [data-slot="sidebar-gap"], [data-slot="sidebar-container"] { transition:none!important; }
+}

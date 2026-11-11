@@ -47,3 +47,5 @@ Somente na branch existente `Finly-React`: três temas, shadcn Button/Card, Auro
 ## Graphite Green — execução autorizada das nove seleções
 
 A identidade vigente passa a Graphite Green usando o CSS Tweakcn fornecido; o antigo valor de preferência `aurora` continua aceito como alias. As seis integrações iniciais foram preservadas (tema, Light Rays, Bento, donut, Tremor e Text Morph). Por decisão posterior do proprietário, Sidebar e Card Spotlight da Aceternity foram substituídos por **shadcn/ui Sidebar e Magic UI Magic Card**, com fontes e licenças MIT verificados. O Stateful Button foi removido do escopo. [Adaptações e evidências das substituições](docs/graphite/MIT_REPLACEMENTS.md). O legado e a leitura financeira continuam preservados. [Matriz, mapa de tokens, testes e evidências](docs/graphite/IMPLEMENTATION.md).
+
+Na `Finly-React`, a Sidebar inicia recolhida e expande ao passar o mouse. O botão **Alternar menu** permite fixá-la aberta; touch continua usando o drawer. [Comportamento, testes e vídeo](docs/graphite/SIDEBAR_HOVER.md).

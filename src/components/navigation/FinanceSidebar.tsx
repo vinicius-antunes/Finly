@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel
  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
 export type Screen = 'overview' | 'entries' | 'planning' | 'about';
 export function FinanceSidebar({screen,onNavigate}:{screen:Screen;onNavigate:(screen:Screen)=>void}) {
- const {state,setOpen,setOpenMobile} = useSidebar();
+ const {state,setOpenMobile} = useSidebar();
  const [plansOpen,setPlansOpen] = useState(false);
  function go(next:Screen){onNavigate(next);setOpenMobile(false);}
  return <Sidebar collapsible="icon" className="finance-sidebar">
@@ -19,7 +19,7 @@ export function FinanceSidebar({screen,onNavigate}:{screen:Screen;onNavigate:(sc
    <SidebarMenuItem><SidebarMenuButton tooltip="Lançamentos" aria-label="Lançamentos" isActive={screen==='entries'} onClick={()=>go('entries')}><ReceiptText/><span>Lançamentos</span></SidebarMenuButton></SidebarMenuItem>
    <Collapsible asChild open={plansOpen} onOpenChange={next=>{setPlansOpen(state==='collapsed'?true:next)}}>
     <SidebarMenuItem>
-     <CollapsibleTrigger asChild><SidebarMenuButton tooltip="Planejamentos" aria-label="Planejamentos" isActive={screen==='planning'} onClick={()=>{setOpen(true);onNavigate('planning')}}><Target/><span>Planejamentos</span><ChevronDown className={`planning-chevron ${plansOpen?'expanded':''}`}/></SidebarMenuButton></CollapsibleTrigger>
+     <CollapsibleTrigger asChild><SidebarMenuButton tooltip="Planejamentos" aria-label="Planejamentos" isActive={screen==='planning'} onClick={()=>onNavigate('planning')}><Target/><span>Planejamentos</span><ChevronDown className={`planning-chevron ${plansOpen?'expanded':''}`}/></SidebarMenuButton></CollapsibleTrigger>
      <CollapsibleContent><SidebarMenuSub><SidebarMenuSubItem><SidebarMenuSubButton asChild><button type="button" onClick={()=>go('planning')}>Recursos disponíveis</button></SidebarMenuSubButton></SidebarMenuSubItem><li className="planning-status">Metas aguardam migração segura</li></SidebarMenuSub></CollapsibleContent>
     </SidebarMenuItem>
    </Collapsible>
