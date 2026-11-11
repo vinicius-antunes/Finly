@@ -12,3 +12,4 @@ test-results/
 *.log
 *.backup.json
 *backup-financeiro*.json
+*.tsbuildinfo

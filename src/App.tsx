@@ -3,40 +3,34 @@ import type { ReactNode } from 'react';
 import { formatMoney, monthNow, readLegacySnapshot, sumCents, LEGACY_KEY } from './lib/legacy';
 import type { LegacyEntry, Snapshot } from './lib/legacy';
 
-type Theme = 'aurora' | 'dark' | 'light';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { MagicCard } from '@/components/visual/MagicCard';
+import { AuroraBackdrop } from '@/components/visual/AuroraBackdrop';
+import { savedTheme, PREF_KEY } from '@/theme/theme';
+import type { Theme } from '@/theme/theme';
 type Screen = 'overview' | 'entries' | 'planning' | 'about';
-const PREF_KEY = 'finly-react-theme';
 const choices: { id: Theme; label: string }[] = [
-  { id: 'aurora', label: 'Dark Aurora' },
+  { id: 'aurora', label: 'Dark Aurora Premium' },
   { id: 'dark', label: 'Escuro Padrão' },
   { id: 'light', label: 'Claro' },
 ];
 
-function savedTheme(): Theme {
-  try {
-    const value = localStorage.getItem(PREF_KEY);
-    if (value === 'aurora' || value === 'dark' || value === 'light') return value;
-    return localStorage.getItem('finly-theme') === 'light' ? 'light' : 'aurora';
-  } catch {
-    return 'aurora';
-  }
-}
-
 function SummaryCard({ label, value, detail, tone }: {
   label: string; value: string; detail: string; tone?: 'positive' | 'warning';
 }) {
-  return <div className="summary-card">
+  return <MagicCard className="summary-card">
     <p className="muted tiny">{label}</p>
     <strong className={tone ? 'tone-' + tone : ''}>{value}</strong>
     <span className="muted tiny">{detail}</span>
-  </div>;
+  </MagicCard>;
 }
 
 function FeatureCard({ title, children }: { title: string; children: ReactNode }) {
-  return <section className="feature-card">
+  return <Card className="feature-card">
     <h3>{title}</h3>
     <div className="muted">{children}</div>
-  </section>;
+  </Card>;
 }
 
 const labels: Record<LegacyEntry['kind'], string> = {
@@ -61,13 +55,16 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('overview');
   const [period, setPeriod] = useState<string>(monthNow);
   const [snapshot, setSnapshot] = useState<Snapshot>(readLegacySnapshot);
+  const [effects, setEffects] = useState(true);
+  const [themeFeedback, setThemeFeedback] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme === 'light' ? 'light' : 'dark';
     document.querySelector('meta[name="theme-color"]')
       ?.setAttribute('content', theme === 'light' ? '#f7f9ff' : '#0b1020');
-    try { localStorage.setItem(PREF_KEY, theme); } catch { /* apenas preferência visual */ }
+    try { localStorage.setItem(PREF_KEY, theme); } catch { setThemeFeedback('Tema aplicado nesta sessão; o navegador não permitiu salvar a preferência.'); }
   }, [theme]);
 
   useEffect(() => {
@@ -131,16 +128,18 @@ export default function App() {
             <h1>{menus.find(item => item.id === screen)?.label}</h1>
             <p className="muted">Nova experiência React, preservando as regras financeiras no aplicativo original.</p>
           </div>
-          <a className="action-primary" href="/legacy/">Ir para o Finly funcional <span aria-hidden="true">↗</span></a>
+          <Button asChild><a className="action-primary" href="/legacy/">Ir para o Finly funcional <span aria-hidden="true">↗</span></a></Button>
         </div>
 
         <div className="theme-panel" role="group" aria-label="Tema visual">
           <span className="muted tiny">APARÊNCIA</span>
           <div className="theme-options">{choices.map(option =>
-            <button key={option.id} type="button" aria-pressed={theme === option.id}
+            <Button variant="ghost" key={option.id} type="button" aria-pressed={theme === option.id}
               className={theme === option.id ? 'theme-active' : ''} onClick={() => setTheme(option.id)}>
               {option.label}
-            </button>)}</div>
+            </Button>)}</div>
+          <label className="effects-toggle"><input type="checkbox" checked={effects} onChange={event => setEffects(event.target.checked)} /> Efeitos Aurora <span className="muted">(nesta sessão)</span></label>
+          {themeFeedback && <span role="status" className="muted tiny">{themeFeedback}</span>}
         </div>
 
         {snapshot.kind === 'invalid' && <section className="warning-banner" role="alert">{snapshot.message}</section>}
@@ -156,7 +155,7 @@ export default function App() {
           <div className="hero-grid">
             <section className="balance-hero">
               <span className="eyebrow bright">FINLY · NOVA EXPERIÊNCIA</span>
-              <div className="aurora-rings" aria-hidden="true" />
+              <AuroraBackdrop theme={theme} enabled={effects} />
               <strong>Finanças mais claras.<br /><em>Controle em primeiro lugar.</em></strong>
               <p>Esta é a primeira etapa da migração para React, TypeScript e Tailwind. O painel é de leitura; alterações financeiras continuam na versão original.</p>
               <div className="hero-footer">
@@ -168,10 +167,7 @@ export default function App() {
               <span className="eyebrow">REGISTROS DO MÊS</span>
               <strong className="glance-number">{entries.length}</strong>
               <p className="muted">Lançamentos encontrados no armazenamento local v1</p>
-              <div className="visual-bars" aria-hidden="true">
-                <i style={{ height: '42%' }} /><i style={{ height: '72%' }} /><i style={{ height: '56%' }} /><i style={{ height: '84%' }} /><i style={{ height: '61%' }} /><i style={{ height: '95%' }} /><i style={{ height: '75%' }} />
-              </div>
-              <span className="tiny muted">Barras decorativas — não representam valores financeiros</span>
+              <div className="records-note"><span aria-hidden="true">◇</span> Apenas registros existentes.<br />Sem projeção de caixa nesta prévia.</div>
             </section>
           </div>
           <div className="summary-grid">
@@ -182,7 +178,7 @@ export default function App() {
           </div>
           <section className="table-card">
             <div className="card-header"><div><span className="eyebrow">ATIVIDADE</span><h2>Lançamentos da competência</h2></div>
-              <button className="subtle-btn" onClick={() => navigate('entries')}>Ver todos ↗</button></div>
+              <Button variant="outline" className="subtle-btn" onClick={() => navigate('entries')}>Ver todos ↗</Button></div>
             <EntryList entries={sorted.slice(0, 6)} />
           </section>
           <section className="footnote">Os valores acima são somas descritivas dos registros; não representam saldo disponível, pagamento de fatura ou previsão de caixa. Nenhum registro é alterado nesta prévia.</section>
