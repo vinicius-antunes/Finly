@@ -15,9 +15,10 @@ const files = readdirSync(join(root,'src'), {recursive:true}).filter(path => /\.
 const src = [...files,'public/theme-init.js'].map(content).join('\n');
 assert.doesNotMatch(src, /localStorage\.setItem\s*\(\s*['"]saldoclaro-v1['"]/);
 assert.doesNotMatch(src, /localStorage\.removeItem\s*\(\s*['"]saldoclaro-v1['"]/);
-assert.doesNotMatch(src, /finly-v2/);
+assert.match(content('src/finance/storage.ts'), /localStorage.setItem\(V2_KEY/);
+assert.match(content('src/finance/model.ts'), /amountCents/);
 assert.ok(existsSync(join(root,'MIGRACAO_REACT.md')));
-console.log('OK: scaffold React, fallback legado e nenhuma gravação financeira na prévia.');
+console.log('OK: scaffold React, fallback legado protegido e modelo financeiro v2 separado.');
 
 assert.ok(existsSync(join(root, 'package-lock.json')), 'Lockfile necessário para npm ci');
 assert.ok(existsSync(join(root, 'docs/licenses/react-bits.txt')));

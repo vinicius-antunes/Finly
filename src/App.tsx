@@ -1,3 +1,4 @@
+import {FinanceRoot} from './finance/FinanceApp';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { formatMoney, monthNow, readLegacySnapshot, sumCents, LEGACY_KEY } from './lib/legacy';
@@ -57,7 +58,9 @@ function formatMonth(value: string): string {
   return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date);
 }
 
-export default function App() {
+export default function App(){return <FinanceRoot preview={activation=><Preview activation={activation}/>}/>;}
+
+function Preview({activation}:{activation:ReactNode}) {
   const [theme, setTheme] = useState<Theme>(savedTheme);
   const [screen, setScreen] = useState<Screen>('overview');
   const [period, setPeriod] = useState<string>(monthNow);
@@ -130,6 +133,7 @@ export default function App() {
           {themeFeedback && <span role="status" className="muted tiny">{themeFeedback}</span>}
         </div>
 
+        {activation}
         {snapshot.kind === 'invalid' && <section className="warning-banner" role="alert">{snapshot.message}</section>}
         {snapshot.kind === 'empty' && <section className="info-banner" role="status">
           Nenhum dado financeiro nesta origem. A prévia começa vazia. Se sua versão principal está em outro endereço,

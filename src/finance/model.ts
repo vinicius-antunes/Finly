@@ -151,6 +151,14 @@ export function validate(s: unknown): asserts s is State {
     )
       throw Error("Lançamento inválido ou ID duplicado");
     integer(x.amountCents);
+    if (
+      (x.groupId !== undefined &&
+        x.groupId !== null &&
+        typeof x.groupId !== "string") ||
+      (x.purchaseId !== undefined && typeof x.purchaseId !== "string") ||
+      (x.part !== undefined && x.parts === undefined)
+    )
+      throw Error("Vínculo ou parcela inválida");
     ids.add(x.id);
     if (
       x.parts !== undefined &&
@@ -185,7 +193,17 @@ export function validate(s: unknown): asserts s is State {
     (a, x) => a + x.amountCents,
     0,
   );
-  if (!Number.isSafeInteger(total)) throw Error("Soma excede o limite seguro");
+  const budget = [
+    "salary",
+    "reserve",
+    "cushion",
+    "goal",
+    "installmentCap",
+  ].reduce(
+    (n, k) => n + Number((s.settings as Record<string, unknown>)[k]),
+    total,
+  );
+  if (!Number.isSafeInteger(budget)) throw Error("Soma excede o limite seguro");
 }
 export async function migrate(raw: string): Promise<State> {
   if (raw.length > 4 * 1024 * 1024) throw Error("Backup excede 4 MB");

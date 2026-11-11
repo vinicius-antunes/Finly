@@ -91,7 +91,7 @@ try:
    ctx=browser.new_context(reduced_motion='reduce',has_touch=True,viewport={'width':390,'height':844})
    if raw: ctx.add_init_script(f'localStorage.setItem("saldoclaro-v1",{json.dumps(raw)})')
    pg=ctx.new_page();pg.goto(url)
-   if raw: assert pg.get_by_role('alert').is_visible();assert pg.evaluate('localStorage.getItem("saldoclaro-v1")')==raw
+   if raw: assert pg.get_by_role('alert').first.is_visible();assert pg.evaluate('localStorage.getItem("saldoclaro-v1")')==raw
    else: assert pg.locator('.info-banner[role="status"]').is_visible()
    assert pg.locator('.light-rays__canvas').count()==0
    ctx.close()
@@ -99,7 +99,7 @@ try:
   ctx.add_init_script("Object.defineProperty(window,'localStorage',{get(){throw new Error('denied')}})")
   pg=ctx.new_page();pg.goto(url);pg.get_by_role('button',name='Claro',exact=True).click()
   assert pg.locator('html').get_attribute('data-theme')=='light'
-  assert pg.get_by_role('alert').is_visible()
+  assert pg.get_by_role('alert').first.is_visible()
   ctx.close()
   # Preserve both existing React preference and legacy light fallback.
   for key,value in [('finly-react-theme','dark'),('finly-theme','light')]:
