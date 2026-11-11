@@ -1,0 +1,18 @@
+[agents]
+max_concurrent_threads_per_session = 3
+
+[agents.finance_architect]
+description = "Audita invariantes financeiras e persistência."
+config_file = "agents/finance-architect.toml"
+
+[agents.frontend_reviewer]
+description = "Revisa interação, acessibilidade e responsividade."
+config_file = "agents/frontend-reviewer.toml"
+
+[agents.test_analyst]
+description = "Analisa lacunas e oráculos de regressão determinísticos."
+config_file = "agents/test-analyst.toml"
+
+[agents.privacy_reviewer]
+description = "Audita privacidade, diff, staging e CI."
+config_file = "agents/privacy-reviewer.toml"

@@ -33,3 +33,7 @@ O projeto não inclui licença de código nesta preparação. Escolha uma licen�
 ## Aviso
 
 Projeções são estimativas com dados inseridos manualmente; não substituem o extrato bancário ou aconselhamento financeiro.
+
+## Desenvolvimento
+
+Agentes de revisão, Skills e CI apoiam o desenvolvimento; não adicionam funcionalidades financeiras ao aplicativo. Veja [o fluxo de trabalho e os testes](docs/AGENT_WORKFLOW.md).

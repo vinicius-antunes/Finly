@@ -27,3 +27,10 @@ Finly é um aplicativo local-first de controle financeiro pessoal. A versão fun
 - Execute `python3 tests/check_public_release.py` e testes novos de regras monetárias, parcelamentos, reembolsos, assinaturas e migração.
 - Não remova testes para esconder defeitos. Documente decisões, limitações e atualize README e documentação.
 - Ao finalizar cada fase, informe alterações, resultados dos testes e riscos. **Envie commits ao GitHub e abra pull request para `main`**; aguarde revisão antes do merge.
+
+## Agentes e Skills de desenvolvimento
+- Principal coordena e implementa; revisores apenas analisam e não escrevem código. Uma mudança de código por responsável de cada vez; nunca editores concorrentes no mesmo arquivo.
+- Delegue questões delimitadas: `finance_architect` para regras financeiras; `frontend_reviewer` para interação/acessibilidade; `test_analyst` para regressões; `privacy_reviewer` para privacidade/publicação. Use `explorer`/`worker` embutidos quando suficientes. Mudanças simples não precisam de subagentes.
+- Skills em `.agents/skills/<nome>/SKILL.md`: `finly-financial-invariants` (lógica financeira), `finly-safe-migration` (schema/importação/persistência), `finly-browser-qa` (UI/fluxos de backup) e `finly-public-release` (antes de commit/push/PR/release).
+- Antes de PR, execute testes adequados, `python3 tests/check_agent_setup.py` e auditoria de privacidade do diff/staging. Não modifique `main` diretamente nem faça merge automático.
+- Detalhes, fallback manual e limites reais: `docs/AGENT_WORKFLOW.md`.
