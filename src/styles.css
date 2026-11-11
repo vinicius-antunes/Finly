@@ -468,12 +468,8 @@ h2{
 .summary-card:first-child{
   grid-column:span 2;
   grid-row:span 2;
-  background:var(--primary);
-  color:var(--primary-foreground);
+  border-color:color-mix(in srgb,var(--primary) 22%,var(--border));
   justify-content:center
-}
-.summary-card:first-child .muted,.summary-card:first-child .tone-positive{
-  color:var(--primary-foreground)
 }
 .summary-card:first-child strong{
   font-size:46px;
@@ -517,11 +513,11 @@ h2{
   transition:opacity .2s
 }
 .magic-card::before{
-  background:radial-gradient(260px circle at var(--mb-x,50%) var(--mb-y,50%),rgba(var(--glow-rgb),.12),transparent 85%)
+  background:radial-gradient(260px circle at var(--mb-x,50%) var(--mb-y,50%),rgba(var(--glow-rgb),.08),transparent 85%)
 }
 .magic-card::after{
   padding:1px;
-  background:radial-gradient(210px circle at var(--mb-x,50%) var(--mb-y,50%),rgba(var(--glow-rgb),.7),transparent 85%);
+  background:radial-gradient(210px circle at var(--mb-x,50%) var(--mb-y,50%),rgba(var(--glow-rgb),.45),transparent 85%);
   mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   mask-composite:exclude
 }
