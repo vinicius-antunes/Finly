@@ -1,0 +1,135 @@
+{
+  "formato": "finly-visual-selection-v1",
+  "projeto": "Finly",
+  "branch_planejada": "Finly-React",
+  "tipo": "planejamento_visual",
+  "autorizacao_implementacao": false,
+  "gerado_em": "2026-11-11T17:27:36.280Z",
+  "direcao_visual": {
+    "principal": "Dark Aurora Premium",
+    "alternativos": [
+      "Escuro Padrão",
+      "Claro"
+    ],
+    "tema_referencia": "https://tweakcn.com/themes/cmwcd635z000204l0dhyxb6e2"
+  },
+  "aviso": "Este arquivo registra ideias. Não autoriza implementação automática, alterações no GitHub ou tarefas para o Codex.",
+  "total_itens": 9,
+  "features": [
+    {
+      "id": "660260a6-aa5e-4e40-96f8-da87b2b59f4b",
+      "catalogId": "tema-tweakcn-escolhido",
+      "nome": "Tweakcn — Tema escolhido para o Finly",
+      "demonstracao": "https://tweakcn.com/themes/cmwcd635z000204l0dhyxb6e2",
+      "repositorio": "https://github.com/jnsahaj/tweakcn",
+      "categoria": "Temas e aparência",
+      "prioridade": "alta",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Base visual principal indicada por você. Verificar e aplicar os tokens reais exportados do tema."
+    },
+    {
+      "id": "2ea8980b-3a0d-4fc3-9ce5-3a646567adec",
+      "catalogId": "fundos_animados_e_iluminacao-3",
+      "nome": "React Bits — Light Rays",
+      "demonstracao": "https://reactbits.dev/backgrounds/light-rays",
+      "repositorio": "https://github.com/DavidHDev/react-bits",
+      "categoria": "Fundos e iluminação",
+      "prioridade": "baixa",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Iluminação decorativa localizada."
+    },
+    {
+      "id": "23c26792-ad29-448d-81d0-fcff522a8a2d",
+      "catalogId": "cards_graficos_widgets_financeiros-0",
+      "nome": "React Bits — Magic Bento",
+      "demonstracao": "https://reactbits.dev/c/components/magic-bento",
+      "repositorio": "https://github.com/DavidHDev/react-bits",
+      "categoria": "Cards e gráficos",
+      "prioridade": "alta",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Cards de saldos, receitas, despesas e faturas com glow discreto no hover."
+    },
+    {
+      "id": "b58e0f92-1d1c-4ab0-8517-820b09202eef",
+      "catalogId": "cards_graficos_widgets_financeiros-1",
+      "nome": "Aceternity UI — Card Spotlight",
+      "demonstracao": "https://ui.aceternity.com/components/card-spotlight",
+      "repositorio": "",
+      "categoria": "Cards e gráficos",
+      "prioridade": "media",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Alternativa de iluminação suave para cartões financeiros."
+    },
+    {
+      "id": "bd46e50b-d45d-401d-8cc0-717681063cc6",
+      "catalogId": "cards_graficos_widgets_financeiros-3",
+      "nome": "shadcn/ui — Pie/Donut Charts",
+      "demonstracao": "https://ui.shadcn.com/charts/pie",
+      "repositorio": "https://github.com/shadcn-ui/ui",
+      "categoria": "Cards e gráficos",
+      "prioridade": "alta",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Distribuição de despesas por categoria."
+    },
+    {
+      "id": "4408cfe2-95f2-408d-b42d-6d632a3da7cf",
+      "catalogId": "cards_graficos_widgets_financeiros-6",
+      "nome": "Tremor — Componentes analíticos",
+      "demonstracao": "https://www.tremor.so/",
+      "repositorio": "https://github.com/tremorlabs/tremor",
+      "categoria": "Cards e gráficos",
+      "prioridade": "media",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Referência de composição de dashboards e indicadores."
+    },
+    {
+      "id": "eb13580f-0312-49ad-88d4-a7534b0d5e10",
+      "catalogId": "menus_laterais_e_navegacao-0",
+      "nome": "Aceternity UI — Sidebar",
+      "demonstracao": "https://ui.aceternity.com/components/sidebar",
+      "repositorio": "",
+      "categoria": "Menus e navegação",
+      "prioridade": "alta",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Menu recolhível com ícones, labels e expansão por interação."
+    },
+    {
+      "id": "eb374285-7959-4b34-8773-eda74c9f9e02",
+      "catalogId": "botoes_hover_microanimacoes-3",
+      "nome": "Motion Primitives — Text Morph",
+      "demonstracao": "https://motion-primitives.com/docs/text-morph",
+      "repositorio": "https://github.com/ibelick/motion-primitives",
+      "categoria": "Botões e microanimações",
+      "prioridade": "baixa",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Transições ocasionais de rótulos ou estados curtos."
+    },
+    {
+      "id": "3b6a4622-51fa-41d3-8ac9-d6fcaa7523b7",
+      "catalogId": "botoes_hover_microanimacoes-2",
+      "nome": "Aceternity UI — Stateful Button",
+      "demonstracao": "https://ui.aceternity.com/components/stateful-button",
+      "repositorio": "",
+      "categoria": "Botões e microanimações",
+      "prioridade": "alta",
+      "local": "A definir",
+      "decisao": "Quero avaliar",
+      "observacoes": "Feedback visual ao salvar um lançamento ou planejamento."
+    }
+  ],
+  "criterios": [
+    "Preservar dados financeiros e a main",
+    "Validar compatibilidade com React + TypeScript + Tailwind + Vite",
+    "Respeitar os três temas e movimento reduzido",
+    "Avaliar licenças e desempenho antes de integrar",
+    "Não inventar dados financeiros para gráficos"
+  ]
+}
