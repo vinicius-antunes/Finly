@@ -377,10 +377,6 @@ h2{
   flex-direction:column;
   background:linear-gradient(120deg,var(--card),var(--secondary))
 }
-.balance-hero>*:not(.rays-backdrop){
-  position:relative;
-  z-index:1
-}
 .balance-hero strong{
   font-size:clamp(30px,3.3vw,47px);
   letter-spacing:-2px;
@@ -415,16 +411,16 @@ h2{
   display:inline-flex
 }
 .rays-backdrop{
-  position:absolute;
+  position:fixed;
   inset:0;
+  z-index:0;
   pointer-events:none;
-  background:radial-gradient(ellipse at 85% -20%,color-mix(in srgb,var(--primary) 12%,transparent),transparent 60%)
+  background:radial-gradient(ellipse at 85% -20%,color-mix(in srgb,var(--primary) 9%,transparent),transparent 70%)
 }
 .rays-backdrop>.light-rays{
   width:100%;
   height:100%;
-  opacity:.5;
-  mask-image:linear-gradient(#000,transparent)
+  mask-image:linear-gradient(#000 45%,transparent)
 }
 .reading-note{
   display:flex;
@@ -965,7 +961,9 @@ h2{
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
-.finly-shell { min-height:100vh; }
+.finly-shell { min-height:100vh; isolation:isolate; }
+/* The viewport backdrop is below content (1), desktop Sidebar (10) and Sheet (50). */
+.finly-shell > .content { position:relative; z-index:1; }
 .finance-sidebar { border-color:var(--sidebar-border); }
 [data-slot="sidebar-inner"], [data-slot="sidebar"][data-mobile="true"] { background:var(--sidebar); color:var(--sidebar-foreground); }
 [data-slot="sidebar-header"] { padding:28px 16px 26px; }

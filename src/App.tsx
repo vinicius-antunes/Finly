@@ -102,6 +102,7 @@ export default function App() {
   }
 
   return <SidebarProvider className="finly-shell">
+    <RaysBackdrop theme={theme} enabled={effects} />
     <FinanceSidebar screen={screen} onNavigate={navigate}/>
     <div className="content">
       <header className="workspace-top">
@@ -142,7 +143,6 @@ export default function App() {
           <div className="hero-grid">
             <section className="balance-hero">
               <span className="eyebrow bright">FINLY · NOVA EXPERIÊNCIA</span>
-              <RaysBackdrop theme={theme} enabled={effects} />
               <strong>Seu dinheiro.<br /><em>Sua direção.</em></strong>
               <p>Clareza para acompanhar seus registros, sem perder de vista os próximos passos. As alterações continuam no Finly funcional.</p>
               <div className="hero-footer">

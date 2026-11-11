@@ -10,7 +10,7 @@ As duas substituições **shadcn/ui Sidebar e Magic UI Magic Card** foram aprova
 |Feature vigente|Situação|Código|
 |---|---|---|
 |Tweakcn Graphite Green/três temas|Preservado/testado|src/theme/|
-|React Bits Light Rays|Preservado/testado|src/components/visual/LightRays.tsx|
+|React Bits Light Rays|Background global da interface, contínuo na navegação; [correção e evidências](GLOBAL_LIGHT_RAYS.md)|src/components/visual/LightRays.tsx e RaysBackdrop.tsx|
 |React Bits Magic Bento|Preservado/testado|src/components/visual/MagicCard.tsx|
 |Magic UI Magic Card (substituição MIT aprovada)|Implementado/testado|src/components/magicui/magic-card.tsx|
 |shadcn Donut|Preservado/testado|src/components/analytics/CategoryDonut.tsx|
