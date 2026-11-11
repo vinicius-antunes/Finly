@@ -13,5 +13,10 @@ export default defineConfig({
       this.emitFile({ type: 'asset', fileName: 'build-info.json', source: JSON.stringify({ commit, branch }) });
     },
   }],
-  build: { outDir: 'dist', emptyOutDir: true },
+  build: { outDir: 'dist', emptyOutDir: true, rollupOptions: { output: {
+    // Keep the shared React runtime cache stable across UI/effect changes.
+    manualChunks(id) {
+      if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react-runtime';
+    },
+  } } },
 });

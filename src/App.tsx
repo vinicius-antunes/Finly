@@ -4,7 +4,9 @@ import { formatMoney, monthNow, readLegacySnapshot, sumCents, LEGACY_KEY } from 
 import type { LegacyEntry, Snapshot } from './lib/legacy';
 
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { MagicCard as MagicUICard } from '@/components/magicui/magic-card';
+import { FinanceSidebar, type Screen } from '@/components/navigation/FinanceSidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { MagicCard } from '@/components/visual/MagicCard';
 import { RaysBackdrop } from '@/components/visual/RaysBackdrop';
 import { TextMorph } from '@/components/graphite/TextMorph';
@@ -12,7 +14,6 @@ const CategoryDonut = lazy(() => import('@/components/analytics/CategoryDonut').
 import { RefundProgress } from '@/components/analytics/RefundProgress';
 import { savedTheme, PREF_KEY } from '@/theme/theme';
 import type { Theme } from '@/theme/theme';
-type Screen = 'overview' | 'entries' | 'planning' | 'about';
 const choices: { id: Theme; label: string }[] = [
   { id: 'graphite', label: 'Graphite Green' },
   { id: 'dark', label: 'Escuro Padrão' },
@@ -29,11 +30,14 @@ function SummaryCard({ label, value, detail, tone }: {
   </MagicCard>;
 }
 
-function FeatureCard({ title, children }: { title: string; children: ReactNode }) {
-  return <Card className="feature-card">
+function FeatureCard({ title, children, theme }: { title: string; children: ReactNode; theme: Theme }) {
+  return <MagicUICard className="feature-card magic-feature" appearance={theme} gradientSize={320}
+    gradientColor={theme === 'light' ? '#6ab586' : theme === 'dark' ? '#9abfa8' : '#16e882'}
+    gradientOpacity={theme === 'dark' ? 0.12 : theme === 'light' ? 0.16 : 0.24}
+    gradientFrom="var(--primary)" gradientTo="var(--border)">
     <h3>{title}</h3>
     <div className="muted">{children}</div>
-  </Card>;
+  </MagicUICard>;
 }
 
 const labels: Record<LegacyEntry['kind'], string> = {
@@ -60,7 +64,6 @@ export default function App() {
   const [snapshot, setSnapshot] = useState<Snapshot>(readLegacySnapshot);
   const [effects, setEffects] = useState(true);
   const [themeFeedback, setThemeFeedback] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -96,32 +99,13 @@ export default function App() {
 
   function navigate(next: Screen) {
     setScreen(next);
-    setMenuOpen(false);
   }
 
-  return <div className="shell">
-    <aside className={'sidebar ' + (menuOpen ? 'menu-open' : '')}>
-      <a className="identity" href="/" aria-label="Finly — início" onClick={event => { event.preventDefault(); navigate('overview'); }}>
-        <span className="identity-mark">F</span>
-        <span><strong>Finly</strong><small>FINANÇAS COM CLAREZA</small></span>
-      </a>
-      <p className="nav-kicker">WORKSPACE</p>
-      <nav aria-label="Navegação principal">
-        {menus.map(item => <button key={item.id} className={'nav-link ' + (screen === item.id ? 'selected' : '')}
-          aria-current={screen === item.id ? 'page' : undefined} onClick={() => navigate(item.id)}>
-          <span className="nav-symbol" aria-hidden="true">{item.symbol}</span>{item.label}
-          {item.id === 'planning' && <span className="soon-tag">Em breve</span>}
-        </button>)}
-      </nav>
-      <div className="sidebar-bottom">
-        <div className="privacy-dot"><span aria-hidden="true">●</span> Dados apenas neste navegador</div>
-        <a className="legacy-link" href="/legacy/">Abrir Finly completo <span aria-hidden="true">↗</span></a>
-      </div>
-    </aside>
-
+  return <SidebarProvider className="finly-shell">
+    <FinanceSidebar screen={screen} onNavigate={navigate}/>
     <div className="content">
       <header className="workspace-top">
-        <button className="mobile-toggle" onClick={() => setMenuOpen(value => !value)} aria-expanded={menuOpen} aria-label="Abrir ou fechar menu">☰</button>
+        <SidebarTrigger className="finance-sidebar-trigger" />
         <div className="breadcrumbs">FINLY <span>/</span> REACT LAB <span>/</span> {menus.find(item => item.id === screen)?.label}</div>
         <div className="preview-status"><span aria-hidden="true" /> PRÉVIA DE MIGRAÇÃO</div>
       </header>
@@ -189,19 +173,19 @@ export default function App() {
           <div className="card-bottom"><a href="/legacy/">Criar, editar e importar lançamentos na versão funcional ↗</a></div>
         </section>}
         {screen === 'planning' && <div className="feature-grid">
-          <FeatureCard title="Metas múltiplas">A criação de metas, os depósitos e as retiradas serão migrados somente após definir e testar o modelo financeiro v2.</FeatureCard>
-          <FeatureCard title="Simulações">O simulador antigo continua disponível no Finly funcional. Os cálculos financeiros ainda não foram transferidos para React.</FeatureCard>
-          <FeatureCard title="Plano mensal">A alocação entre metas será implementada sem contabilizar planos como dinheiro efetivamente guardado.</FeatureCard>
+          <FeatureCard theme={theme} title="Metas múltiplas">A criação de metas, os depósitos e as retiradas serão migrados somente após definir e testar o modelo financeiro v2.</FeatureCard>
+          <FeatureCard theme={theme} title="Simulações">O simulador antigo continua disponível no Finly funcional. Os cálculos financeiros ainda não foram transferidos para React.</FeatureCard>
+          <FeatureCard theme={theme} title="Plano mensal">A alocação entre metas será implementada sem contabilizar planos como dinheiro efetivamente guardado.</FeatureCard>
         </div>}
         {screen === 'about' && <div className="feature-grid">
-          <FeatureCard title="O que já funciona">React, TypeScript, Tailwind, layout responsivo, três temas, leitura de registros locais e acesso ao Finly original.</FeatureCard>
-          <FeatureCard title="O que não foi migrado">Lançamentos editáveis, faturas, parcelas, backup, importação, reembolsos, contas e metas. Use a versão funcional.</FeatureCard>
-          <FeatureCard title="Proteção de dados">A interface React não escreve na chave financeira v1 nem executa migração automática. Não há servidor ou sincronização externa.</FeatureCard>
-          <FeatureCard title="Próximos passos">Extrair regras financeiras para módulos testáveis, executar testes de equivalência e só então substituir cada tela.</FeatureCard>
+          <FeatureCard theme={theme} title="O que já funciona">React, TypeScript, Tailwind, layout responsivo, três temas, leitura de registros locais e acesso ao Finly original.</FeatureCard>
+          <FeatureCard theme={theme} title="O que não foi migrado">Lançamentos editáveis, faturas, parcelas, backup, importação, reembolsos, contas e metas. Use a versão funcional.</FeatureCard>
+          <FeatureCard theme={theme} title="Proteção de dados">A interface React não escreve na chave financeira v1 nem executa migração automática. Não há servidor ou sincronização externa.</FeatureCard>
+          <FeatureCard theme={theme} title="Próximos passos">Extrair regras financeiras para módulos testáveis, executar testes de equivalência e só então substituir cada tela.</FeatureCard>
         </div>}
       </main>
     </div>
-  </div>;
+  </SidebarProvider>;
 }
 
 function EntryList({ entries }: { entries: LegacyEntry[] }) {
