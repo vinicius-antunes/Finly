@@ -1,3 +1,4 @@
+import { HomeOverview } from "./HomeOverview";
 import {
   lazy,
   cloneElement,
@@ -17,9 +18,7 @@ import {
   type Screen,
 } from "@/components/navigation/FinanceSidebar";
 import { RaysBackdrop } from "@/components/visual/RaysBackdrop";
-import { MagicCard } from "@/components/visual/MagicCard";
 import { MagicCard as Feature } from "@/components/magicui/magic-card";
-import { TextMorph } from "@/components/graphite/TextMorph";
 import { RefundProgress } from "@/components/analytics/RefundProgress";
 import { ProgressBar } from "@/components/tremor/ProgressBar";
 import { savedTheme, PREF_KEY, type Theme } from "@/theme/theme";
@@ -313,7 +312,13 @@ function EntryForm({
       };
       onSave(
         entry
-          ? [{ ...entry, ...input, accountId: kind === "credit" ? "legacy-credit" : "legacy-cash" }]
+          ? [
+              {
+                ...entry,
+                ...input,
+                accountId: kind === "credit" ? "legacy-credit" : "legacy-cash",
+              },
+            ]
           : generate(input, parts, repeat, f.has("refund")),
       );
     } catch (e) {
@@ -677,63 +682,52 @@ export function FinanceApp({ initial }: { initial: State }) {
         <header className="workspace-top">
           <SidebarTrigger className="finance-sidebar-trigger" />
           <span className="breadcrumbs">FINLY / {title[screen]}</span>
+          <span className="home-local-status">
+            <i /> Armazenamento local
+          </span>
           <Button variant="outline" onClick={() => setNotifications(true)}>
             Notificações (
             {alerts.filter((a) => !s.notificationReads[a.id]).length})
           </Button>
         </header>
         <main>
-          <div className="heading">
+          <div className="heading home-heading">
             <div>
               <p className="eyebrow">SEU ESPAÇO FINANCEIRO · LOCAL</p>
               <h1>{title[screen]}</h1>
+              <p className="muted home-subtitle">
+                {screen === "overview"
+                  ? "Faturas, reembolsos e metas em um só lugar."
+                  : "Organize seus registros e referências financeiras."}
+              </p>
             </div>
-            <Button onClick={() => setEditing(null)}>Novo lançamento</Button>
-          </div>
-          <div className="theme-panel">
-            <span>APARÊNCIA</span>
-            {(["graphite", "dark", "light"] as Theme[]).map((t, i) => (
-              <Button
-                key={t}
-                variant="ghost"
-                className={t === theme ? "theme-active" : ""}
-                aria-pressed={t === theme}
-                onClick={() => setTheme(t)}
-              >
-                {["Graphite Green", "Escuro Padrão", "Claro"][i]}
-              </Button>
-            ))}
-            <label>
-              <input
-                type="checkbox"
-                checked={effects}
-                onChange={(e) => setEffects(e.target.checked)}
-              />{" "}
-              Efeitos de luz
-            </label>
-          </div>
-          <div className="finance-actions">
-            <Button
-              variant="outline"
-              onClick={() => setPeriod(offset(period, -1))}
-            >
-              Mês anterior
-            </Button>
-            <Field label="Competência">
-              <input
-                type="month"
-                value={period}
-                onChange={(e) => {
-                  if (e.target.value) setPeriod(e.target.value);
-                }}
-              />
-            </Field>
-            <Button
-              variant="outline"
-              onClick={() => setPeriod(offset(period, 1))}
-            >
-              Próximo mês
-            </Button>
+            <div className="home-header-actions">
+              {" "}
+              <div className="finance-actions home-toolbar">
+                <Button
+                  variant="outline"
+                  onClick={() => setPeriod(offset(period, -1))}
+                >
+                  Mês anterior
+                </Button>
+                <Field label="Competência">
+                  <input
+                    type="month"
+                    value={period}
+                    onChange={(e) => {
+                      if (e.target.value) setPeriod(e.target.value);
+                    }}
+                  />
+                </Field>
+                <Button
+                  variant="outline"
+                  onClick={() => setPeriod(offset(period, 1))}
+                >
+                  Próximo mês
+                </Button>
+              </div>
+              <Button onClick={() => setEditing(null)}>Novo lançamento</Button>
+            </div>
           </div>
           {error && (
             <p role="alert" className="warning-banner">
@@ -741,100 +735,28 @@ export function FinanceApp({ initial }: { initial: State }) {
             </p>
           )}
           {screen === "overview" && (
-            <>
-              <section className="balance-hero">
-                <p className="eyebrow">
-                  SALDO PROJETADO DO MÊS · NÃO É SALDO BANCÁRIO
-                </p>
-                <strong>{money(m.available)}</strong>
-                <p>
-                  Após fatura completa, despesas e margem; reserva separada.{" "}
-                  {s.settings.includeExpectedRefunds
-                    ? "Inclui reembolsos esperados por sua escolha."
-                    : "Reembolsos previstos não entram."}
-                </p>
-                <TextMorph>{period}</TextMorph>
-              </section>
-              <div className="summary-grid">
-                {[
-                  ["Receitas consideradas", m.revenue],
-                  ["Fatura do cartão", m.invoice],
-                  ["Fora do cartão", m.cash],
-                  ["Reserva protegida", s.settings.reserve],
-                ].map(([label, value]) => (
-                  <MagicCard className="summary-card" key={label}>
-                    <p className="muted">{label}</p>
-                    <strong
-                      className={
-                        label === "Receitas consideradas" ? "tone-positive" : ""
-                      }
-                    >
-                      {money(Number(value))}
-                    </strong>
-                  </MagicCard>
-                ))}
-              </div>
-              <div className="analytics-grid">
-                <Suspense fallback={<p>Carregando distribuição…</p>}>
-                  <Donut entries={legacy} />
-                </Suspense>
-                <RefundProgress entries={legacy} />
-              </div>
-              <section className="category-panel">
-                <h2>Comprometimento do orçamento</h2>
-                <p>
-                  Fatura:{" "}
-                  {
-                    (
-                      {
-                        unknown: "A confirmar",
-                        unpaid: "Em aberto",
-                        paid: "Paga",
-                      } as Record<string, string>
-                    )[s.invoiceStatuses[period] ?? "unknown"]
-                  }
-                  .{" "}
-                  <Button
-                    variant="outline"
-                    onClick={() => setScreen("installments")}
-                  >
-                    Conferir fatura
-                  </Button>
-                </p>
-                <ProgressBar
-                  value={
-                    m.revenue
-                      ? Math.min(100, (m.commitment / m.revenue) * 100)
-                      : 0
-                  }
-                />
-                <p>
-                  {money(m.commitment)} em fatura, despesas e margem · salário{" "}
-                  {money(s.settings.salary)} · recebimentos{" "}
-                  {money(m.income + m.received)} · reembolsos pendentes{" "}
-                  {money(m.pending)} · compras previstas {money(m.unconfirmed)}
-                </p>
-                <p>
-                  Compras de terceiros {money(m.third)} · responsável indefinido{" "}
-                  {money(m.unknown)}
-                </p>
-              </section>
-              <section className="table-card">
-                <h2>Compromissos futuros registrados</h2>
-                <p>
-                  {money(
-                    s.transactions
-                      .filter(
-                        (x) => x.legacyKind === "credit" && x.period > period,
-                      )
-                      .reduce((n, x) => n + x.amountCents, 0),
-                  )}{" "}
-                  nas competências posteriores (inclui previsões cadastradas).
-                </p>
-                <h2>Histórico recente</h2>
-                {rows(entries.slice(-4).reverse())}
-              </section>
-            </>
+            <HomeOverview
+              state={s}
+              period={period}
+              onEntries={() => setScreen("entries")}
+              onSettings={() => setScreen("settings")}
+              onPlanning={() => setScreen("installments")}
+              onToggle={toggle}
+              onInvoice={(status) =>
+                commit({
+                  ...s,
+                  invoiceStatuses: { ...s.invoiceStatuses, [period]: status },
+                })
+              }
+              analytics={
+                <div className="analytics-grid">
+                  <Suspense fallback={<p>Carregando distribuição…</p>}>
+                    <Donut entries={legacy} />
+                  </Suspense>
+                  <RefundProgress entries={legacy} />
+                </div>
+              }
+            />
           )}
           {screen === "entries" && (
             <section className="table-card">
@@ -1097,6 +1019,31 @@ export function FinanceApp({ initial }: { initial: State }) {
           )}
           {screen === "settings" && (
             <>
+              <section aria-label="Aparência">
+                <h2>Aparência</h2>{" "}
+                <div className="theme-panel">
+                  <span>APARÊNCIA</span>
+                  {(["graphite", "dark", "light"] as Theme[]).map((t, i) => (
+                    <Button
+                      key={t}
+                      variant="ghost"
+                      className={t === theme ? "theme-active" : ""}
+                      aria-pressed={t === theme}
+                      onClick={() => setTheme(t)}
+                    >
+                      {["Graphite Green", "Escuro Padrão", "Claro"][i]}
+                    </Button>
+                  ))}
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={effects}
+                      onChange={(e) => setEffects(e.target.checked)}
+                    />{" "}
+                    Efeitos de luz
+                  </label>
+                </div>
+              </section>
               <section className="category-panel">
                 <h2>Referências financeiras</h2>
                 <form
@@ -1115,7 +1062,10 @@ export function FinanceApp({ initial }: { initial: State }) {
                         "installmentCap",
                       ] as const)
                         next[k] = cents(f.get(k));
-                      if (next.goal <= 0 || next.installmentCap <= 0) throw Error("Meta e teto de parcelas devem ser maiores que zero.");
+                      if (next.goal <= 0 || next.installmentCap <= 0)
+                        throw Error(
+                          "Meta e teto de parcelas devem ser maiores que zero.",
+                        );
                       next.dueDay = Number(f.get("dueDay"));
                       next.cardLabel = String(f.get("cardLabel")).trim();
                       next.includeExpectedRefunds = f.has(
@@ -1252,6 +1202,19 @@ export function FinanceApp({ initial }: { initial: State }) {
                 ))}
               </section>
             )}
+          {screen === "overview" && (
+            <section className="home-panel">
+              <p className="eyebrow">UM PASSO DE CADA VEZ</p>
+              <h2>Espaço para os seus próximos planos</h2>
+              <p className="muted">
+                Compare sua meta à vista e uma compra parcelada sem usar a
+                reserva protegida.
+              </p>
+              <Button variant="outline" onClick={() => setScreen("planning")}>
+                Planejamento atual →
+              </Button>
+            </section>
+          )}
           {screen === "about" && (
             <section className="category-panel">
               <h2>Finly local</h2>
@@ -1274,7 +1237,10 @@ export function FinanceApp({ initial }: { initial: State }) {
                     )
                   : [...s.transactions, ...rows];
                 if (commit({ ...s, transactions: next })) setEditing(undefined);
-                else throw Error("Não foi possível salvar. Confira o armazenamento ou atualize os dados de outra aba.");
+                else
+                  throw Error(
+                    "Não foi possível salvar. Confira o armazenamento ou atualize os dados de outra aba.",
+                  );
               }}
             />
           )}

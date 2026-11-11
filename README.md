@@ -54,3 +54,5 @@ A identidade vigente passa a Graphite Green usando o CSS Tweakcn fornecido; o an
 Na `Finly-React`, a Sidebar inicia recolhida e expande ao passar o mouse. O botão **Alternar menu** permite fixá-la aberta; touch continua usando o drawer. [Comportamento, testes e vídeo](docs/graphite/SIDEBAR_HOVER.md).
 
 O Light Rays agora é o fundo global da interface Graphite Green, contínuo entre as telas React. O checkbox **Efeitos de luz** controla também o fallback estático. [Camadas, desempenho e comparativo antes/depois](docs/graphite/GLOBAL_LIGHT_RAYS.md).
+
+A Home funcional React segue a organização da main, com aparência Graphite Green e controles de tema em Ajustes. [Comparação estrutural, capturas completas e testes](docs/HOME_MAIN_REACT.md).

@@ -35,8 +35,9 @@ try:
   page.reload();assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['settings']['salary']==250000
   nav('Planejamentos');before=page.evaluate("localStorage.getItem('finly-v2')");page.get_by_label('Preço total no cartão',exact=True).fill('600');page.get_by_label('Número de parcelas').fill('6');assert page.evaluate("localStorage.getItem('finly-v2')")==before
   for theme in ['Graphite Green','Escuro Padrão','Claro']:
-   page.get_by_role('button',name=theme,exact=True).click();page.screenshot(path=str(ART/(theme.split()[0]+'-planning.png')),full_page=True)
-  page.get_by_role('button',name='Graphite Green',exact=True).click();nav('Visão geral');page.screenshot(path=str(ART/'dashboard-desktop.png'),full_page=True)
+   nav('Ajustes e backup')
+   page.get_by_role('button',name=theme,exact=True).click();nav('Planejamentos');page.screenshot(path=str(ART/(theme.split()[0]+'-planning.png')),full_page=True)
+  nav('Ajustes e backup');page.get_by_role('button',name='Graphite Green',exact=True).click();nav('Visão geral');page.screenshot(path=str(ART/'dashboard-desktop.png'),full_page=True)
   page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');page.screenshot(path=str(ART/'dashboard-mobile.png'),full_page=True);nav('Ajustes e backup',True);page.get_by_role('heading',name='Referências financeiras').wait_for()
   page.set_viewport_size({'width':1440,'height':1000});nav('Parcelas e reembolsos');page.once('dialog',lambda d:d.accept());page.get_by_role('button',name='Excluir grupo',exact=True).click();assert len(json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions'])==1
   nav('Lançamentos');page.get_by_role('button',name='Limpar filtros').click();page.once('dialog',lambda d:d.accept());page.get_by_role('button',name='Excluir',exact=True).click();assert len(json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions'])==0
