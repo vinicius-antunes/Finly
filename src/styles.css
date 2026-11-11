@@ -971,7 +971,6 @@ h2{
 [data-slot="sidebar-menu-button"][data-active="true"] { color:var(--sidebar-accent-foreground); background:var(--sidebar-accent); font-weight:650; }
 [data-slot="sidebar-menu-button"] svg { width:19px; height:19px; flex-shrink:0; stroke-width:1.7; }
 .finance-brand { min-height:52px; height:auto; color:var(--foreground); }
-.finance-monogram { display:grid; place-items:center; width:38px; height:38px; flex-shrink:0; background:var(--primary); color:var(--primary-foreground); font-size:24px; font-weight:800; border-radius:13px; }
 .brand-copy strong { display:block; font-size:25px; letter-spacing:-1px; line-height:1.2; }
 .brand-copy small { display:block; font-size:7px; letter-spacing:1px; color:var(--muted-foreground); margin-top:4px; }
 .planning-chevron { margin-left:auto; transition:transform .18s; }
@@ -1009,7 +1008,10 @@ h2{
 [data-collapsible="icon"] [data-slot="sidebar-header"],
 [data-collapsible="icon"] [data-slot="sidebar-group"],
 [data-collapsible="icon"] [data-slot="sidebar-footer"] { padding-inline:8px; }
-[data-collapsible="icon"] [data-slot="sidebar-menu-button"] > span:not(.finance-monogram) { display:none; }
+[data-collapsible="icon"] [data-slot="sidebar-menu-button"] > span { display:none; }
+/* Keep the text brand on expanded desktop/mobile; no empty brand button in the rail. */
+[data-collapsible="icon"] [data-slot="sidebar-header"],
+[data-collapsible="icon"] [data-slot="sidebar-header"] + [data-slot="sidebar-separator"] { display:none; }
 @media(prefers-reduced-motion:reduce) {
   [data-slot="sidebar-gap"], [data-slot="sidebar-container"] { transition:none!important; }
 }

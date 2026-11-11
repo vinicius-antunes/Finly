@@ -52,10 +52,14 @@ try:
                 def assert_width(expected):
                     page.wait_for_function("expected => Math.abs(document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width-expected)<1", arg=expected)
                 state('collapsed'); assert_width(60)
+                assert page.locator('.finance-monogram').count() == 0
+                assert page.locator('.finance-brand').is_hidden()
                 page.evaluate('document.fonts.ready')
                 page.screenshot(path=str(ART / f'{theme}-sidebar-collapsed.png'), full_page=True)
                 page.mouse.move(28, 220)
                 state('expanded'); assert_width(288)
+                assert page.locator('.brand-copy').is_visible()
+                assert page.locator('.brand-copy').inner_text() == 'Finly\nFINANÇAS COM CLAREZA'
                 page.screenshot(path=str(ART / f'{theme}-sidebar-expanded.png'), full_page=True)
                 for name in ('Lançamentos', 'Sobre a migração', 'Visão geral'):
                     page.get_by_role('button', name=name, exact=True).hover()
@@ -102,6 +106,7 @@ try:
                 toggle.click()
                 dialog = page.get_by_role('dialog', name='Navegação do Finly')
                 dialog.wait_for()
+                assert dialog.locator('.brand-copy').is_visible()
                 page.wait_for_function("document.querySelector('[role=dialog]').getAnimations().every(a=>a.playState==='finished')")
                 page.screenshot(path=str(ART / f'{theme}-mobile-drawer.png'), full_page=False)
                 for _ in range(12):

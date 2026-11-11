@@ -4,6 +4,8 @@ Alteração somente em Finly-React, sobre os componentes shadcn/ui MIT existente
 
 [Correção posterior da centralização de Planejamentos, com medições e antes/depois](SIDEBAR_ALIGNMENT.md).
 
+O monograma verde com a letra F foi removido. No estado recolhido, cabeçalho e separador superior não ocupam espaço; expandido e no drawer móvel, o botão de início mantém Finly e FINANÇAS COM CLAREZA. Os ícones de navegação permanecem intactos. A regressão de navegação verifica ausência do monograma, cabeçalho recolhido oculto e marca textual visível nos três temas e no mobile. TypeScript, build, testes estáticos, navegação Chromium e validação pública passaram nesta alteração.
+
 ## Comportamento
 
 - Desktop começa recolhido, com **60 px** e ícones/seleção visíveis. Ponteiro de mouse em dispositivo com hover e pointer:fine expande para **288 px**, em **220 ms**. O espaço do conteúdo acompanha a mesma transição, sem sobreposição.

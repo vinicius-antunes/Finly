@@ -11,7 +11,7 @@ export function FinanceSidebar({screen,onNavigate}:{screen:Screen;onNavigate:(sc
  return <Sidebar collapsible="icon" className="finance-sidebar">
   <SidebarHeader><SidebarMenu><SidebarMenuItem>
    <SidebarMenuButton size="lg" className="finance-brand" aria-label="Finly — início" onClick={()=>go('overview')}>
-    <span className="finance-monogram">F</span><span className="brand-copy"><strong>Finly</strong><small>FINANÇAS COM CLAREZA</small></span>
+    <span className="brand-copy"><strong>Finly</strong><small>FINANÇAS COM CLAREZA</small></span>
    </SidebarMenuButton>
   </SidebarMenuItem></SidebarMenu></SidebarHeader><SidebarSeparator/>
   <SidebarContent><SidebarGroup><SidebarGroupLabel>SEU ESPAÇO</SidebarGroupLabel><SidebarMenu>
