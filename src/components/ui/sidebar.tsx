@@ -566,14 +566,15 @@ function SidebarMenuButton({
   const Comp = asChild ? Slot : "button"
   const { isMobile, state, hoverEnabled } = useSidebar()
 
+  // Keep the styling hook when an asChild CollapsibleTrigger supplies its slot.
   const button = (
     <Comp
-      data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
       {...props}
+      data-slot="sidebar-menu-button"
     />
   )
 

@@ -1,0 +1,254 @@
+{
+  "graphite-inactive": [
+    {
+      "label": "Visão geral",
+      "slot": "sidebar-menu-button",
+      "active": "true",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Lançamentos",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Planejamentos",
+      "slot": "collapsible-trigger",
+      "active": "false",
+      "center": 25.2578125,
+      "buttonCenter": 25.2734375,
+      "width": 34.546875,
+      "textHidden": false,
+      "arrowHidden": true
+    },
+    {
+      "label": "Sobre a migração",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    }
+  ],
+  "graphite-active": [
+    {
+      "label": "Visão geral",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Lançamentos",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Planejamentos",
+      "slot": "collapsible-trigger",
+      "active": "true",
+      "center": 25.2578125,
+      "buttonCenter": 25.2734375,
+      "width": 34.546875,
+      "textHidden": false,
+      "arrowHidden": true
+    },
+    {
+      "label": "Sobre a migração",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    }
+  ],
+  "dark-inactive": [
+    {
+      "label": "Visão geral",
+      "slot": "sidebar-menu-button",
+      "active": "true",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Lançamentos",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Planejamentos",
+      "slot": "collapsible-trigger",
+      "active": "false",
+      "center": 25.2578125,
+      "buttonCenter": 25.2734375,
+      "width": 34.546875,
+      "textHidden": false,
+      "arrowHidden": true
+    },
+    {
+      "label": "Sobre a migração",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    }
+  ],
+  "dark-active": [
+    {
+      "label": "Visão geral",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Lançamentos",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Planejamentos",
+      "slot": "collapsible-trigger",
+      "active": "true",
+      "center": 25.2578125,
+      "buttonCenter": 25.2734375,
+      "width": 34.546875,
+      "textHidden": false,
+      "arrowHidden": true
+    },
+    {
+      "label": "Sobre a migração",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    }
+  ],
+  "light-inactive": [
+    {
+      "label": "Visão geral",
+      "slot": "sidebar-menu-button",
+      "active": "true",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Lançamentos",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Planejamentos",
+      "slot": "collapsible-trigger",
+      "active": "false",
+      "center": 25.2578125,
+      "buttonCenter": 25.2734375,
+      "width": 34.546875,
+      "textHidden": false,
+      "arrowHidden": true
+    },
+    {
+      "label": "Sobre a migração",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    }
+  ],
+  "light-active": [
+    {
+      "label": "Visão geral",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Lançamentos",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    },
+    {
+      "label": "Planejamentos",
+      "slot": "collapsible-trigger",
+      "active": "true",
+      "center": 25.2578125,
+      "buttonCenter": 25.2734375,
+      "width": 34.546875,
+      "textHidden": false,
+      "arrowHidden": true
+    },
+    {
+      "label": "Sobre a migração",
+      "slot": "sidebar-menu-button",
+      "active": "false",
+      "center": 30,
+      "buttonCenter": 30,
+      "width": 44,
+      "textHidden": true,
+      "arrowHidden": true
+    }
+  ]
+}

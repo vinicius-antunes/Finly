@@ -2,6 +2,8 @@
 
 Alteração somente em Finly-React, sobre os componentes shadcn/ui MIT existentes. Nenhum fonte Aceternity foi adicionado. Não há nova biblioteca, persistência de navegação ou mudança financeira.
 
+[Correção posterior da centralização de Planejamentos, com medições e antes/depois](SIDEBAR_ALIGNMENT.md).
+
 ## Comportamento
 
 - Desktop começa recolhido, com **60 px** e ícones/seleção visíveis. Ponteiro de mouse em dispositivo com hover e pointer:fine expande para **288 px**, em **220 ms**. O espaço do conteúdo acompanha a mesma transição, sem sobreposição.
