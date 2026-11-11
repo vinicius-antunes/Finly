@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { formatMoney, monthNow, readLegacySnapshot, sumCents, LEGACY_KEY } from './lib/legacy';
 import type { LegacyEntry, Snapshot } from './lib/legacy';
@@ -6,12 +6,15 @@ import type { LegacyEntry, Snapshot } from './lib/legacy';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MagicCard } from '@/components/visual/MagicCard';
-import { AuroraBackdrop } from '@/components/visual/AuroraBackdrop';
+import { RaysBackdrop } from '@/components/visual/RaysBackdrop';
+import { TextMorph } from '@/components/graphite/TextMorph';
+const CategoryDonut = lazy(() => import('@/components/analytics/CategoryDonut').then(m => ({default:m.CategoryDonut})));
+import { RefundProgress } from '@/components/analytics/RefundProgress';
 import { savedTheme, PREF_KEY } from '@/theme/theme';
 import type { Theme } from '@/theme/theme';
 type Screen = 'overview' | 'entries' | 'planning' | 'about';
 const choices: { id: Theme; label: string }[] = [
-  { id: 'aurora', label: 'Dark Aurora Premium' },
+  { id: 'graphite', label: 'Graphite Green' },
   { id: 'dark', label: 'Escuro Padrão' },
   { id: 'light', label: 'Claro' },
 ];
@@ -63,7 +66,7 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme === 'light' ? 'light' : 'dark';
     document.querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', theme === 'light' ? '#f7f9ff' : '#0b1020');
+      ?.setAttribute('content', theme === 'light' ? '#fdfdfd' : '#1b1b20');
     try { localStorage.setItem(PREF_KEY, theme); } catch { setThemeFeedback('Tema aplicado nesta sessão; o navegador não permitiu salvar a preferência.'); }
   }, [theme]);
 
@@ -71,8 +74,8 @@ export default function App() {
     const refresh = () => setSnapshot(readLegacySnapshot());
     const onStorage = (event: StorageEvent) => {
       if (event.key === LEGACY_KEY || event.key === null) refresh();
-      if (event.key === PREF_KEY && (event.newValue === 'aurora' || event.newValue === 'dark' || event.newValue === 'light')) {
-        setTheme(event.newValue);
+      if (event.key === PREF_KEY && (event.newValue === 'aurora' || event.newValue === 'graphite' || event.newValue === 'dark' || event.newValue === 'light')) {
+        setTheme(event.newValue === 'aurora' ? 'graphite' : event.newValue);
       }
     };
     window.addEventListener('focus', refresh);
@@ -124,7 +127,7 @@ export default function App() {
       </header>
       <main>
         <div className="heading">
-          <div><p className="eyebrow">DARK AURORA PREMIUM · VERSÃO EXPERIMENTAL</p>
+          <div><p className="eyebrow">FINLY · PRÉVIA SOMENTE LEITURA</p>
             <h1>{menus.find(item => item.id === screen)?.label}</h1>
             <p className="muted">Nova experiência React, preservando as regras financeiras no aplicativo original.</p>
           </div>
@@ -138,7 +141,7 @@ export default function App() {
               className={theme === option.id ? 'theme-active' : ''} onClick={() => setTheme(option.id)}>
               {option.label}
             </Button>)}</div>
-          <label className="effects-toggle"><input type="checkbox" checked={effects} onChange={event => setEffects(event.target.checked)} /> Efeitos Aurora <span className="muted">(nesta sessão)</span></label>
+          <label className="effects-toggle"><input type="checkbox" checked={effects} onChange={event => setEffects(event.target.checked)} /> Efeitos de luz <span className="muted">(nesta sessão)</span></label>
           {themeFeedback && <span role="status" className="muted tiny">{themeFeedback}</span>}
         </div>
 
@@ -149,26 +152,21 @@ export default function App() {
         </section>}
         {screen === 'overview' && <>
           <div className="period-row">
-            <div><h2>Seu espaço financeiro, evoluindo.</h2><p className="muted">Indicadores descritivos dos lançamentos v1, sem estimar saldo ou fatura.</p></div>
+            <div><h2>Seu mês em perspectiva.</h2><p className="muted">Indicadores descritivos dos lançamentos v1, sem estimar saldo ou fatura.</p></div>
             <label className="month-select">Competência <input aria-label="Competência" type="month" value={period} onChange={event => setPeriod(event.target.value)} /></label>
           </div>
           <div className="hero-grid">
             <section className="balance-hero">
               <span className="eyebrow bright">FINLY · NOVA EXPERIÊNCIA</span>
-              <AuroraBackdrop theme={theme} enabled={effects} />
-              <strong>Finanças mais claras.<br /><em>Controle em primeiro lugar.</em></strong>
-              <p>Esta é a primeira etapa da migração para React, TypeScript e Tailwind. O painel é de leitura; alterações financeiras continuam na versão original.</p>
+              <RaysBackdrop theme={theme} enabled={effects} />
+              <strong>Seu dinheiro.<br /><em>Sua direção.</em></strong>
+              <p>Clareza para acompanhar seus registros, sem perder de vista os próximos passos. As alterações continuam no Finly funcional.</p>
               <div className="hero-footer">
-                <span>{formatMonth(period)}</span>
+                <TextMorph as="span" className="period-morph">{formatMonth(period)}</TextMorph>
                 <a href="/legacy/">Gerenciar lançamentos ↗</a>
               </div>
             </section>
-            <section className="glance-card">
-              <span className="eyebrow">REGISTROS DO MÊS</span>
-              <strong className="glance-number">{entries.length}</strong>
-              <p className="muted">Lançamentos encontrados no armazenamento local v1</p>
-              <div className="records-note"><span aria-hidden="true">◇</span> Apenas registros existentes.<br />Sem projeção de caixa nesta prévia.</div>
-            </section>
+            <div className="reading-note"><span className="record-count">{entries.length}</span><div><strong>Registros nesta competência</strong><p>Consulta local. Sem estimativa de saldo, caixa ou fatura.</p></div></div>
           </div>
           <div className="summary-grid">
             <SummaryCard label="RECEITAS CADASTRADAS" value={formatMoney(receipts)} detail="Registros de receita na competência" tone="positive"/>
@@ -176,6 +174,7 @@ export default function App() {
             <SummaryCard label="COMPRAS NO CARTÃO" value={formatMoney(credit)} detail="Registros do cartão, independentemente da fatura"/>
             <SummaryCard label="REEMBOLSOS RECEBIDOS" value={formatMoney(refundsReceived)} detail="Somente registros marcados como recebidos" tone="positive"/>
           </div>
+          <div className="analytics-grid"><Suspense fallback={<div className="category-panel" role="status">Carregando distribuição…</div>}><CategoryDonut entries={entries} /></Suspense><RefundProgress entries={entries} /></div>
           <section className="table-card">
             <div className="card-header"><div><span className="eyebrow">ATIVIDADE</span><h2>Lançamentos da competência</h2></div>
               <Button variant="outline" className="subtle-btn" onClick={() => navigate('entries')}>Ver todos ↗</Button></div>

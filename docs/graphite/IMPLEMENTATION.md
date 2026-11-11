@@ -1,7 +1,7 @@
 # Graphite Green — execução autorizada de nove features
 
 Base 31b39c6, branch exclusiva Finly-React; não há PR, merge ou alteração da main.
-Os anexos selection.json e tweakcn-original.css preservam os originais. A autorização posterior do proprietário supera o estado histórico false do JSON.
+Os anexos selection.json e tweakcn-original.css preservam os conteúdos originais; o CSS foi normalizado de CRLF para LF, sem mudar os tokens. A autorização posterior do proprietário supera o estado histórico false do JSON.
 
 ## Matriz de alocação definida antes do código
 
