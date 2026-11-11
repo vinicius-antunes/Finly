@@ -10,7 +10,7 @@ import sys
 import tempfile
 
 BASE=Path(__file__).resolve().parent.parent
-s=(BASE/'index.html').read_text(encoding='utf-8')
+s=(BASE/'public/legacy/index.html').read_text(encoding='utf-8')
 js=re.findall(r'<script>(.*?)</script>', s, flags=re.S|re.I)
 assert len(js)==1, 'Esperado um bloco JS embutido.'
 assert 'const KEY=\'saldoclaro-v1\';' in s, 'Chave de compatibilidade v1 ausente'

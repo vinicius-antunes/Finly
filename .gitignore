@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+coverage/
+playwright-report/
+test-results/
+*.log
+*.backup.json
+*backup-financeiro*.json

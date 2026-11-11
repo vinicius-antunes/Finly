@@ -17,7 +17,7 @@ try:
         page = context.new_page()
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
-        url = f'http://127.0.0.1:{server.server_port}'
+        url = f'http://127.0.0.1:{server.server_port}/public/legacy/'
         page.goto(url)
         assert page.locator('html').get_attribute('data-theme') == 'dark'
         initial = page.evaluate("localStorage.getItem('saldoclaro-v1')")
