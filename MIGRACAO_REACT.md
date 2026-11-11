@@ -1,5 +1,8 @@
 # Finly-React — migração incremental (fase 1)
 
+> **Atualização funcional na Finly-React:** o modo v2 agora permite operações diretamente no React após ativação explícita. Consulte [matriz, importação, testes e limites](docs/REACT_EQUIVALENCE.md). Os trechos antigos que descrevem a prévia somente de leitura registram a etapa anterior; ela permanece disponível antes da ativação. O legado e a main continuam preservados.
+
+
 **Branch:** `Finly-React` (criada a partir da `main`, preservada separadamente).
 **Status:** protótipo funcional da interface React, **não é substituto completo da v1.1.1**.
 

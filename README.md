@@ -1,5 +1,8 @@
 # Finly — Controle financeiro pessoal
 
+> **Atualização funcional na Finly-React:** o modo v2 agora permite operações diretamente no React após ativação explícita. Consulte [matriz, importação, testes e limites](docs/REACT_EQUIVALENCE.md). Os trechos antigos que descrevem a prévia somente de leitura registram a etapa anterior; ela permanece disponível antes da ativação. O legado e a main continuam preservados.
+
+
 Aplicação web local, com HTML, CSS e JavaScript, sem instalação, servidor ou conta. Este repositório contém uma **base pública higienizada v1.1.1** e o **plano da v1.2**. As funcionalidades v1.2 descritas no roadmap **ainda não foram implementadas**.
 
 ## Executar

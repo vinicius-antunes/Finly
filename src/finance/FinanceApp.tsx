@@ -313,7 +313,7 @@ function EntryForm({
       };
       onSave(
         entry
-          ? [{ ...entry, ...input }]
+          ? [{ ...entry, ...input, accountId: kind === "credit" ? "legacy-credit" : "legacy-cash" }]
           : generate(input, parts, repeat, f.has("refund")),
       );
     } catch (e) {
@@ -1115,6 +1115,7 @@ export function FinanceApp({ initial }: { initial: State }) {
                         "installmentCap",
                       ] as const)
                         next[k] = cents(f.get(k));
+                      if (next.goal <= 0 || next.installmentCap <= 0) throw Error("Meta e teto de parcelas devem ser maiores que zero.");
                       next.dueDay = Number(f.get("dueDay"));
                       next.cardLabel = String(f.get("cardLabel")).trim();
                       next.includeExpectedRefunds = f.has(
