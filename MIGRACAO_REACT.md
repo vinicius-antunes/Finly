@@ -18,7 +18,7 @@
 - Migração dos cálculos, criadores de lançamentos, faturas, parcelas, metas, simulações, importação, backup e despesas recorrentes para componentes React.
 - Migração financeira v1 → v2, metas múltiplas e contas/cartões.
 - PWA/offline instalável, gráficos com dados auditados, nova interface de formulário.
-- Testes de navegador e build executados nesta etapa: dependem da instalação npm em ambiente com acesso ao registro.
+- Migração de regras financeiras para React permanece pendente.
 
 ## Comandos
 
@@ -60,3 +60,9 @@ Alternativamente execute `npm run dev` localmente. Não inventar URL de prévia 
 6. Solicitar revisão visual e funcional antes de merge na `main`.
 
 **Não apagar nem mesclar automaticamente a `main`; enviar commits ao GitHub na branch `Finly-React`.**
+
+## Fases visuais 0–2 (rodada atual)
+
+Consolidação dos três temas e primitivas Button/Card de shadcn, Aurora oficial adaptado com fallback e Magic Bento reduzido aos quatro cartões de somatórios. Nenhuma mudança na leitura financeira ou no legado. Lockfile versionado e CI com npm ci. Build e testes foram executados; [auditoria, licenças, evidências e limites](docs/REACT_VISUAL_PHASES.md). Fases 3–5 não estão autorizadas e permanecem planejadas.
+
+Para reprodução: npm ci, npm run check, npm run build, npm run test:static, python3 tests/check_public_release.py e node --check public/legacy/assets/theme.js. Teste visual opcional de desenvolvimento: python3 tests/check_react_visual.py (Python Playwright e Chromium em /usr/bin/chromium; não necessários para o usuário do app).
