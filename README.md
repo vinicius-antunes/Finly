@@ -1,5 +1,8 @@
 # Finly — Controle financeiro pessoal
 
+> **Entrada atual:** o Finly React abre diretamente na Home. Um v2 vazio é criado somente se a chave estiver ausente; dados existentes são preservados. Importação é opcional em Ajustes. [Inicialização, recuperação e testes](docs/DIRECT_HOME_STARTUP.md). Instruções anteriores de ativação descrevem o fluxo histórico, já substituído.
+
+
 > **Atualização funcional na Finly-React:** o modo v2 agora permite operações diretamente no React após ativação explícita. Consulte [matriz, importação, testes e limites](docs/REACT_EQUIVALENCE.md). Os trechos antigos que descrevem a prévia somente de leitura registram a etapa anterior; ela permanece disponível antes da ativação. O legado e a main continuam preservados.
 
 

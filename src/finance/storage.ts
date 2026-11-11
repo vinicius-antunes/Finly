@@ -1,4 +1,4 @@
-import { V2_KEY, validate, type State } from "./model.ts";
+import { V2_KEY, validate, empty, type State } from "./model.ts";
 export function load(): State | null {
   const raw = localStorage.getItem(V2_KEY);
   if (raw === null) return null;
@@ -27,4 +27,16 @@ export function download(
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Creates an empty v2 only for a genuinely absent key. Never replaces invalid data. */
+export function initialize(): State {
+  const current = load();
+  if (current) return current;
+  const next = empty();
+  save(next, null);
+  const persisted = load();
+  if (!persisted)
+    throw Error("Não foi possível confirmar a gravação dos dados.");
+  return persisted;
 }

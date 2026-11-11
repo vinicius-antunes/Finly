@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { House, ReceiptText, Target, Info, ChevronDown, ExternalLink, X, Settings, Layers } from 'lucide-react';
+import { House, ReceiptText, Target, Info, ChevronDown, X, Settings, Layers } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarHeader,
  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
 export type Screen = 'overview' | 'entries' | 'planning' | 'about' | 'installments' | 'settings';
 export function FinanceSidebar({screen,onNavigate,functional=false}:{screen:Screen;onNavigate:(screen:Screen)=>void;functional?:boolean}) {
- const {state,setOpenMobile} = useSidebar();
+ const {state,setOpenMobile,isMobile} = useSidebar();
  const [plansOpen,setPlansOpen] = useState(false);
  function go(next:Screen){onNavigate(next);setOpenMobile(false);}
  return <Sidebar collapsible="icon" className="finance-sidebar">
@@ -27,6 +27,6 @@ export function FinanceSidebar({screen,onNavigate,functional=false}:{screen:Scre
    {functional&&<SidebarMenuItem><SidebarMenuButton tooltip="Ajustes e backup" aria-label="Ajustes e backup" isActive={screen==='settings'} onClick={()=>go('settings')}><Settings/><span>Ajustes e backup</span></SidebarMenuButton></SidebarMenuItem>}
    <SidebarMenuItem><SidebarMenuButton tooltip="Sobre a migração" aria-label="Sobre a migração" isActive={screen==='about'} onClick={()=>go('about')}><Info/><span>Sobre a migração</span></SidebarMenuButton></SidebarMenuItem>
   </SidebarMenu></SidebarGroup></SidebarContent>
-  <SidebarFooter><SidebarMenu><SidebarMenuItem><SidebarMenuButton asChild tooltip="Abrir Finly completo"><a href="/legacy/" aria-label="Abrir Finly completo"><ExternalLink/><span>Abrir Finly completo</span></a></SidebarMenuButton></SidebarMenuItem><SidebarMenuItem className="mobile-menu-close"><SidebarMenuButton aria-label="Fechar menu" onClick={()=>setOpenMobile(false)}><X/><span>Fechar menu</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>
+  {isMobile&&<SidebarFooter><SidebarMenu><SidebarMenuItem><SidebarMenuButton aria-label="Fechar menu" onClick={()=>setOpenMobile(false)}><X/><span>Fechar menu</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarFooter>}
  </Sidebar>;
 }

@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MagicCard } from "@/components/visual/MagicCard";
-import { TextMorph } from "@/components/graphite/TextMorph";
 import { ProgressBar } from "@/components/tremor/ProgressBar";
 import { metrics, money, type State, type Entry } from "./model";
 
@@ -98,19 +97,6 @@ export function HomeOverview({
   }).format(new Date(period + "-01T12:00:00Z"));
   return (
     <div className="home-overview">
-      <section className="home-intro">
-        <div>
-          <h2>
-            Mais clareza hoje.
-            <br />
-            <span>Mais possibilidades amanhã.</span>
-          </h2>
-          <p>Seu mês em perspectiva, sem perder de vista o que importa.</p>
-        </div>
-        <TextMorph as="span" className="home-period">
-          {label}
-        </TextMorph>
-      </section>
       <div className="home-primary-grid">
         <MagicCard className="home-balance">
           <p className="eyebrow">

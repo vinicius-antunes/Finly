@@ -33,13 +33,12 @@ import {
   metrics,
   generate,
   csv,
-  offset,
   type State,
   type Entry,
   type Settings,
   type Kind,
 } from "./model";
-import { load, save, download } from "./storage";
+import { load, save, download, initialize } from "./storage";
 const Donut = lazy(() =>
   import("@/components/analytics/CategoryDonut").then((m) => ({
     default: m.CategoryDonut,
@@ -83,7 +82,11 @@ function Modal({
     </dialog>
   );
 }
-export function Activation({ onActivate }: { onActivate: (s: State) => void }) {
+export function BackupImport({
+  onActivate,
+}: {
+  onActivate: (s: State) => void;
+}) {
   const [candidate, setCandidate] = useState<State | null>(null),
     [error, setError] = useState(""),
     [ack, setAck] = useState(false);
@@ -116,7 +119,7 @@ export function Activation({ onActivate }: { onActivate: (s: State) => void }) {
   }
   return (
     <section className="category-panel finance-stack">
-      <h2>Ativar Finly funcional</h2>
+      <h2>Backup e importação</h2>
       <p>
         Os dados antigos serão preservados. O armazenamento pertence a este
         endereço e não é compartilhado com outros domínios. Importe um backup
@@ -135,21 +138,6 @@ export function Activation({ onActivate }: { onActivate: (s: State) => void }) {
           }}
         >
           Preparar migração dos dados locais
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            try {
-              expected.current = localStorage.getItem("finly-v2");
-              source.current = null;
-              setCandidate(empty());
-              setAck(false);
-            } catch (e) {
-              setError(String(e));
-            }
-          }}
-        >
-          Iniciar vazio
         </Button>
         <Button
           variant="outline"
@@ -183,7 +171,7 @@ export function Activation({ onActivate }: { onActivate: (s: State) => void }) {
       </div>
       {candidate && (
         <Modal
-          title="Prévia — confirmar ativação / substituição"
+          title="Prévia de importação / substituição"
           onClose={() => setCandidate(null)}
         >
           <p>
@@ -218,7 +206,7 @@ export function Activation({ onActivate }: { onActivate: (s: State) => void }) {
             Guardei o backup necessário e confirmo esta operação.
           </label>
           <Button disabled={!ack} onClick={commit}>
-            Confirmar ativação
+            Confirmar importação
           </Button>
           {error && <p role="alert">{error}</p>}
         </Modal>
@@ -227,40 +215,57 @@ export function Activation({ onActivate }: { onActivate: (s: State) => void }) {
     </section>
   );
 }
-export function FinanceRoot({
-  preview,
-}: {
-  preview: (activation: ReactNode) => ReactNode;
-}) {
-  const [state, setState] = useState<State | null>(() => {
+export function FinanceRoot() {
+  const [state, setState] = useState<State | null>(null);
+  const [error, setError] = useState("");
+  function start() {
     try {
-      return load();
-    } catch {
-      return null;
-    }
-  });
-  const [error] = useState(() => {
-    try {
-      load();
-      return "";
+      setState(initialize());
+      setError("");
     } catch (e) {
-      return String(e);
+      setError(String(e));
     }
-  });
-  return state ? (
-    <FinanceApp initial={state} />
-  ) : (
-    preview(
-      <>
-        {error && (
-          <p role="alert">
-            Dados v2 indisponíveis ou inválidos: {error}. Não foram
-            substituídos.
-          </p>
-        )}
-        <Activation onActivate={setState} />
-      </>,
-    )
+  }
+  useEffect(() => {
+    start();
+  }, []);
+  if (state) return <FinanceApp initial={state} />;
+  if (!error)
+    return (
+      <main className="finance-recovery">
+        <p role="status">Carregando seus dados locais…</p>
+      </main>
+    );
+  return (
+    <main className="finance-recovery">
+      <h1>Não foi possível abrir seus dados</h1>
+      <p role="alert">
+        {error}. Os dados existentes não foram substituídos. O Finly não iniciou
+        um modo de gravação temporário.
+      </p>
+      <p>
+        Exporte o conteúdo existente antes de tentar restaurar um backup válido.
+        Se o armazenamento estiver bloqueado, habilite-o neste navegador e tente
+        novamente.
+      </p>
+      <Button onClick={start}>Tentar novamente</Button>
+      <Button
+        variant="outline"
+        onClick={() => {
+          try {
+            download(
+              localStorage.getItem("finly-v2") ?? "null",
+              "Finly-v2-recuperacao.json",
+            );
+          } catch (e) {
+            setError(String(e));
+          }
+        }}
+      >
+        Exportar dados v2 para recuperação
+      </Button>
+      <BackupImport onActivate={setState} />
+    </main>
   );
 }
 const settingsLabels: Record<keyof Settings, string> = {
@@ -704,12 +709,6 @@ export function FinanceApp({ initial }: { initial: State }) {
             <div className="home-header-actions">
               {" "}
               <div className="finance-actions home-toolbar">
-                <Button
-                  variant="outline"
-                  onClick={() => setPeriod(offset(period, -1))}
-                >
-                  Mês anterior
-                </Button>
                 <Field label="Competência">
                   <input
                     type="month"
@@ -719,12 +718,6 @@ export function FinanceApp({ initial }: { initial: State }) {
                     }}
                   />
                 </Field>
-                <Button
-                  variant="outline"
-                  onClick={() => setPeriod(offset(period, 1))}
-                >
-                  Próximo mês
-                </Button>
               </div>
               <Button onClick={() => setEditing(null)}>Novo lançamento</Button>
             </div>
@@ -1109,7 +1102,7 @@ export function FinanceApp({ initial }: { initial: State }) {
                 </form>
               </section>
               <section className="category-panel finance-stack">
-                <h2>Backup e privacidade</h2>
+                <h2>Backup e importação</h2>
                 <p>
                   Exporte antes de substituir ou limpar. O JSON contém seus
                   dados privados; não publique. Outro domínio exige importação
@@ -1222,7 +1215,6 @@ export function FinanceApp({ initial }: { initial: State }) {
                 Operações salvas somente neste navegador, em centavos inteiros.
                 Sem sincronização ou notificações externas.
               </p>
-              <a href="/legacy/">Abrir alternativa legada</a>
             </section>
           )}
           {editing !== undefined && (
@@ -1259,7 +1251,7 @@ export function FinanceApp({ initial }: { initial: State }) {
               >
                 Exportar backup atual
               </Button>
-              <Activation
+              <BackupImport
                 onActivate={(next) => {
                   raw.current = localStorage.getItem("finly-v2");
                   setS(next);

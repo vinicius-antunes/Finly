@@ -1112,3 +1112,7 @@ h2{
 .home-ledger-value>strong{display:block}
 .home-ledger-value button{display:block;margin:4px 0 0 auto;min-height:32px;font-size:11px}
 @media(max-width:640px){.home-indicator{flex-direction:column}.home-ledger-value button{min-height:40px}}
+.finance-recovery{max-width:900px;margin:40px auto;padding:24px}
+.finance-recovery>button{margin:8px}
+.finance-app .home-toolbar{flex:0 1 auto}
+.home-overview>.home-primary-grid{margin-top:8px}

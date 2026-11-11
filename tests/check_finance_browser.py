@@ -13,8 +13,7 @@ try:
   b=pw.chromium.launch(executable_path='/usr/bin/chromium',headless=True)
   ctx=b.new_context(viewport={'width':1440,'height':1000},locale='pt-BR');ctx.add_init_script(f"if(!localStorage.getItem('saldoclaro-v1'))localStorage.setItem('saldoclaro-v1',JSON.stringify({json.dumps(fixture)}))")
   page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}');original=page.evaluate("localStorage.getItem('saldoclaro-v1')")
-  page.get_by_role('button',name='Preparar migração dos dados locais').click();dialog=page.get_by_role('dialog');dialog.wait_for();assert page.evaluate("localStorage.getItem('finly-v2')") is None
-  dialog.get_by_role('checkbox').check();dialog.get_by_role('button',name='Confirmar ativação').click();page.get_by_role('heading',name='Visão geral',exact=True).wait_for()
+  page.get_by_role('heading',name='Visão geral',exact=True).wait_for();page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288");page.get_by_role('button',name='Ajustes e backup',exact=True).click();page.get_by_role('button',name='Importar / restaurar backup').click();page.get_by_role('button',name='Preparar migração dos dados locais').click();d=page.get_by_role('dialog').last;d.get_by_role('checkbox').check();d.get_by_role('button',name='Confirmar importação').click();page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288");page.get_by_role('button',name='Visão geral',exact=True).click();page.mouse.move(1100,100)
   def nav(name,mobile=False):
    if mobile:
     page.get_by_role('button',name='Alternar menu',exact=True).click();page.get_by_role('dialog').wait_for();page.wait_for_function("document.querySelector('[role=dialog]').getAnimations().every(a=>a.playState==='finished')")
@@ -41,7 +40,7 @@ try:
   page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');page.screenshot(path=str(ART/'dashboard-mobile.png'),full_page=True);nav('Ajustes e backup',True);page.get_by_role('heading',name='Referências financeiras').wait_for()
   page.set_viewport_size({'width':1440,'height':1000});nav('Parcelas e reembolsos');page.once('dialog',lambda d:d.accept());page.get_by_role('button',name='Excluir grupo',exact=True).click();assert len(json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions'])==1
   nav('Lançamentos');page.get_by_role('button',name='Limpar filtros').click();page.once('dialog',lambda d:d.accept());page.get_by_role('button',name='Excluir',exact=True).click();assert len(json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions'])==0
-  nav('Ajustes e backup');page.get_by_role('button',name='Importar / restaurar backup').click();page.get_by_label('Importar backup JSON',exact=True).set_input_files({'name':'synthetic.json','mimeType':'application/json','buffer':json.dumps(backup).encode()});inner=page.get_by_role('dialog').last;inner.get_by_role('checkbox').check();inner.get_by_role('button',name='Confirmar ativação').click();assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions']==backup['transactions']
+  nav('Ajustes e backup');page.get_by_role('button',name='Importar / restaurar backup').click();page.get_by_label('Importar backup JSON',exact=True).set_input_files({'name':'synthetic.json','mimeType':'application/json','buffer':json.dumps(backup).encode()});inner=page.get_by_role('dialog').last;inner.get_by_role('checkbox').check();inner.get_by_role('button',name='Confirmar importação').click();assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions']==backup['transactions']
   assert page.evaluate("localStorage.getItem('saldoclaro-v1')")==original;assert not errors,errors
   preserved=page.evaluate("localStorage.getItem('finly-v2')");page.evaluate("()=>{Storage.prototype.setItem=function(){throw Error('quota')}}");page.get_by_role('button',name='Novo lançamento',exact=True).click();d=page.get_by_role('dialog');d.get_by_label('Descrição',exact=True).fill('Teste de quota');d.get_by_label('Valor por parcela (R$)',exact=True).fill('1');d.get_by_role('button',name='Salvar lançamento').click();d.get_by_role('alert').wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==preserved
   for mode in ['empty','corrupt','denied']:
@@ -50,10 +49,10 @@ try:
    if mode=='denied':fresh.add_init_script("Object.defineProperty(window,'localStorage',{get(){throw Error('denied')}})")
    pg=fresh.new_page();pg.goto(f'http://127.0.0.1:{server.server_port}')
    if mode=='empty':
-    assert pg.evaluate("localStorage.getItem('finly-v2')") is None;pg.get_by_role('button',name='Iniciar vazio',exact=True).click();md=pg.get_by_role('dialog');md.get_by_role('checkbox').check();md.get_by_role('button',name='Confirmar ativação').click();assert json.loads(pg.evaluate("localStorage.getItem('finly-v2')"))['transactions']==[]
+    pg.get_by_role('heading',name='Visão geral',exact=True).wait_for();assert json.loads(pg.evaluate("localStorage.getItem('finly-v2')"))['transactions']==[]
    elif mode=='corrupt':assert pg.evaluate("localStorage.getItem('finly-v2')")=='{bad'
    else:
-    pg.get_by_role('button',name='Iniciar vazio',exact=True).click();assert pg.get_by_role('alert').count()>=1
+    pg.get_by_role('heading',name='Não foi possível abrir seus dados').wait_for();assert pg.get_by_role('alert').count()>=1
    fresh.close()
   b.close()
  print('PASS: explicit migration, CRUD/edit, installments/refunds, filters, invoice, cancelled group deletion, settings, backup, persistence, simulation, themes/mobile, unchanged legacy')
