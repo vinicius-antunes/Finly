@@ -37,3 +37,5 @@ Projeções são estimativas com dados inseridos manualmente; não substituem o 
 ## Aparência
 
 Dark Aurora é o tema padrão. Em **Ajustes e backup → Aparência**, escolha Escuro ou Claro; a preferência fica salva separadamente dos dados financeiros. Mantenha a pasta `assets` ao copiar ou publicar o aplicativo. Veja [etapas do redesign e testes](docs/DARK_AURORA.md); metas múltiplas e plano mensal continuam dependentes da migração v2.
+
+O redesign Premium reorganiza dashboard, navegação mobile, formulário, tabelas e filtros; inclui notificações locais, sem push. Consulte [as capturas com dados fictícios e as instruções do Cloudflare Pages](docs/DARK_AURORA.md). A prévia da branch é independente da produção em `main`.

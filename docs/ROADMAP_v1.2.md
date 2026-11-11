@@ -86,3 +86,7 @@ Uma fase pode ser lançada em pequenas versões (v1.2.0, v1.2.1...), em vez de e
 ## Critério de release v1.2
 
 - Importação v1 aprovada e reversível, testes de regressão executados, dados públicos fictícios, recursos funcionais documentados e backup da versão nova validado.
+
+## Redesign independente da migração
+
+A branch `codex/dark-aurora-premium-completo` prepara o dashboard recomposto, temas, navegação mobile, filtros e notificações locais sobre o modelo v1. Não implementa a migração da Fase 0 nem metas múltiplas/plano mensal. Evidências e fronteira de integração: [Dark Aurora](DARK_AURORA.md). A integração na main depende de revisão da PR.
