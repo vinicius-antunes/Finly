@@ -66,3 +66,7 @@ Alternativamente execute `npm run dev` localmente. Não inventar URL de prévia 
 Consolidação dos três temas e primitivas Button/Card de shadcn, Aurora oficial adaptado com fallback e Magic Bento reduzido aos quatro cartões de somatórios. Nenhuma mudança na leitura financeira ou no legado. Lockfile versionado e CI com npm ci. Build e testes foram executados; [auditoria, licenças, evidências e limites](docs/REACT_VISUAL_PHASES.md). Fases 3–5 não estão autorizadas e permanecem planejadas.
 
 Para reprodução: npm ci, npm run check, npm run build, npm run test:static, python3 tests/check_public_release.py e node --check public/legacy/assets/theme.js. Teste visual opcional de desenvolvimento: python3 tests/check_react_visual.py (Python Playwright e Chromium em /usr/bin/chromium; não necessários para o usuário do app).
+
+## Graphite Green — execução autorizada das nove seleções
+
+A identidade vigente passa a Graphite Green usando o CSS Tweakcn fornecido; o antigo valor de preferência `aurora` continua aceito como alias. Seis integrações foram implementadas (tema, Light Rays, Bento, donut, Tremor e Text Morph). Card Spotlight, Sidebar e Stateful Button da Aceternity permanecem bloqueados por acesso 403 aos fontes oficiais; a entrega 9/9 não está concluída. O legado e a leitura financeira continuam preservados. [Matriz, mapa de tokens, testes e evidências](docs/graphite/IMPLEMENTATION.md).

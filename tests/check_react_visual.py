@@ -10,7 +10,7 @@ from pathlib import Path
 import threading
 from playwright.sync_api import sync_playwright
 ROOT=Path(__file__).resolve().parent.parent
-ART=ROOT/'docs/react-visual'
+ART=Path('/tmp/finly-react-regression')
 class Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*args): pass
 server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(ROOT/'dist')))
@@ -31,7 +31,7 @@ try:
     Storage.prototype.setItem=function(k,v){if(k==='saldoclaro-v1'||k==='finly-v2') window.financialWrites.push(k);return original.call(this,k,v)};
   """)
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-  page.goto(url);assert page.locator('html').get_attribute('data-theme')=='aurora'
+  page.goto(url);assert page.locator('html').get_attribute('data-theme')=='graphite'
   assert page.locator('.summary-card').count()==4
   assert page.evaluate('financialWrites')==[]
   page.screenshot(path=str(ART/'after-empty-desktop.png'),full_page=True)
@@ -40,20 +40,23 @@ try:
   page.evaluate('(d)=>localStorage.setItem("saldoclaro-v1",JSON.stringify(d))',fixture)
   page.reload();page.locator('input[type="month"]').fill('2026-11')
   baseline=page.evaluate('localStorage.getItem("saldoclaro-v1")')
-  for theme,label in [('aurora','Dark Aurora Premium'),('dark','Escuro Padrão'),('light','Claro')]:
+  for theme,label in [('graphite','Graphite Green'),('dark','Escuro Padrão'),('light','Claro')]:
    page.get_by_role('button',name=label,exact=True).click();page.reload()
    assert page.locator('html').get_attribute('data-theme')==theme
    page.locator('input[type="month"]').fill('2026-11')
    assert page.locator('.summary-card strong').all_text_contents()==['R$\xa0100,00','R$\xa020,00','R$\xa030,00','R$\xa05,00']
-   if theme=='aurora': page.wait_for_selector('.aurora-canvas')
-   if theme!='aurora': assert page.locator('.aurora-canvas').count()==0
+   if theme=='graphite': page.wait_for_selector('.light-rays__canvas')
+   if theme!='graphite': assert page.locator('.light-rays__canvas').count()==0
    # Contrast for the semantic tokens actually applied by the theme.
-   colors=page.evaluate("Object.fromEntries(['--text','--muted','--card','--bg','--positive','--primary','--primary-foreground'].map(k=>[k,getComputedStyle(document.documentElement).getPropertyValue(k).trim()]))")
-   def luminance(hexcolor):
-    if len(hexcolor)==4: hexcolor='#'+''.join(c*2 for c in hexcolor[1:])
-    channels=[int(hexcolor.lstrip('#')[i:i+2],16)/255 for i in (0,2,4)]
+   colors=page.evaluate("""() => {
+     const tokens=['--text','--muted-foreground','--card','--bg','--positive','--primary','--primary-foreground'];
+     const context=document.createElement('canvas').getContext('2d');
+     return Object.fromEntries(tokens.map(k=>{context.clearRect(0,0,1,1);context.fillStyle=getComputedStyle(document.documentElement).getPropertyValue(k).trim();context.fillRect(0,0,1,1);return [k,Array.from(context.getImageData(0,0,1,1).data).slice(0,3)]}));
+   }""")
+   def luminance(rgb):
+    channels=[c/255 for c in rgb]
     return sum(c*w for c,w in zip([c/12.92 if c<=.04045 else ((c+.055)/1.055)**2.4 for c in channels],[.2126,.7152,.0722]))
-   for fg,bg in [('--text','--bg'),('--muted','--card'),('--positive','--card'),('--primary-foreground','--primary')]:
+   for fg,bg in [('--text','--bg'),('--muted-foreground','--card'),('--positive','--card'),('--primary-foreground','--primary')]:
     a,b=sorted([luminance(colors[fg]),luminance(colors[bg])]);assert (b+.05)/(a+.05)>=4.5,(theme,fg,bg)
    page.locator('h1').click()
    for w,h in [(1440,900),(1366,768),(768,1024),(390,844)]:
@@ -61,12 +64,12 @@ try:
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),(theme,w)
     if w in (1440,390): page.screenshot(path=str(ART/f'{theme}-{w}.png'),full_page=True)
    page.set_viewport_size({'width':1440,'height':900})
-   if theme=='aurora':
+   if theme=='graphite':
     page.locator('.magic-card').first.hover()
     assert page.locator('.magic-card').first.get_attribute('data-active')=='true'
     page.screenshot(path=str(ART/'aurora-hover.png'),full_page=True)
-    page.get_by_label('Efeitos Aurora').uncheck();assert page.locator('.aurora-canvas').count()==0
-    page.get_by_label('Efeitos Aurora').check()
+    page.get_by_label('Efeitos de luz').uncheck();assert page.locator('.light-rays__canvas').count()==0
+    page.get_by_label('Efeitos de luz').check()
    page.get_by_role('button',name='Lançamentos',exact=True).click()
    assert page.locator('tbody tr').count()==5
    page.get_by_role('button',name='Planejamentos',exact=False).click();assert 'Metas múltiplas' in page.locator('main').inner_text()
@@ -74,8 +77,8 @@ try:
    assert page.evaluate('localStorage.getItem("saldoclaro-v1")')==baseline
    assert page.evaluate('financialWrites')==[]
   # Keyboard, reduced motion and touch keep content available without animation.
-  page.emulate_media(reduced_motion='reduce');page.get_by_role('button',name='Dark Aurora Premium',exact=True).click()
-  assert page.locator('.aurora-canvas').count()==0
+  page.emulate_media(reduced_motion='reduce');page.get_by_role('button',name='Graphite Green',exact=True).click()
+  assert page.locator('.light-rays__canvas').count()==0
   page.keyboard.press('Tab');assert page.evaluate('document.activeElement !== document.body')
   # Production legacy assets and origin are preserved; do not load its writing JS into this context.
   for asset in ['legacy/index.html','legacy/assets/theme.js','legacy/assets/aurora.css']:
@@ -89,8 +92,8 @@ try:
    if raw: ctx.add_init_script(f'localStorage.setItem("saldoclaro-v1",{json.dumps(raw)})')
    pg=ctx.new_page();pg.goto(url)
    if raw: assert pg.get_by_role('alert').is_visible();assert pg.evaluate('localStorage.getItem("saldoclaro-v1")')==raw
-   else: assert pg.get_by_role('status').is_visible()
-   assert pg.locator('.aurora-canvas').count()==0
+   else: assert pg.locator('.info-banner[role="status"]').is_visible()
+   assert pg.locator('.light-rays__canvas').count()==0
    ctx.close()
   ctx=browser.new_context()
   ctx.add_init_script("Object.defineProperty(window,'localStorage',{get(){throw new Error('denied')}})")

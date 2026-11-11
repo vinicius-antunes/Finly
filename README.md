@@ -43,3 +43,7 @@ O redesign Premium reorganiza dashboard, navegação mobile, formulário, tabela
 ## React: fases visuais 0–2
 
 Somente na branch existente `Finly-React`: três temas, shadcn Button/Card, Aurora e spotlight discreto dos cartões. A interface continua prévia somente de leitura, com versão completa em `/legacy/`. [Auditoria, licenças e capturas](docs/REACT_VISUAL_PHASES.md). Fases 3–5 aguardam autorização. Para instalar de forma reproduzível, use `npm ci`. A hospedagem da `main` permanece independente.
+
+## Graphite Green — execução autorizada das nove seleções
+
+A identidade vigente passa a Graphite Green usando o CSS Tweakcn fornecido; o antigo valor de preferência `aurora` continua aceito como alias. Seis integrações foram implementadas (tema, Light Rays, Bento, donut, Tremor e Text Morph). Card Spotlight, Sidebar e Stateful Button da Aceternity permanecem bloqueados por acesso 403 aos fontes oficiais; a entrega 9/9 não está concluída. O legado e a leitura financeira continuam preservados. [Matriz, mapa de tokens, testes e evidências](docs/graphite/IMPLEMENTATION.md).

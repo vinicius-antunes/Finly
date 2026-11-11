@@ -49,7 +49,7 @@ O donut soma somente kind=out em centavos por categoria na competência. Compras
 
 ## Testes e evidências
 
-- npm run check, build, test:static, teste público e node --check legado passaram. npm audit --omit=dev: zero vulnerabilidades na consulta. npm ci será reexecutado na checagem final.
+- npm run check, build, test:static, teste público e node --check legado passaram. npm audit --omit=dev: zero vulnerabilidades na consulta. npm ci foi reexecutado com sucesso na checagem final.
 - tests/check_react_visual.py foi adaptado para os nomes novos e valores OKLCH, preservando testes de dados, preferências antigas, storage negado, WebGL, responsividade e contraste 4,5:1 dos pares semânticos. As capturas desse teste agora vão para /tmp para não sobrescrever histórico anterior.
 - tests/check_graphite.py gera comparações da mesma fixture, competência e viewport. Valida somas 1000/400/500/75, duas categorias e total400, Tremor 7500/10000 centavos, período vazio, morph/reduced motion, quatro viewports e JSON financeiro invariável. Vídeo real capturado via CDP e codificado pelo FFmpeg do sistema, sem dependência de download do FFmpeg Playwright.
 - Testes check_theme.py e check_premium.py existentes passaram sobre public/legacy. Módulo financeiro e cópia legada permanecem byte a byte iguais à base.
