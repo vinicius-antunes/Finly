@@ -17,6 +17,8 @@
   .calculated-total strong{font-size:23px;font-weight:850;letter-spacing:-.5px}
   .calculated-total .small-text{color:#3d766a}
 </style>
+  <link rel="stylesheet" href="assets/aurora.css">
+  <script src="assets/theme.js"></script>
 </head>
 <body>
 <div class="app">
@@ -26,15 +28,15 @@
       <button class="active" data-view="overview"><span class="glyph">▦</span>Visão geral</button>
       <button data-view="entries"><span class="glyph">☰</span>Lançamentos</button>
       <button data-view="installments"><span class="glyph">↻</span>Parcelas e reembolsos</button>
-      <button data-view="goal"><span class="glyph">◎</span>Metas</button>
+      <div class="planning-group"><div class="planning-header"><button id="planning-toggle" aria-expanded="false" aria-controls="planning-drawer"><span class="glyph" aria-hidden="true">◎</span>Planejamentos <span class="chevron" aria-hidden="true">⌄</span></button><button id="planning-add" aria-label="Criar nova meta">+</button></div><div id="planning-drawer" class="planning-drawer" hidden><p>Você ainda não tem metas no modelo v2. A criação será disponibilizada após a migração segura.</p><button data-view="goal">Abrir planejamento legado</button></div></div>
       <button data-view="settings"><span class="glyph">⚙</span>Ajustes e backup</button>
     </nav>
-    <div class="sidebar-foot"><strong>Privado e sem instalação.</strong><br>Os dados ficam neste navegador. Faça um backup JSON regularmente.</div>
+
   </aside>
   <main class="main">
     <div class="topbar">
       <div><p class="eyebrow">Seu planejamento pessoal</p><h1 class="page-title" id="page-title">Visão geral</h1><p class="sub" id="page-subtitle">Faturas, reembolsos e metas em um só lugar.</p></div>
-      <div class="actions" id="top-actions"><div class="month-switch"><button id="previous-month" title="Mês anterior" aria-label="Mês anterior">‹</button><span class="month-label" id="month-label">Mês atual</span><button id="next-month" title="Próximo mês" aria-label="Próximo mês">›</button></div><button class="btn primary" id="new-entry">＋ Lançamento</button></div>
+      <div class="actions" id="top-actions"><div class="month-switch"><button id="previous-month" title="Mês anterior" aria-label="Mês anterior">‹</button><span class="month-label" id="month-label">Mês atual</span><button id="next-month" title="Próximo mês" aria-label="Próximo mês">›</button></div><button class="btn primary" id="new-entry">＋ Novo lançamento</button></div>
     </div>
     <div class="notice" id="starter-notice"><span style="font-size:19px">ⓘ</span><div><strong>Bem-vindo ao Finly.</strong> Este projeto começa sem dados financeiros pré-cadastrados. Ajuste suas preferências ou importe um backup JSON privado da versão anterior. <button data-action="dismiss-notice">Entendi</button></div></div>
     <div id="view-root"></div>
@@ -64,6 +66,7 @@
     </form>
   </div>
 </dialog>
+<dialog id="planning-info" class="dialog" aria-labelledby="planning-info-title"><div class="dialog-body"><h2 id="planning-info-title">Novas metas: próxima etapa</h2><p>A criação de metas depende da migração v2 revisada. Seus dados e o planejamento legado continuam disponíveis, sem conversão automática.</p><button id="planning-close" class="btn primary" autofocus>Entendi</button></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <input id="import-file" type="file" accept=".json,application/json" hidden>
 <script>
@@ -193,7 +196,7 @@
     </section></div><section class="panel"><div class="panel-head"><div><h2>Regras antes de comprar</h2><p>Decida com base no orçamento disponível</p></div></div>
     <div class="metric-row"><span>① Verificar a necessidade real da compra</span><strong>Antes da oferta</strong></div><div class="metric-row"><span>② Conferir condições, garantia, frete e preço final</span><strong>Antes de pagar</strong></div><div class="metric-row"><span>③ Reservar faturas, contas e margem para imprevistos</span><strong>Obrigatório</strong></div><div class="metric-row"><span>④ Manter parcelas futuras dentro do orçamento</span><strong>Até ${fmt(cap)}/mês</strong></div>
     <div class="panel-note">Uma simulação não representa dinheiro disponível. Confira saldo, obrigações e taxas antes de comprar.</div></section>`}
-  function renderSettings(){const s=state.settings;return `<div class="settings-section">
+  function renderSettings(){const s=state.settings;return `<div class="settings-section"><section class="panel"><h2>Aparência</h2><div class="field"><label for="ui-theme">Tema da interface</label><select id="ui-theme" class="select"><option value="dark">Escuro (padrão)</option><option value="light">Claro</option></select><p id="theme-feedback" class="info" role="status">A preferência é salva somente neste navegador, separada dos dados financeiros.</p></div></section>
     <section class="panel"><div class="panel-head"><div><h2>Valores de referência</h2><p>Alterações recalculam as projeções, sem criar lançamentos</p></div></div>
     <form id="settings-form"><div class="form-grid">
       <div class="field"><label for="s-salary">Salário líquido (R$)</label><input class="input" id="s-salary" inputmode="decimal" value="${fmt(s.salary).replace('R$ ','').replace('R$ ','')}" required></div>
