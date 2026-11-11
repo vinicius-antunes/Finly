@@ -1,0 +1,45 @@
+name: Finly React - validação inicial
+
+on:
+  push:
+    branches: [Finly-React]
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'public/legacy/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'vite.config.ts'
+      - 'tsconfig.json'
+      - '.github/workflows/react-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+      - name: Validar TypeScript
+        run: npm run check
+      - name: Build estático
+        run: npm run build
+      - name: Verificar salvaguardas e fallback
+        run: |
+          npm run test:static
+          python3 tests/check_public_release.py
+          node --check public/legacy/assets/theme.js
+      - name: Verificar artefato legado
+        run: |
+          test -f dist/index.html
+          test -f dist/legacy/index.html
+          test -f dist/legacy/assets/aurora.css
+          test -f dist/legacy/assets/theme.js
