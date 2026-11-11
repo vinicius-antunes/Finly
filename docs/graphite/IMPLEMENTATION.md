@@ -1,9 +1,27 @@
-# Graphite Green — execução autorizada de nove features
+# Graphite Green — escopo vigente e histórico da execução
 
 Base 31b39c6, branch exclusiva Finly-React; não há PR, merge ou alteração da main.
 Os anexos selection.json e tweakcn-original.css preservam os conteúdos originais; o CSS foi normalizado de CRLF para LF, sem mudar os tokens. A autorização posterior do proprietário supera o estado histórico false do JSON.
 
-## Matriz de alocação definida antes do código
+## Escopo vigente após decisão do proprietário
+
+As duas substituições **shadcn/ui Sidebar e Magic UI Magic Card** foram aprovadas expressamente. **Stateful Button retirado do escopo.** As seis features anteriores permanecem, totalizando oito seleções no escopo atual. A implementação está disponível para revisão visual; não se presume aceite humano.
+
+|Feature vigente|Situação|Código|
+|---|---|---|
+|Tweakcn Graphite Green/três temas|Preservado/testado|src/theme/|
+|React Bits Light Rays|Preservado/testado|src/components/visual/LightRays.tsx|
+|React Bits Magic Bento|Preservado/testado|src/components/visual/MagicCard.tsx|
+|Magic UI Magic Card (substituição MIT aprovada)|Implementado/testado|src/components/magicui/magic-card.tsx|
+|shadcn Donut|Preservado/testado|src/components/analytics/CategoryDonut.tsx|
+|Tremor ProgressBar|Preservado/testado|src/components/tremor/ProgressBar.tsx|
+|shadcn/ui Sidebar (substituição MIT aprovada)|Implementado/testado|src/components/ui/sidebar.tsx e navigation/FinanceSidebar.tsx|
+|Motion Primitives Text Morph|Preservado/testado|src/components/graphite/TextMorph.tsx|
+|Stateful Button|Retirado pelo proprietário|Não implementado|
+
+[Fontes MIT, dependências, adaptações e provas das substituições](MIT_REPLACEMENTS.md). Nenhum código Aceternity foi publicado. As seções abaixo registram a decisão inicial e os bloqueios anteriores; não representam o escopo atual.
+
+## Histórico: matriz de alocação definida antes do código
 
 | # | Feature | Região | Função | Dependências | Demonstração |
 |---|---|---|---|---|---|
@@ -19,7 +37,7 @@ Os anexos selection.json e tweakcn-original.css preservam os conteúdos originai
 
 Bloqueio inicial: ui.aceternity.com retornou 403 CONNECT no proxy. Não substituir componentes nem alegar integração enquanto os fontes/licença não puderem ser verificados. Demais implementações e testes prosseguem.
 
-## Situação desta execução — parcial, não aceite 9/9
+## Histórico: primeira execução parcial, antes das substituições MIT
 
 |#|Situação|Código|Evidência/licença|
 |---|---|---|---|
@@ -63,7 +81,7 @@ O donut soma somente kind=out em centavos por categoria na competência. Compras
 
 [Vídeo real das interações disponíveis](evidence/interactions-graphite.webm). Não demonstra os três componentes bloqueados; não constitui evidência de 9/9 nem aceite humano.
 
-## Deploy e retomada
+## Histórico: bloqueios de deploy e retomada anteriores
 
 Projeto Pages informado pelo proprietário: finlyr. A tentativa de consultar a URL padrão finlyr.pages.dev foi bloqueada por 403 CONNECT; não foi possível confirmar conteúdo, deployment ou correspondência de SHA. Não se apresenta esse endereço como preview confirmado.
 

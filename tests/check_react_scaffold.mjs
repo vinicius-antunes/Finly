@@ -23,3 +23,7 @@ assert.ok(existsSync(join(root, 'package-lock.json')), 'Lockfile necessário par
 assert.ok(existsSync(join(root, 'docs/licenses/react-bits.txt')));
 assert.ok(existsSync(join(root, 'docs/licenses/shadcn-ui.txt')));
 assert.match(content('index.html'), /theme-init\.js/);
+
+assert.ok(!existsSync(join(root, 'src/components/aceternity')), 'Não publicar os fontes protegidos da Aceternity');
+assert.doesNotMatch(src, /CanvasRevealEffect/);
+assert.ok(existsSync(join(root, 'docs/licenses/magic-ui.txt')));
