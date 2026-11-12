@@ -150,7 +150,7 @@ export function HomeOverview({
         ))}
       </div>
       <div className="home-middle-grid">
-        <section className="home-panel">
+        <MagicCard className="home-panel">
           <h2>Comprometimento do orçamento</h2>
           <div className="budget-amount">
             <strong>{money(m.commitment)}</strong>
@@ -169,8 +169,8 @@ export function HomeOverview({
           <p className="muted">
             Obrigações e margem. A reserva não participa deste cálculo.
           </p>
-        </section>
-        <section className="home-panel home-attention">
+        </MagicCard>
+        <MagicCard className="home-panel home-attention">
           <h2>Atenção do mês</h2>
           {attention.length ? (
             <ul>
@@ -185,7 +185,7 @@ export function HomeOverview({
           ) : (
             <p className="muted">Tudo em dia</p>
           )}
-        </section>
+        </MagicCard>
       </div>
     </div>
   );

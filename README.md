@@ -69,3 +69,5 @@ Na mesma branch, Lançamentos usa filtros compactos, indicadores separados, tabe
 O cabeçalho adapta o botão de menu à capacidade de hover, usa sino com contador e painel de notificações locais e apresenta sucessos em toast temporário. [Comportamento, capturas e testes](docs/header/REPORT.md).
 
 A Visão Geral agora é um dashboard executivo em três linhas, com seis meses de gastos registrados e atalhos para os detalhes. [Cálculos, comparação visual e testes](docs/dashboard/REPORT.md).
+
+A Visão Geral adapta as proporções à altura do desktop e compartilha o brilho MagicCard entre os nove widgets. Os dados do gráfico permanecem acessíveis sem lista expansível. [Evidências e testes](docs/dashboard-tuning/REPORT.md).

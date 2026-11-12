@@ -1281,10 +1281,8 @@ h2{
 .executive-dashboard .home-indicator small{font-size:13px}
 .executive-dashboard .home-indicator button{min-height:36px;padding:6px 0;font-size:13px}
 .executive-dashboard .home-middle-grid{grid-template-columns:1fr 1fr;gap:14px;margin-bottom:0}
-.monthly-bars{height:130px!important;width:100%;aspect-ratio:auto!important}
+.monthly-bars{height:var(--dashboard-chart-height,130px)!important;width:100%;aspect-ratio:auto!important}
 .monthly-spending{position:relative;overflow:visible}
-.chart-values{font-size:12px;margin-top:5px}.chart-values summary{cursor:pointer}
-.chart-values[open] ul{position:absolute;z-index:4;background:var(--card);border:1px solid var(--border);padding:14px 24px;border-radius:12px;right:12px;margin:4px 0}
 .budget-amount{display:flex;justify-content:space-between;align-items:center;margin:12px 0;font-size:16px}.budget-amount strong{font-size:25px}
 .home-attention ul{padding:0;list-style:none;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .home-attention button{font-size:13px;white-space:normal;text-align:left;justify-content:flex-start;height:auto;min-height:40px;padding:6px}
@@ -1296,4 +1294,17 @@ h2{
 .executive-dashboard .home-reserve{gap:8px}
 .executive-dashboard .home-reserve h2{margin-top:0}
 .executive-dashboard .home-balance-bottom span{font-size:12px}
-.monthly-bars{height:110px!important}
+
+
+/* Height-aware sizing is bounded; content can always grow naturally. */
+.executive-dashboard .home-panel.magic-card{gap:8px}
+.executive-dashboard .monthly-spending{overflow:visible}
+.executive-dashboard .home-panel.magic-card>h2{margin-bottom:2px}
+@media(min-width:1101px){
+ .executive-dashboard{--dashboard-chart-height:clamp(110px,calc(110px + (100dvh - 800px)*.22),180px);--dashboard-pad:clamp(18px,calc(18px + (100dvh - 800px)*.025),28px)}
+ .executive-dashboard .home-balance,.executive-dashboard .home-reserve,.executive-dashboard .home-panel,.executive-dashboard .home-indicator{padding:var(--dashboard-pad)}
+ .executive-dashboard .home-indicator{min-height:clamp(150px,calc(150px + (100dvh - 800px)*.12),195px)}
+ .executive-dashboard .home-middle-grid>.home-panel{min-height:clamp(165px,calc(165px + (100dvh - 800px)*.16),225px)}
+ .executive-dashboard .home-reserve{justify-content:space-between}
+ .executive-dashboard .home-middle-grid>.home-panel{justify-content:space-between}
+}

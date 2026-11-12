@@ -1,3 +1,4 @@
+import { MagicCard } from "@/components/visual/MagicCard";
 import { useId } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { useReducedMotion } from "motion/react";
@@ -23,7 +24,7 @@ export function MonthlySpendingChart({
   const data = monthlySpending(entries, period),
     reduce = useReducedMotion();
   return (
-    <section className="home-panel monthly-spending">
+    <MagicCard className="home-panel monthly-spending">
       <h2>Gastos mensais</h2>
       <p className="muted">Últimas seis competências · despesas registradas</p>
       <ChartContainer
@@ -81,16 +82,23 @@ export function MonthlySpendingChart({
           />
         </BarChart>
       </ChartContainer>
-      <details className="chart-values">
-        <summary>Valores do gráfico</summary>
-        <ul>
+      <table className="sr-only">
+        <caption>Gastos por competência, em reais</caption>
+        <thead>
+          <tr>
+            <th scope="col">Competência</th>
+            <th scope="col">Gastos</th>
+          </tr>
+        </thead>
+        <tbody>
           {data.map((x) => (
-            <li key={x.period}>
-              {x.period}: {money(x.total)}
-            </li>
+            <tr key={x.period}>
+              <th scope="row">{x.period}</th>
+              <td>{money(x.total)}</td>
+            </tr>
           ))}
-        </ul>
-      </details>
-    </section>
+        </tbody>
+      </table>
+    </MagicCard>
   );
 }
