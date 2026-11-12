@@ -61,3 +61,5 @@ O Light Rays agora é o fundo global da interface Graphite Green, contínuo entr
 A Home funcional React segue a organização da main, com aparência Graphite Green e controles de tema em Ajustes. [Comparação estrutural, capturas completas e testes](docs/HOME_MAIN_REACT.md).
 
 Na branch isolada `codex/finly-navegacao-ux`, a navegação tem sete destinos, histórico do navegador e Configurações por abas. [Mapa, evidências e testes](docs/navigation-ux/REPORT.md).
+
+Na branch `codex/finly-navegacao-ux`, backup e importação usam uma única janela com seleção, conferência e confirmação. [Fluxo, segurança, antes/depois e testes](docs/backup-import/REPORT.md).

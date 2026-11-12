@@ -1,3 +1,4 @@
+from backup_helpers import restore_backup
 import re
 """Real Chromium v2 operations, synthetic data only."""
 import functools,http.server,json,threading
@@ -13,8 +14,9 @@ try:
  with sync_playwright() as pw:
   b=pw.chromium.launch(executable_path='/usr/bin/chromium',headless=True)
   ctx=b.new_context(viewport={'width':1440,'height':1000},locale='pt-BR');ctx.add_init_script(f"if(!localStorage.getItem('saldoclaro-v1'))localStorage.setItem('saldoclaro-v1',JSON.stringify({json.dumps(fixture)}))")
+  url_base=f'http://127.0.0.1:{server.server_port}'
   page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}');original=page.evaluate("localStorage.getItem('saldoclaro-v1')")
-  page.get_by_role('heading',name='Visão geral',exact=True).wait_for();page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288");page.get_by_role('link',name='Configurações',exact=True).click();page.get_by_role('tab',name='Backup',exact=True).click();page.get_by_role('button',name='Importar / restaurar backup').click();page.get_by_role('button',name='Preparar migração dos dados locais').click();d=page.get_by_role('dialog').last;d.get_by_role('checkbox').check();d.get_by_role('button',name='Confirmar importação').click();page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288");page.get_by_role('link',name='Visão geral',exact=True).click();page.mouse.move(1100,100)
+  page.goto(url_base+'/#/configuracoes/backup?competencia=2026-11');page.get_by_role('heading',name='Salvar meus dados').wait_for();restore_backup(page,json.dumps(fixture),'synthetic-v1.json');page.goto(url_base+'/#/visao-geral?competencia=2026-11');page.get_by_role('heading',name='Visão geral',exact=True).wait_for()
   def nav(name,mobile=False):
    if mobile:
     page.get_by_role('button',name='Alternar menu',exact=True).click();page.get_by_role('dialog').wait_for();page.wait_for_function("document.querySelector('[role=dialog]').getAnimations().every(a=>a.playState==='finished')")
@@ -42,7 +44,7 @@ try:
   page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');page.screenshot(path=str(ART/'dashboard-mobile.png'),full_page=True);nav('Configurações',True);page.get_by_role('heading',name='Referências financeiras').wait_for()
   page.set_viewport_size({'width':1440,'height':1000});nav('Parcelas e recorrências');page.once('dialog',lambda d:d.accept());page.get_by_role('button',name='Excluir grupo',exact=True).click();assert len(json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions'])==1
   nav('Lançamentos');page.get_by_role('button',name='Limpar filtros').click();page.once('dialog',lambda d:d.accept());page.get_by_role('button',name='Excluir',exact=True).click();assert len(json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions'])==0
-  nav('Configurações');page.get_by_role('tab',name='Backup',exact=True).click();page.get_by_role('button',name='Importar / restaurar backup').click();page.get_by_label('Importar backup JSON',exact=True).set_input_files({'name':'synthetic.json','mimeType':'application/json','buffer':json.dumps(backup).encode()});inner=page.get_by_role('dialog').last;inner.get_by_role('checkbox').check();inner.get_by_role('button',name='Confirmar importação').click();assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions']==backup['transactions']
+  nav('Configurações');page.get_by_role('tab',name='Backup',exact=True).click();restore_backup(page,json.dumps(backup));assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['transactions']==backup['transactions']
   assert page.evaluate("localStorage.getItem('saldoclaro-v1')")==original;assert not errors,errors
   preserved=page.evaluate("localStorage.getItem('finly-v2')");page.evaluate("()=>{Storage.prototype.setItem=function(){throw Error('quota')}}");page.get_by_role('button',name='Novo lançamento',exact=True).click();d=page.get_by_role('dialog');d.get_by_label('Descrição',exact=True).fill('Teste de quota');d.get_by_label(re.compile(r'^Valor.*\(R\$\)$')).fill('1');d.get_by_role('button',name='Salvar lançamento').click();d.get_by_role('alert').wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==preserved
   for mode in ['empty','corrupt','denied']:

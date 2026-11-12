@@ -1,3 +1,4 @@
+from backup_helpers import restore_backup
 import re
 """Direct Home startup, failure recovery and persistence in real Chromium."""
 import functools,http.server,json,threading
@@ -38,7 +39,7 @@ try:
    if mode=='corrupt':
     assert pg.evaluate("localStorage.getItem('finly-v2')")=='{bad' and pg.evaluate('v2Writes.length')==0
     pg.screenshot(path=str(ART/'corrupt-recovery.png'),full_page=True)
-    pg.get_by_label('Importar backup JSON',exact=True).set_input_files({'name':'synthetic-v2.json','mimeType':'application/json','buffer':saved.encode()});md=pg.get_by_role('dialog');md.get_by_role('checkbox').check();md.get_by_role('button',name='Confirmar importação').click();pg.get_by_role('heading',name='Visão geral',exact=True).wait_for();assert json.loads(pg.evaluate("localStorage.getItem('finly-v2')"))['transactions']==json.loads(saved)['transactions']
+    restore_backup(pg,saved);pg.get_by_role('heading',name='Visão geral',exact=True).wait_for();assert json.loads(pg.evaluate("localStorage.getItem('finly-v2')"))['transactions']==json.loads(saved)['transactions']
    fresh.close()
   assert not errors,errors;b.close()
  print('PASS: direct empty Home, zero indicators, exactly one initial write, CRUD reload, existing raw state unchanged, absent legacy links/intro/arrows, month selection, corrupt/denied/quota recovery and explicit backup restoration')

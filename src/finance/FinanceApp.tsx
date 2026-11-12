@@ -1,3 +1,5 @@
+import { BackupImport } from "./BackupImport";
+import { prepareBackup } from "./backup";
 import { useNavigation, destinations, tabs } from "./navigation";
 import { HomeOverview } from "./HomeOverview";
 import {
@@ -26,7 +28,6 @@ import { savedTheme, PREF_KEY, type Theme } from "@/theme/theme";
 import { type LegacyEntry } from "@/lib/legacy";
 import {
   empty,
-  migrate,
   money,
   cents,
   names,
@@ -83,142 +84,11 @@ function Modal({
     </dialog>
   );
 }
-export function BackupImport({
-  onActivate,
-}: {
-  onActivate: (s: State) => void;
-}) {
-  const [candidate, setCandidate] = useState<State | null>(null),
-    [error, setError] = useState(""),
-    [ack, setAck] = useState(false);
-  const expected = useRef<string | null>(null),
-    source = useRef<string | null>(null);
-  async function preview(raw: string, local = false) {
-    try {
-      expected.current = localStorage.getItem("finly-v2");
-      source.current = local ? raw : null;
-      setCandidate(await migrate(raw));
-      setAck(false);
-      setError("");
-    } catch (e) {
-      setError(String(e));
-    }
-  }
-  function commit() {
-    try {
-      if (
-        source.current !== null &&
-        localStorage.getItem("saldoclaro-v1") !== source.current
-      )
-        throw Error("O legado mudou. Gere outra prévia.");
-      if (!candidate) return;
-      save(candidate, expected.current);
-      onActivate(candidate);
-    } catch (e) {
-      setError(String(e));
-    }
-  }
-  return (
-    <section className="category-panel finance-stack">
-      <h2>Backup e importação</h2>
-      <p>
-        Os dados antigos serão preservados. O armazenamento pertence a este
-        endereço e não é compartilhado com outros domínios. Importe um backup
-        privado se necessário.
-      </p>
-      <div className="finance-actions">
-        <Button
-          onClick={() => {
-            try {
-              const raw = localStorage.getItem("saldoclaro-v1");
-              if (!raw) throw Error("Nenhum dado legado nesta origem");
-              void preview(raw, true);
-            } catch (e) {
-              setError(String(e));
-            }
-          }}
-        >
-          Preparar migração dos dados locais
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            try {
-              download(
-                localStorage.getItem("saldoclaro-v1") ?? "null",
-                "Finly-legado.json",
-              );
-            } catch (e) {
-              setError(String(e));
-            }
-          }}
-        >
-          Exportar backup original
-        </Button>
-        <Field label="Importar backup JSON">
-          <input
-            type="file"
-            accept=".json,application/json"
-            onChange={async (e) => {
-              const f = e.target.files?.[0];
-              if (f) {
-                if (f.size > 4194304) setError("Limite de 4 MB");
-                else await preview(await f.text());
-              }
-              e.target.value = "";
-            }}
-          />
-        </Field>
-      </div>
-      {candidate && (
-        <Modal
-          title="Prévia de importação / substituição"
-          onClose={() => setCandidate(null)}
-        >
-          <p>
-            {candidate.transactions.length} lançamentos ·{" "}
-            {candidate.pending.length} pendências ·{" "}
-            {Object.keys(candidate.invoiceStatuses).length} faturas.
-          </p>
-          <p>
-            Soma descritiva:{" "}
-            {money(
-              candidate.transactions.reduce((n, x) => n + x.amountCents, 0),
-            )}
-            . IDs, competências e parcelas preservados. Essa soma não é saldo.
-          </p>
-          <Button
-            onClick={() =>
-              download(JSON.stringify(candidate, null, 2), "Finly-previa.json")
-            }
-          >
-            Exportar prévia v2
-          </Button>
-          <p>
-            Se já houver dados v2, serão substituídos. Exporte seu backup atual
-            antes.
-          </p>
-          <label>
-            <input
-              type="checkbox"
-              checked={ack}
-              onChange={(e) => setAck(e.target.checked)}
-            />{" "}
-            Guardei o backup necessário e confirmo esta operação.
-          </label>
-          <Button disabled={!ack} onClick={commit}>
-            Confirmar importação
-          </Button>
-          {error && <p role="alert">{error}</p>}
-        </Modal>
-      )}
-      {error && <p role="alert">{error}</p>}
-    </section>
-  );
-}
 export function FinanceRoot() {
   const [state, setState] = useState<State | null>(null);
   const [error, setError] = useState("");
+  const [recovering, setRecovering] = useState(false),
+    [notice, setNotice] = useState("");
   function start() {
     try {
       setState(initialize());
@@ -230,7 +100,7 @@ export function FinanceRoot() {
   useEffect(() => {
     start();
   }, []);
-  if (state) return <FinanceApp initial={state} />;
+  if (state) return <FinanceApp initial={state} initialNotice={notice} />;
   if (!error)
     return (
       <main className="finance-recovery">
@@ -254,10 +124,10 @@ export function FinanceRoot() {
         variant="outline"
         onClick={() => {
           try {
-            download(
-              localStorage.getItem("finly-v2") ?? "null",
-              "Finly-v2-recuperacao.json",
-            );
+            const current = localStorage.getItem("finly-v2");
+            if (current === null)
+              throw Error("Não existem dados v2 salvos para exportar.");
+            download(current, "Finly-v2-recuperacao.json");
           } catch (e) {
             setError(String(e));
           }
@@ -265,7 +135,18 @@ export function FinanceRoot() {
       >
         Exportar dados v2 para recuperação
       </Button>
-      <BackupImport onActivate={setState} />
+      <Button onClick={() => setRecovering(true)}>Importar backup JSON</Button>
+      {recovering && (
+        <BackupImport
+          onClose={() => setRecovering(false)}
+          onRestored={(next) => {
+            setNotice(
+              `Backup importado com sucesso. ${next.transactions.length} lançamentos restaurados.`,
+            );
+            setState(next);
+          }}
+        />
+      )}
     </main>
   );
 }
@@ -476,7 +357,13 @@ function EntryForm({
     </Modal>
   );
 }
-export function FinanceApp({ initial }: { initial: State }) {
+export function FinanceApp({
+  initial,
+  initialNotice = "",
+}: {
+  initial: State;
+  initialNotice?: string;
+}) {
   const [s, setS] = useState(initial),
     [theme, setTheme] = useState<Theme>(savedTheme),
     [effects, setEffects] = useState(true),
@@ -503,6 +390,8 @@ export function FinanceApp({ initial }: { initial: State }) {
       .querySelector<HTMLElement>(".heading h1")
       ?.focus({ preventScroll: true });
   }, [screen]);
+  const [notice, setNotice] = useState(initialNotice),
+    [legacyImport, setLegacyImport] = useState<string | undefined>();
   const [initialRaw] = useState(() => {
     try {
       return localStorage.getItem("finly-v2");
@@ -805,6 +694,11 @@ export function FinanceApp({ initial }: { initial: State }) {
           {error && (
             <p role="alert" className="warning-banner">
               {error}
+            </p>
+          )}
+          {notice && (
+            <p role="status" className="backup-success">
+              {notice}
             </p>
           )}
           {screen === "overview" && (
@@ -1319,33 +1213,62 @@ export function FinanceApp({ initial }: { initial: State }) {
                         seus dados privados; não publique. Outro domínio exige
                         importação manual.
                       </p>
-                      <div className="finance-actions">
+                      <section className="backup-settings-group">
+                        <h3>Salvar meus dados</h3>
+                        <p>
+                          Guarde uma cópia privada para recuperar seus registros
+                          depois.
+                        </p>
+                        <div className="finance-actions">
+                          <Button
+                            onClick={() =>
+                              download(
+                                JSON.stringify(s, null, 2),
+                                "Finly-v2-backup.json",
+                              )
+                            }
+                          >
+                            Exportar backup JSON
+                          </Button>
+
+                          <Button
+                            onClick={() =>
+                              download(
+                                csv(s.transactions),
+                                "Finly-lancamentos.csv",
+                                "text/csv;charset=utf-8",
+                              )
+                            }
+                          >
+                            Exportar lançamentos CSV
+                          </Button>
+                          <Button onClick={() => window.print()}>
+                            Imprimir
+                          </Button>
+                        </div>
+                      </section>
+                      <section className="backup-settings-group">
+                        <h3>Recuperar meus dados</h3>
+                        <p>
+                          Restaure lançamentos e configurações de um backup
+                          Finly. A substituição só acontece após sua
+                          confirmação.
+                        </p>
                         <Button
-                          onClick={() =>
-                            download(
-                              JSON.stringify(s, null, 2),
-                              "Finly-v2-backup.json",
-                            )
-                          }
+                          onClick={() => {
+                            setLegacyImport(undefined);
+                            setImporting(true);
+                          }}
                         >
-                          Exportar backup JSON
+                          Importar backup JSON
                         </Button>
-                        <Button onClick={() => setImporting(true)}>
-                          Importar / restaurar backup
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            download(
-                              csv(s.transactions),
-                              "Finly-lancamentos.csv",
-                              "text/csv;charset=utf-8",
-                            )
-                          }
-                        >
-                          Exportar CSV
-                        </Button>
-                        <Button onClick={() => window.print()}>Imprimir</Button>
-                      </div>
+                        <LegacyBackupOption
+                          onSelect={(raw) => {
+                            setLegacyImport(raw);
+                            setImporting(true);
+                          }}
+                        />
+                      </section>
                       <div className="danger-zone">
                         <h3>Zona de cuidado</h3>
                         <p>Exporte um backup antes de limpar seus dados.</p>
@@ -1471,28 +1394,18 @@ export function FinanceApp({ initial }: { initial: State }) {
             />
           )}
           {importing && (
-            <Modal
-              title="Importar backup com prévia"
+            <BackupImport
+              legacyRaw={legacyImport}
               onClose={() => setImporting(false)}
-            >
-              <Button
-                onClick={() =>
-                  download(
-                    JSON.stringify(s, null, 2),
-                    "Finly-antes-importacao.json",
-                  )
-                }
-              >
-                Exportar backup atual
-              </Button>
-              <BackupImport
-                onActivate={(next) => {
-                  raw.current = localStorage.getItem("finly-v2");
-                  setS(next);
-                  setImporting(false);
-                }}
-              />
-            </Modal>
+              onRestored={(next, serialized) => {
+                raw.current = serialized;
+                setS(next);
+                setImporting(false);
+                setNotice(
+                  `Backup importado com sucesso. ${next.transactions.length} lançamentos restaurados.`,
+                );
+              }}
+            />
           )}
           {notifications && (
             <Modal
@@ -1555,4 +1468,38 @@ function PendingRow({
       </Button>
     </article>
   );
+}
+
+function LegacyBackupOption({ onSelect }: { onSelect: (raw: string) => void }) {
+  const [raw, setRaw] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    try {
+      const original = localStorage.getItem("saldoclaro-v1");
+      if (
+        original &&
+        JSON.parse(original.replace(/^\uFEFF/, ""))?.version === 1
+      )
+        void prepareBackup(original)
+          .then(() => {
+            if (active) setRaw(original);
+          })
+          .catch(() => {});
+    } catch {}
+    return () => {
+      active = false;
+    };
+  }, []);
+  return raw ? (
+    <details className="backup-advanced">
+      <summary>Recuperação avançada</summary>
+      <p>
+        Há dados antigos compatíveis neste navegador. Eles não serão alterados
+        nem apagados.
+      </p>
+      <Button variant="outline" onClick={() => onSelect(raw)}>
+        Recuperar dados antigos deste navegador
+      </Button>
+    </details>
+  ) : null;
 }

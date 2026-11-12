@@ -1,3 +1,4 @@
+from backup_helpers import restore_backup
 import re
 """Navigation/history/readability and real finance flows on the isolated UX branch."""
 import functools,http.server,json,subprocess,threading
@@ -45,7 +46,7 @@ try:
   nav('Fatura do cartão');page.get_by_label('Status da fatura',exact=True).select_option('paid');nav('Parcelas e recorrências');assert page.get_by_text('Reembolsos vinculados: 1.',exact=False).count()>0;nav('Reembolsos');page.get_by_role('heading',name='Pendentes',exact=True).wait_for();page.get_by_role('heading',name='Recebidos',exact=True).wait_for()
   nav('Configurações');page.get_by_role('tab',name='Backup',exact=True).click()
   with page.expect_download() as dl:page.get_by_role('button',name='Exportar backup JSON',exact=True).click()
-  backup=Path(dl.value.path()).read_bytes();baseline=json.loads(backup);page.get_by_role('button',name='Importar / restaurar backup').click();page.get_by_label('Importar backup JSON',exact=True).set_input_files({'name':'synthetic-v2.json','mimeType':'application/json','buffer':backup});modal=page.get_by_role('dialog').last;modal.get_by_role('checkbox').check();modal.get_by_role('button',name='Confirmar importação').click();assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))==baseline
+  backup=Path(dl.value.path()).read_bytes();baseline=json.loads(backup);restore_backup(page,backup);assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))==baseline
   for theme in ['Graphite Green','Escuro Padrão','Claro']:
    nav('Configurações');page.get_by_role('tab',name='Aparência',exact=True).click();page.get_by_role('button',name=theme,exact=True).click();nav('Visão geral')
    for w,h in [(1440,1000),(1366,768),(768,1024),(390,844)]:

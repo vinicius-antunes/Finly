@@ -1,3 +1,4 @@
+from backup_helpers import restore_backup
 """Home parity with main; synthetic fixtures and full-page Chromium captures."""
 import functools,http.server,json,threading,subprocess
 from pathlib import Path
@@ -21,13 +22,14 @@ try:
  with sync_playwright() as p:
   b=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True)
   ctx=b.new_context(viewport={'width':1440,'height':1000},locale='pt-BR');ctx.add_init_script(f"if(!localStorage.getItem('saldoclaro-v1'))localStorage.setItem('saldoclaro-v1',JSON.stringify({json.dumps(fixture)}))")
+  url_base=url
   page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);original=page.evaluate("localStorage.getItem('saldoclaro-v1')")
-  page.get_by_role('heading',name='Visão geral',exact=True).wait_for();page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288");page.get_by_role('button',name='Ajustes e backup',exact=True).click();page.get_by_role('button',name='Importar / restaurar backup').click();page.get_by_role('button',name='Preparar migração dos dados locais').click();d=page.get_by_role('dialog').last;d.get_by_role('checkbox').check();d.get_by_role('button',name='Confirmar importação').click();page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288");page.get_by_role('button',name='Visão geral',exact=True).click();page.mouse.move(1100,100)
+  page.goto(url_base+'/#/configuracoes/backup?competencia=2026-11');page.get_by_role('heading',name='Salvar meus dados').wait_for();restore_backup(page,json.dumps(fixture),'synthetic-v1.json');page.goto(url_base+'/#/visao-geral?competencia=2026-11');page.get_by_role('heading',name='Visão geral',exact=True).wait_for()
   def nav(label,mobile=False):
    if mobile:
     page.get_by_role('button',name='Alternar menu',exact=True).click();page.get_by_role('dialog').wait_for();page.wait_for_function("document.querySelector('[role=dialog]').getAnimations().every(a=>a.playState==='finished')")
    else:page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288")
-   page.get_by_role('button',name=label,exact=True).click();page.mouse.move(1100,100)
+   page.get_by_role('link',name=label,exact=True).click();page.mouse.move(1100,100)
   baseline=page.evaluate("localStorage.getItem('finly-v2')")
   assert page.locator('.home-balance>strong').inner_text().replace('\xa0',' ')=='R$ 1.965,00'
   assert page.locator('.home-indicator strong').all_text_contents()==['R$\xa035,00','R$\xa0100,00','R$\xa0300,00','R$\xa025,00']
@@ -36,7 +38,7 @@ try:
   assert page.locator('.home-intro').count()==0 and page.locator('a[href*="legacy"]').count()==0
   assert page.get_by_role('heading',name='Fora do cartão e reembolsos').is_visible()
   for theme in ['Graphite Green','Escuro Padrão','Claro']:
-   nav('Ajustes e backup');page.get_by_role('button',name=theme,exact=True).click();page.get_by_label('Efeitos de luz').uncheck();page.get_by_label('Efeitos de luz').check();nav('Visão geral');page.evaluate('document.fonts.ready')
+   nav('Configurações');page.get_by_role('tab',name='Aparência',exact=True).click();page.get_by_role('button',name=theme,exact=True).click();page.get_by_label('Efeitos de luz').uncheck();page.get_by_label('Efeitos de luz').check();nav('Visão geral');page.evaluate('document.fonts.ready')
    for w,h in [(1440,1000),(1366,768),(768,1024),(390,844)]:
     page.set_viewport_size({'width':w,'height':h});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     if w in (1440,390):

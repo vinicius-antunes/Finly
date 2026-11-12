@@ -1,0 +1,157 @@
+{
+  "version": 2,
+  "revision": 0,
+  "transactions": [
+    {
+      "id": "synthetic-credit",
+      "legacyId": "synthetic-credit",
+      "description": "Parcela sintética",
+      "amountCents": 2500,
+      "period": "2026-11",
+      "legacyKind": "credit",
+      "accountId": "legacy-credit",
+      "category": "",
+      "owner": "self",
+      "status": "planned",
+      "confirmed": true,
+      "note": "",
+      "groupId": "synthetic-group",
+      "part": 1,
+      "parts": 3,
+      "original": {
+        "id": "synthetic-credit",
+        "description": "Parcela sintética",
+        "amount": 25,
+        "month": "2026-11",
+        "kind": "credit",
+        "groupId": "synthetic-group",
+        "part": 1,
+        "parts": 3
+      }
+    },
+    {
+      "id": "synthetic-refund",
+      "legacyId": "synthetic-refund",
+      "description": "Reembolso sintético",
+      "amountCents": 2500,
+      "period": "2026-11",
+      "legacyKind": "reimbursement",
+      "accountId": "legacy-cash",
+      "category": "",
+      "owner": "self",
+      "status": "planned",
+      "confirmed": true,
+      "note": "",
+      "groupId": "synthetic-group",
+      "part": 1,
+      "parts": 3,
+      "original": {
+        "id": "synthetic-refund",
+        "description": "Reembolso sintético",
+        "amount": 25,
+        "month": "2026-11",
+        "kind": "reimbursement",
+        "groupId": "synthetic-group",
+        "part": 1,
+        "parts": 3,
+        "status": "planned"
+      }
+    }
+  ],
+  "settings": {
+    "salary": 120000,
+    "reserve": 30000,
+    "cushion": 10000,
+    "goal": 100000,
+    "installmentCap": 10000,
+    "dueDay": 10,
+    "cardLabel": "Cartão sintético",
+    "includeExpectedRefunds": false
+  },
+  "pending": [
+    {
+      "id": "synthetic-pending",
+      "description": "Competência a conferir",
+      "amountCents": 1000,
+      "chargedAt": "",
+      "note": "",
+      "original": {
+        "id": "synthetic-pending",
+        "description": "Competência a conferir",
+        "amount": 10
+      }
+    }
+  ],
+  "invoiceStatuses": {
+    "2026-11": "unpaid"
+  },
+  "notificationReads": {},
+  "accounts": [
+    {
+      "id": "legacy-credit",
+      "type": "credit_card",
+      "name": "Cartão principal"
+    },
+    {
+      "id": "legacy-cash",
+      "type": "cash",
+      "name": "Movimentos legados"
+    },
+    {
+      "id": "legacy-reserve",
+      "type": "savings",
+      "name": "Reserva informada"
+    }
+  ],
+  "migration": {
+    "at": "2026-01-01T00:00:00.000Z",
+    "sourceHash": "56bb9032d1928ab8a43e6c8900c8ebd5d7281e7f514393e288e1f26665422163",
+    "original": {
+      "version": 1,
+      "settings": {
+        "salary": 1200,
+        "reserve": 300,
+        "cushion": 100,
+        "goal": 1000,
+        "installmentCap": 100,
+        "dueDay": 10,
+        "cardLabel": "Cartão sintético",
+        "includeExpectedRefunds": false
+      },
+      "entries": [
+        {
+          "id": "synthetic-credit",
+          "description": "Parcela sintética",
+          "amount": 25,
+          "month": "2026-11",
+          "kind": "credit",
+          "groupId": "synthetic-group",
+          "part": 1,
+          "parts": 3
+        },
+        {
+          "id": "synthetic-refund",
+          "description": "Reembolso sintético",
+          "amount": 25,
+          "month": "2026-11",
+          "kind": "reimbursement",
+          "groupId": "synthetic-group",
+          "part": 1,
+          "parts": 3,
+          "status": "planned"
+        }
+      ],
+      "pending": [
+        {
+          "id": "synthetic-pending",
+          "description": "Competência a conferir",
+          "amount": 10
+        }
+      ],
+      "invoiceStatuses": {
+        "2026-11": "unpaid"
+      },
+      "noticeDismissed": true
+    }
+  }
+}

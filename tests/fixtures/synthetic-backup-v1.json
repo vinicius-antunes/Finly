@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "settings": {
+    "salary": 1200,
+    "reserve": 300,
+    "cushion": 100,
+    "goal": 1000,
+    "installmentCap": 100,
+    "dueDay": 10,
+    "cardLabel": "Cartão sintético",
+    "includeExpectedRefunds": false
+  },
+  "entries": [
+    {
+      "id": "synthetic-credit",
+      "description": "Parcela sintética",
+      "amount": 25,
+      "month": "2026-11",
+      "kind": "credit",
+      "groupId": "synthetic-group",
+      "part": 1,
+      "parts": 3
+    },
+    {
+      "id": "synthetic-refund",
+      "description": "Reembolso sintético",
+      "amount": 25,
+      "month": "2026-11",
+      "kind": "reimbursement",
+      "groupId": "synthetic-group",
+      "part": 1,
+      "parts": 3,
+      "status": "planned"
+    }
+  ],
+  "pending": [
+    {
+      "id": "synthetic-pending",
+      "description": "Competência a conferir",
+      "amount": 10
+    }
+  ],
+  "invoiceStatuses": {
+    "2026-11": "unpaid"
+  },
+  "noticeDismissed": true
+}

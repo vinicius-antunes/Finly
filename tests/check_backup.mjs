@@ -1,0 +1,11 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {prepareBackup,backupSummary,needsAcknowledgment,BACKUP_LIMIT} from '../src/finance/backup.ts';
+import {empty} from '../src/finance/model.ts';
+const legacy=JSON.parse(readFileSync(new URL('./fixtures/synthetic-backup-v1.json',import.meta.url),'utf8'));
+assert.equal((await prepareBackup(readFileSync(new URL('./fixtures/synthetic-backup-v2.json',import.meta.url),'utf8'))).transactions.length,2);
+const input=JSON.stringify(legacy),v2=await prepareBackup(input);assert.equal(JSON.stringify(legacy),input);assert.deepEqual(await prepareBackup(JSON.stringify(v2)),v2);assert.equal((await prepareBackup('\uFEFF'+input)).transactions.length,2);assert.equal(v2.transactions[0].amountCents,2500);assert.equal(v2.transactions[0].parts,3);assert.equal(v2.transactions[1].groupId,v2.transactions[0].groupId);
+const summary=backupSummary(v2);assert.equal(summary.entries,2);assert.equal(summary.groups,1);assert.equal(summary.refunds,1);assert.equal(summary.pending,1);assert.equal(summary.invoices,1);assert.deepEqual(summary.periods,['2026-11']);
+for(const raw of ['{bad','null','[]',JSON.stringify({version:7}),JSON.stringify({version:1,entries:[]}),JSON.stringify({...legacy,entries:[legacy.entries[0],legacy.entries[0]]}),JSON.stringify({...legacy,entries:[{...legacy.entries[0],amount:-2}]}),JSON.stringify({...v2,transactions:[{...v2.transactions[0],amountCents:2.5}]}),' '.repeat(BACKUP_LIMIT+1)])await assert.rejects(prepareBackup(raw));
+assert.equal(needsAcknowledgment({raw:null,state:null,invalid:false}),false);assert.equal(needsAcknowledgment({raw:'{}',state:empty(),invalid:false}),false);assert.equal(needsAcknowledgment({raw:input,state:v2,invalid:false}),true);assert.equal(needsAcknowledgment({raw:'{bad',state:null,invalid:true}),true);
+console.log('PASS: v1/v2/BOM compatibility, full validation, duplicates/corruption/size refusal, cents/groups/refunds/pending/invoices and financial-data acknowledgment');

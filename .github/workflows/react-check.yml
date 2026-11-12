@@ -31,7 +31,9 @@ jobs:
       - name: Validar TypeScript
         run: npm run check
       - name: Verificar regras financeiras e migração
-        run: node tests/check_finance.mjs
+        run: |
+          node tests/check_finance.mjs
+          node tests/check_backup.mjs
       - name: Build estático
         run: npm run build
       - name: Verificar salvaguardas e fallback
