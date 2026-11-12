@@ -1,3 +1,11 @@
+import { EntriesWorkspace } from "./EntriesWorkspace";
+import {
+  initialFilters,
+  selectEntries,
+  canonicalCategory,
+  categoryOptions,
+  toggleSituation,
+} from "./entries";
 import { BackupImport } from "./BackupImport";
 import { prepareBackup } from "./backup";
 import { useNavigation, destinations, tabs } from "./navigation";
@@ -70,13 +78,41 @@ function Modal({
   children: ReactNode;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
+  const ref = useRef<HTMLDialogElement>(null),
+    titleId = useId();
   useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
     ref.current?.showModal();
+    return () => {
+      ref.current?.close();
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    };
   }, []);
   return (
-    <dialog className="finance-dialog" ref={ref} onCancel={onClose}>
-      <h2>{title}</h2>
+    <dialog
+      className="finance-dialog"
+      ref={ref}
+      onCancel={onClose}
+      aria-labelledby={titleId}
+      onKeyDown={(e) => {
+        if (e.key !== "Tab") return;
+        const nodes = Array.from(
+          e.currentTarget.querySelectorAll<HTMLElement>(
+            'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((n) => n.getClientRects().length);
+        const first = nodes[0],
+          last = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }}
+    >
+      <h2 id={titleId}>{title}</h2>
       {children}
       <Button variant="outline" onClick={onClose}>
         Cancelar
@@ -163,12 +199,16 @@ const settingsLabels: Record<keyof Settings, string> = {
 function EntryForm({
   entry,
   initialKind,
+  duplicate = false,
+  categories,
   period,
   onSave,
   onClose,
 }: {
   entry: Entry | null;
   initialKind: Kind;
+  duplicate?: boolean;
+  categories: Entry[];
   period: string;
   onSave: (rows: Entry[]) => void;
   onClose: () => void;
@@ -193,19 +233,42 @@ function EntryForm({
         amountCents,
         period: String(f.get("period")),
         legacyKind: kind,
-        category: String(f.get("category")),
-        owner: kind === "credit" ? String(f.get("owner")) : "self",
-        status: kind === "credit" ? "planned" : String(f.get("status")),
-        confirmed: kind === "credit" ? f.has("confirmed") : true,
+        category:
+          entry && !duplicate && String(f.get("category")) === entry.category
+            ? entry.category
+            : canonicalCategory(String(f.get("category")), categories),
+        owner:
+          kind === "credit"
+            ? String(f.get("owner"))
+            : entry && !duplicate && entry.legacyKind === kind
+              ? entry.owner
+              : "self",
+        status:
+          kind === "credit"
+            ? entry?.legacyKind === "credit" && !duplicate
+              ? entry.status
+              : "planned"
+            : String(f.get("status")),
+        confirmed:
+          kind === "credit"
+            ? f.has("confirmed")
+            : entry && !duplicate && entry.legacyKind === kind
+              ? entry.confirmed
+              : true,
         note: String(f.get("note")),
       };
       onSave(
-        entry
+        entry && !duplicate
           ? [
               {
                 ...entry,
                 ...input,
-                accountId: kind === "credit" ? "legacy-credit" : "legacy-cash",
+                accountId:
+                  kind === entry.legacyKind
+                    ? entry.accountId
+                    : kind === "credit"
+                      ? "legacy-credit"
+                      : "legacy-cash",
               },
             ]
           : generate(input, parts, repeat, f.has("refund")),
@@ -216,7 +279,13 @@ function EntryForm({
   }
   return (
     <Modal
-      title={entry ? "Editar lançamento" : "Novo lançamento"}
+      title={
+        duplicate
+          ? "Duplicar lançamento"
+          : entry
+            ? "Editar lançamento"
+            : "Novo lançamento"
+      }
       onClose={onClose}
     >
       <form className="finance-form" onSubmit={submit}>
@@ -245,7 +314,7 @@ function EntryForm({
           label={
             kind !== "credit"
               ? "Valor (R$)"
-              : parts > 1 || (entry?.parts && entry.parts > 1)
+              : parts > 1 || (!duplicate && entry?.parts && entry.parts > 1)
                 ? "Valor por parcela (R$)"
                 : "Valor da compra (R$)"
           }
@@ -266,8 +335,20 @@ function EntryForm({
           />
         </Field>
         <Field label="Categoria">
-          <input name="category" defaultValue={entry?.category ?? "Compras"} />
+          <input
+            name="category"
+            list="finance-categories"
+            defaultValue={entry?.category ?? "Compras"}
+          />
         </Field>
+        <datalist id="finance-categories">
+          {categoryOptions(categories).map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
+        <p className="category-help">
+          Categoria: escolha uma sugestão ou digite uma categoria personalizada.
+        </p>
         {kind === "credit" && (
           <>
             {" "}
@@ -285,8 +366,21 @@ function EntryForm({
             {" "}
             <Field label="Situação">
               <select name="status" defaultValue={entry?.status ?? "planned"}>
-                <option value="planned">Pendente / previsto</option>
-                <option value="received">Pago / recebido</option>
+                {entry && !["planned", "received"].includes(entry.status) && (
+                  <option value={entry.status}>
+                    Pendente (situação importada)
+                  </option>
+                )}
+                <option value="planned">
+                  {kind === "out" ? "Pendente" : "A receber"}
+                </option>
+                <option value="received">
+                  {kind === "out"
+                    ? "Paga"
+                    : kind === "income"
+                      ? "Recebida"
+                      : "Recebido"}
+                </option>
               </select>
             </Field>
           </>
@@ -301,7 +395,7 @@ function EntryForm({
               />{" "}
               Compra confirmada
             </label>
-            {!entry && (
+            {(!entry || duplicate) && (
               <>
                 <Field label="Parcelas">
                   <input
@@ -328,8 +422,12 @@ function EntryForm({
                   />
                 </Field>
                 <label>
-                  <input name="refund" type="checkbox" defaultChecked /> Gerar
-                  reembolsos se responsável for outra pessoa
+                  <input
+                    name="refund"
+                    type="checkbox"
+                    defaultChecked={!duplicate}
+                  />{" "}
+                  Gerar reembolsos se responsável for outra pessoa
                 </label>
                 <p role="status">
                   {parts} parcelas × valor informado. Total:{" "}
@@ -348,11 +446,19 @@ function EntryForm({
         <Field label="Observação">
           <textarea name="note" maxLength={400} defaultValue={entry?.note} />
         </Field>
-        {entry && (
+        {entry && !duplicate && (
           <p>A edição modifica somente este registro e preserva o ID/grupo.</p>
         )}
         {error && <p role="alert">{error}</p>}
-        <Button type="submit">Salvar lançamento</Button>
+        {duplicate && (
+          <p>
+            A cópia será um lançamento independente. IDs e vínculos originais
+            não são copiados.
+          </p>
+        )}
+        <Button type="submit">
+          {entry && !duplicate ? "Salvar alterações" : "Salvar lançamento"}
+        </Button>
       </form>
     </Modal>
   );
@@ -380,8 +486,24 @@ export function FinanceApp({
     setTab,
   } = useNavigation();
   const [newKind, setNewKind] = useState<Kind>("credit");
+  const [duplicating, setDuplicating] = useState(false);
+  const [filters, setFilters] = useState({ ...initialFilters });
+  function newEntry(kind: Kind) {
+    setNewKind(kind);
+    setDuplicating(false);
+    setEditing(null);
+  }
+  function editEntry(x: Entry) {
+    setDuplicating(false);
+    setEditing(x);
+  }
+  function duplicateEntry(x: Entry) {
+    setDuplicating(true);
+    setEditing(x);
+  }
   useEffect(() => {
     setEditing(undefined);
+    setDuplicating(false);
     setImporting(false);
     setNotifications(false);
     document.title =
@@ -440,7 +562,18 @@ export function FinanceApp({
     }
   }
   function remove(x: Entry) {
-    if (confirm("Excluir " + x.description + "?"))
+    if (
+      confirm(
+        "Excluir " +
+          x.description +
+          "?" +
+          (x.groupId ||
+          x.purchaseId ||
+          s.transactions.some((e) => e.purchaseId === x.id)
+            ? " Este registro tem vínculos. Somente ele será excluído; as demais parcelas e reembolsos serão mantidos."
+            : ""),
+      )
+    )
       commit({
         ...s,
         transactions: s.transactions.filter((e) => e.id !== x.id),
@@ -450,9 +583,7 @@ export function FinanceApp({
     commit({
       ...s,
       transactions: s.transactions.map((e) =>
-        e.id === x.id
-          ? { ...e, status: e.status === "received" ? "planned" : "received" }
-          : e,
+        e.id === x.id ? toggleSituation(e) : e,
       ),
     });
   }
@@ -468,42 +599,8 @@ export function FinanceApp({
       status: x.status,
       confirmed: x.confirmed,
     }));
-  const [query, setQuery] = useState(""),
-    [type, setType] = useState("all"),
-    [status, setStatus] = useState("all"),
-    [all, setAll] = useState(false),
-    [min, setMin] = useState(""),
-    [max, setMax] = useState(""),
-    [price, setPrice] = useState("1200"),
+  const [price, setPrice] = useState("1200"),
     [simParts, setSimParts] = useState(12);
-  let filtered: Entry[] = [];
-  try {
-    filtered = (all ? s.transactions : entries)
-      .filter(
-        (x) =>
-          (type === "all" || x.legacyKind === type) &&
-          (status === "all" ||
-            (status === "forecast"
-              ? !x.confirmed
-              : status === "received"
-                ? x.legacyKind !== "credit" && x.status === "received"
-                : x.legacyKind === "credit"
-                  ? x.confirmed
-                  : x.status !== "received")) &&
-          (!min || x.amountCents >= cents(min)) &&
-          (!max || x.amountCents <= cents(max)) &&
-          (x.description + " " + x.category + " " + x.note)
-            .toLocaleLowerCase("pt-BR")
-            .includes(query.toLocaleLowerCase("pt-BR")),
-      )
-      .sort(
-        (a, b) =>
-          b.period.localeCompare(a.period) ||
-          a.description.localeCompare(b.description),
-      );
-  } catch {
-    /* Invalid filter remains visible without changing data. */
-  }
   const alerts = [
     ...(m.invoice && s.invoiceStatuses[period] !== "paid"
       ? [
@@ -579,7 +676,7 @@ export function FinanceApp({
                     className="finance-actions"
                     aria-label={"Ações de " + x.description}
                   >
-                    <Button variant="outline" onClick={() => setEditing(x)}>
+                    <Button variant="outline" onClick={() => editEntry(x)}>
                       Editar
                     </Button>
                     <Button variant="outline" onClick={() => remove(x)}>
@@ -645,7 +742,9 @@ export function FinanceApp({
               <p className="muted home-subtitle">
                 {screen === "overview"
                   ? "Faturas, reembolsos e metas em um só lugar."
-                  : "Organize seus registros e referências financeiras."}
+                  : screen === "entries"
+                    ? "Busque, confira e organize suas movimentações."
+                    : "Organize seus registros e referências financeiras."}
               </p>
             </div>
             <div className="home-header-actions">
@@ -661,34 +760,43 @@ export function FinanceApp({
                   />
                 </Field>
               </div>
-              <div className="quick-entry">
-                <Button
-                  onClick={() => {
-                    setNewKind("credit");
-                    setEditing(null);
-                  }}
-                >
-                  Novo lançamento
-                </Button>
-                <Field label="Criar por tipo">
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      setNewKind(e.target.value as Kind);
-                      setEditing(null);
-                    }}
-                  >
-                    <option value="" disabled>
-                      Escolher tipo…
-                    </option>
-                    {kinds.map((k) => (
-                      <option key={k} value={k}>
-                        {names[k]}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
+              <details
+                className="new-entry-menu"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    e.currentTarget.removeAttribute("open");
+                    e.currentTarget.querySelector("summary")?.focus();
+                  }
+                }}
+              >
+                <summary>Novo lançamento</summary>
+                <div>
+                  {(["out", "income", "credit", "reimbursement"] as Kind[]).map(
+                    (k, i) => (
+                      <Button
+                        key={k}
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.currentTarget
+                            .closest("details")
+                            ?.removeAttribute("open");
+                          newEntry(k);
+                        }}
+                      >
+                        {
+                          [
+                            "Nova despesa",
+                            "Nova receita",
+                            "Nova compra no cartão",
+                            "Novo reembolso",
+                          ][i]
+                        }
+                      </Button>
+                    ),
+                  )}
+                </div>
+              </details>
             </div>
           </div>
           {error && (
@@ -731,92 +839,17 @@ export function FinanceApp({
             />
           )}
           {screen === "entries" && (
-            <section className="table-card">
-              <div className="finance-form">
-                <Field label="Buscar descrição, categoria ou observação">
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                </Field>
-                <Field label="Filtrar tipo">
-                  <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                  >
-                    <option value="all">Todos</option>
-                    {kinds.map((k) => (
-                      <option key={k} value={k}>
-                        {names[k]}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Filtrar situação">
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    {["all", "received", "pending", "forecast"].map((v, i) => (
-                      <option key={v} value={v}>
-                        {
-                          [
-                            "Todas",
-                            "Pago / recebido",
-                            "Registrado / pendente",
-                            "Previsão",
-                          ][i]
-                        }
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={all}
-                    onChange={(e) => setAll(e.target.checked)}
-                  />{" "}
-                  Todos os meses
-                </label>
-                <Field label="Valor mínimo">
-                  <input value={min} onChange={(e) => setMin(e.target.value)} />
-                </Field>
-                <Field label="Valor máximo">
-                  <input value={max} onChange={(e) => setMax(e.target.value)} />
-                </Field>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setQuery("");
-                    setType("all");
-                    setStatus("all");
-                    setMin("");
-                    setMax("");
-                    setAll(false);
-                  }}
-                >
-                  Limpar filtros
-                </Button>
-                <Button
-                  onClick={() =>
-                    download(
-                      csv(filtered),
-                      "Finly-filtrado.csv",
-                      "text/csv;charset=utf-8",
-                    )
-                  }
-                >
-                  Exportar CSV filtrado
-                </Button>
-              </div>
-              <p>
-                {filtered.length} registros · soma descritiva{" "}
-                {money(filtered.reduce((n, x) => n + x.amountCents, 0))}, não é
-                saldo.
-              </p>
-              {rows(filtered)}
-            </section>
+            <EntriesWorkspace
+              entries={s.transactions}
+              period={period}
+              filters={filters}
+              setFilters={setFilters}
+              onEdit={editEntry}
+              onDuplicate={duplicateEntry}
+              onRemove={remove}
+              onToggle={toggle}
+              onNew={() => newEntry("out")}
+            />
           )}
           {screen === "invoice" && (
             <>
@@ -1368,24 +1401,41 @@ export function FinanceApp({
           {editing !== undefined && (
             <EntryForm
               entry={editing}
+              duplicate={duplicating}
+              categories={s.transactions}
               initialKind={newKind}
               period={period}
-              onClose={() => setEditing(undefined)}
+              onClose={() => {
+                setEditing(undefined);
+                setDuplicating(false);
+              }}
               onSave={(rows) => {
-                const next = editing
-                  ? s.transactions.map((x) =>
-                      x.id === editing.id ? rows[0] : x,
-                    )
-                  : [...s.transactions, ...rows];
+                const next =
+                  editing && !duplicating
+                    ? s.transactions.map((x) =>
+                        x.id === editing.id ? rows[0] : x,
+                      )
+                    : [...s.transactions, ...rows];
                 if (commit({ ...s, transactions: next })) {
+                  let visible = true;
+                  try {
+                    visible = selectEntries(next, period, filters).some((x) =>
+                      rows.some((r) => r.id === x.id),
+                    );
+                  } catch {
+                    visible = false;
+                  }
+                  setNotice(
+                    (editing && !duplicating
+                      ? "Lançamento atualizado"
+                      : "Lançamento cadastrado") +
+                      (visible
+                        ? "."
+                        : ". Ele não aparece na lista devido aos filtros ativos."),
+                  );
                   setEditing(undefined);
-                  setAll(true);
-                  setQuery("");
-                  setType("all");
-                  setStatus("all");
-                  setMin("");
-                  setMax("");
-                  setScreen("entries");
+                  if (!editing || duplicating) setScreen("entries");
+                  setDuplicating(false);
                 } else
                   throw Error(
                     "Não foi possível salvar. Confira o armazenamento ou atualize os dados de outra aba.",

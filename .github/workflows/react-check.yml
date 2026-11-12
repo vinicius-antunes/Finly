@@ -34,6 +34,7 @@ jobs:
         run: |
           node tests/check_finance.mjs
           node tests/check_backup.mjs
+          node tests/check_entries.mjs
       - name: Build estático
         run: npm run build
       - name: Verificar salvaguardas e fallback

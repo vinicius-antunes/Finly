@@ -63,3 +63,5 @@ A Home funcional React segue a organização da main, com aparência Graphite Gr
 Na branch isolada `codex/finly-navegacao-ux`, a navegação tem sete destinos, histórico do navegador e Configurações por abas. [Mapa, evidências e testes](docs/navigation-ux/REPORT.md).
 
 Na branch `codex/finly-navegacao-ux`, backup e importação usam uma única janela com seleção, conferência e confirmação. [Fluxo, segurança, antes/depois e testes](docs/backup-import/REPORT.md).
+
+Na mesma branch, Lançamentos usa filtros compactos, indicadores separados, tabela no desktop e cartões no celular. Edição preserva o contexto, e ações de situação e duplicação respeitam os vínculos financeiros. [Correções, capturas e testes](docs/entries/REPORT.md).
