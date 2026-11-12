@@ -1,3 +1,4 @@
+import { Bell, CheckCircle2, X } from "lucide-react";
 import { EntriesWorkspace } from "./EntriesWorkspace";
 import {
   initialFilters,
@@ -54,6 +55,51 @@ const Donut = lazy(() =>
     default: m.CategoryDonut,
   })),
 );
+function SuccessToast({
+  notice,
+  onClose,
+}: {
+  notice: string;
+  onClose: () => void;
+}) {
+  const [closing, setClosing] = useState(false);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const timer = window.setTimeout(() => setClosing(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+  useEffect(() => {
+    if (!closing) return;
+    const timer = window.setTimeout(() => closeRef.current(), 200);
+    return () => clearTimeout(timer);
+  }, [closing]);
+  return (
+    <div
+      className={"success-toast" + (closing ? " closing" : "")}
+      role="status"
+    >
+      <CheckCircle2 aria-hidden="true" />
+      <div>
+        {notice.startsWith("Backup importado") ? (
+          <>
+            <strong>Backup importado!</strong>
+            <p>{notice.match(/\d+ lançamentos restaurados/)?.[0]}</p>
+          </>
+        ) : (
+          <p>{notice}</p>
+        )}
+      </div>
+      <Button
+        variant="ghost"
+        aria-label="Fechar aviso"
+        onClick={() => setClosing(true)}
+      >
+        <X aria-hidden="true" />
+      </Button>
+    </div>
+  );
+}
 function Field({
   label,
   children,
@@ -73,7 +119,9 @@ function Modal({
   title,
   children,
   onClose,
+  compact = false,
 }: {
+  compact?: boolean;
   title: string;
   children: ReactNode;
   onClose: () => void;
@@ -90,7 +138,19 @@ function Modal({
   }, []);
   return (
     <dialog
-      className="finance-dialog"
+      className={"finance-dialog" + (compact ? " notifications-panel" : "")}
+      onClick={(e) => {
+        if (compact && e.target === e.currentTarget) {
+          const r = e.currentTarget.getBoundingClientRect();
+          if (
+            e.clientX < r.left ||
+            e.clientX > r.right ||
+            e.clientY < r.top ||
+            e.clientY > r.bottom
+          )
+            onClose();
+        }
+      }}
       ref={ref}
       onCancel={onClose}
       aria-labelledby={titleId}
@@ -113,10 +173,22 @@ function Modal({
       }}
     >
       <h2 id={titleId}>{title}</h2>
+      {compact && (
+        <Button
+          className="notifications-close"
+          variant="ghost"
+          aria-label="Fechar notificações"
+          onClick={onClose}
+        >
+          <X aria-hidden="true" />
+        </Button>
+      )}
       {children}
-      <Button variant="outline" onClick={onClose}>
-        Cancelar
-      </Button>
+      {!compact && (
+        <Button variant="outline" onClick={onClose}>
+          Cancelar
+        </Button>
+      )}
     </dialog>
   );
 }
@@ -729,9 +801,21 @@ export function FinanceApp({
           <span className="home-local-status">
             <i /> Armazenamento local
           </span>
-          <Button variant="outline" onClick={() => setNotifications(true)}>
-            Notificações (
-            {alerts.filter((a) => !s.notificationReads[a.id]).length})
+          <Button
+            className="notification-bell"
+            variant="outline"
+            aria-label="Notificações"
+            title="Notificações"
+            aria-haspopup="dialog"
+            aria-expanded={notifications}
+            onClick={() => setNotifications(true)}
+          >
+            <Bell aria-hidden="true" />
+            {alerts.some((a) => !s.notificationReads[a.id]) && (
+              <span className="notification-count" aria-label="não lidas">
+                {alerts.filter((a) => !s.notificationReads[a.id]).length}
+              </span>
+            )}
           </Button>
         </header>
         <main>
@@ -805,9 +889,11 @@ export function FinanceApp({
             </p>
           )}
           {notice && (
-            <p role="status" className="backup-success">
-              {notice}
-            </p>
+            <SuccessToast
+              key={notice}
+              notice={notice}
+              onClose={() => setNotice("")}
+            />
           )}
           {screen === "overview" && (
             <HomeOverview
@@ -1459,11 +1545,19 @@ export function FinanceApp({
           )}
           {notifications && (
             <Modal
-              title="Notificações locais"
+              title="Notificações"
+              compact
               onClose={() => setNotifications(false)}
             >
               {alerts.map((a) => (
-                <article key={a.id}>
+                <article
+                  className={
+                    s.notificationReads[a.id]
+                      ? "notification-item"
+                      : "notification-item unread"
+                  }
+                  key={a.id}
+                >
                   <p>{a.text}</p>
                   <Button
                     disabled={s.notificationReads[a.id]}

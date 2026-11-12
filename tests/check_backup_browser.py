@@ -29,7 +29,7 @@ try:
   with page.expect_download() as dl:m.get_by_role('button',name='Baixar backup dos dados atuais',exact=True).click()
   assert Path(dl.value.path()).read_text()==baseline;assert page.evaluate("localStorage.getItem('finly-v2')")==baseline
   page.screenshot(path=str(ART/'step-3-desktop.png'),full_page=True);m.get_by_role('button',name='Cancelar',exact=True).click();m.wait_for(state='hidden');assert page.evaluate("localStorage.getItem('finly-v2')")==baseline;assert trigger.evaluate('e=>e===document.activeElement')
-  restore_backup(page,raw,'synthetic-v1.json');page.get_by_role('status').filter(has_text='Backup importado com sucesso').wait_for();state=json.loads(page.evaluate("localStorage.getItem('finly-v2')"));assert len(state['transactions'])==2 and state['transactions'][0]['amountCents']==2500;assert state['transactions'][0]['groupId']==state['transactions'][1]['groupId'];assert state['pending'][0]['amountCents']==1000
+  restore_backup(page,raw,'synthetic-v1.json');page.get_by_role('status').filter(has_text='Backup importado!').wait_for();state=json.loads(page.evaluate("localStorage.getItem('finly-v2')"));assert len(state['transactions'])==2 and state['transactions'][0]['amountCents']==2500;assert state['transactions'][0]['groupId']==state['transactions'][1]['groupId'];assert state['pending'][0]['amountCents']==1000
   saved=page.evaluate("localStorage.getItem('finly-v2')");page.reload();page.get_by_role('heading',name='Salvar meus dados').wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==saved
   restore_backup(page,v2);assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))==json.loads(v2)
   # Concurrent edits after review must never be overwritten by restoration.

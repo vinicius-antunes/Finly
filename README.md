@@ -65,3 +65,5 @@ Na branch isolada `codex/finly-navegacao-ux`, a navegação tem sete destinos, h
 Na branch `codex/finly-navegacao-ux`, backup e importação usam uma única janela com seleção, conferência e confirmação. [Fluxo, segurança, antes/depois e testes](docs/backup-import/REPORT.md).
 
 Na mesma branch, Lançamentos usa filtros compactos, indicadores separados, tabela no desktop e cartões no celular. Edição preserva o contexto, e ações de situação e duplicação respeitam os vínculos financeiros. [Correções, capturas e testes](docs/entries/REPORT.md).
+
+O cabeçalho adapta o botão de menu à capacidade de hover, usa sino com contador e painel de notificações locais e apresenta sucessos em toast temporário. [Comportamento, capturas e testes](docs/header/REPORT.md).
