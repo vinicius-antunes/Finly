@@ -67,3 +67,5 @@ Na branch `codex/finly-navegacao-ux`, backup e importação usam uma única jane
 Na mesma branch, Lançamentos usa filtros compactos, indicadores separados, tabela no desktop e cartões no celular. Edição preserva o contexto, e ações de situação e duplicação respeitam os vínculos financeiros. [Correções, capturas e testes](docs/entries/REPORT.md).
 
 O cabeçalho adapta o botão de menu à capacidade de hover, usa sino com contador e painel de notificações locais e apresenta sucessos em toast temporário. [Comportamento, capturas e testes](docs/header/REPORT.md).
+
+A Visão Geral agora é um dashboard executivo em três linhas, com seis meses de gastos registrados e atalhos para os detalhes. [Cálculos, comparação visual e testes](docs/dashboard/REPORT.md).

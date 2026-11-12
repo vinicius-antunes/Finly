@@ -12,11 +12,9 @@ import { prepareBackup } from "./backup";
 import { useNavigation, destinations, tabs } from "./navigation";
 import { HomeOverview } from "./HomeOverview";
 import {
-  lazy,
   cloneElement,
   useId,
   type ReactElement,
-  Suspense,
   useEffect,
   useRef,
   useState,
@@ -31,10 +29,8 @@ import {
 } from "@/components/navigation/FinanceSidebar";
 import { RaysBackdrop } from "@/components/visual/RaysBackdrop";
 import { MagicCard as Feature } from "@/components/magicui/magic-card";
-import { RefundProgress } from "@/components/analytics/RefundProgress";
 import { ProgressBar } from "@/components/tremor/ProgressBar";
 import { savedTheme, PREF_KEY, type Theme } from "@/theme/theme";
-import { type LegacyEntry } from "@/lib/legacy";
 import {
   empty,
   money,
@@ -50,11 +46,6 @@ import {
   type Kind,
 } from "./model";
 import { load, save, download, initialize } from "./storage";
-const Donut = lazy(() =>
-  import("@/components/analytics/CategoryDonut").then((m) => ({
-    default: m.CategoryDonut,
-  })),
-);
 function SuccessToast({
   notice,
   onClose,
@@ -660,17 +651,7 @@ export function FinanceApp({
     });
   }
   const m = metrics(s, period),
-    entries = s.transactions.filter((x) => x.period === period),
-    legacy: LegacyEntry[] = entries.map((x) => ({
-      id: x.id,
-      description: x.description,
-      amount: x.amountCents / 100,
-      month: x.period,
-      kind: x.legacyKind,
-      category: x.category,
-      status: x.status,
-      confirmed: x.confirmed,
-    }));
+    entries = s.transactions.filter((x) => x.period === period);
   const [price, setPrice] = useState("1200"),
     [simParts, setSimParts] = useState(12);
   const alerts = [
@@ -818,14 +799,16 @@ export function FinanceApp({
             )}
           </Button>
         </header>
-        <main>
+        <main className={screen === "overview" ? "overview-page" : undefined}>
           <div className="heading home-heading">
             <div>
-              <p className="eyebrow">SEU ESPAÇO FINANCEIRO · LOCAL</p>
+              {screen !== "overview" && (
+                <p className="eyebrow">SEU ESPAÇO FINANCEIRO · LOCAL</p>
+              )}
               <h1 tabIndex={-1}>{title[screen]}</h1>
               <p className="muted home-subtitle">
                 {screen === "overview"
-                  ? "Faturas, reembolsos e metas em um só lugar."
+                  ? "Resumo das suas finanças"
                   : screen === "entries"
                     ? "Busque, confira e organize suas movimentações."
                     : "Organize seus registros e referências financeiras."}
@@ -906,22 +889,6 @@ export function FinanceApp({
               }}
               onInvoicePage={() => setScreen("invoice")}
               onRefunds={() => setScreen("refunds")}
-              onPlanning={() => setScreen("installments")}
-              onToggle={toggle}
-              onInvoice={(status) =>
-                commit({
-                  ...s,
-                  invoiceStatuses: { ...s.invoiceStatuses, [period]: status },
-                })
-              }
-              analytics={
-                <div className="analytics-grid">
-                  <Suspense fallback={<p>Carregando distribuição…</p>}>
-                    <Donut entries={legacy} />
-                  </Suspense>
-                  <RefundProgress entries={legacy} />
-                </div>
-              }
             />
           )}
           {screen === "entries" && (
@@ -1427,61 +1394,47 @@ export function FinanceApp({
               </div>
             </>
           )}{" "}
-          {(screen === "overview" || screen === "invoice") &&
-            s.pending.length > 0 && (
-              <section className="category-panel">
-                <h2>Pendências sem competência (fora da fatura)</h2>
-                {s.pending.map((x) => (
-                  <PendingRow
-                    key={x.id}
-                    x={x}
-                    period={period}
-                    assign={(p) => {
-                      if (
-                        confirm(
-                          "Conferiu a fatura e verificou que não é duplicata?",
-                        )
-                      ) {
-                        const row = generate({
-                          description: x.description,
-                          amountCents: x.amountCents,
-                          period: p,
-                          legacyKind: "credit",
-                          category: "Assinatura",
-                          owner: "self",
-                          status: "planned",
-                          confirmed: true,
-                          note: x.note ?? "",
-                        });
-                        commit({
-                          ...s,
-                          transactions: [...s.transactions, ...row],
-                          pending: s.pending.filter((a) => a.id !== x.id),
-                        });
-                      }
-                    }}
-                    discard={() => {
-                      if (confirm("Descartar esta pendência?"))
-                        commit({
-                          ...s,
-                          pending: s.pending.filter((a) => a.id !== x.id),
-                        });
-                    }}
-                  />
-                ))}
-              </section>
-            )}
-          {screen === "overview" && (
-            <section className="home-panel">
-              <p className="eyebrow">UM PASSO DE CADA VEZ</p>
-              <h2>Espaço para os seus próximos planos</h2>
-              <p className="muted">
-                Compare sua meta à vista e uma compra parcelada sem usar a
-                reserva protegida.
-              </p>
-              <Button variant="outline" onClick={() => setScreen("planning")}>
-                Planejamento atual →
-              </Button>
+          {screen === "invoice" && s.pending.length > 0 && (
+            <section className="category-panel">
+              <h2>Pendências sem competência (fora da fatura)</h2>
+              {s.pending.map((x) => (
+                <PendingRow
+                  key={x.id}
+                  x={x}
+                  period={period}
+                  assign={(p) => {
+                    if (
+                      confirm(
+                        "Conferiu a fatura e verificou que não é duplicata?",
+                      )
+                    ) {
+                      const row = generate({
+                        description: x.description,
+                        amountCents: x.amountCents,
+                        period: p,
+                        legacyKind: "credit",
+                        category: "Assinatura",
+                        owner: "self",
+                        status: "planned",
+                        confirmed: true,
+                        note: x.note ?? "",
+                      });
+                      commit({
+                        ...s,
+                        transactions: [...s.transactions, ...row],
+                        pending: s.pending.filter((a) => a.id !== x.id),
+                      });
+                    }
+                  }}
+                  discard={() => {
+                    if (confirm("Descartar esta pendência?"))
+                      commit({
+                        ...s,
+                        pending: s.pending.filter((a) => a.id !== x.id),
+                      });
+                  }}
+                />
+              ))}
             </section>
           )}
           {editing !== undefined && (
