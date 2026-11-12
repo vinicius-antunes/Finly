@@ -59,3 +59,5 @@ Na `Finly-React`, a Sidebar inicia recolhida e expande ao passar o mouse. O bot�
 O Light Rays agora é o fundo global da interface Graphite Green, contínuo entre as telas React. O checkbox **Efeitos de luz** controla também o fallback estático. [Camadas, desempenho e comparativo antes/depois](docs/graphite/GLOBAL_LIGHT_RAYS.md).
 
 A Home funcional React segue a organização da main, com aparência Graphite Green e controles de tema em Ajustes. [Comparação estrutural, capturas completas e testes](docs/HOME_MAIN_REACT.md).
+
+Na branch isolada `codex/finly-navegacao-ux`, a navegação tem sete destinos, histórico do navegador e Configurações por abas. [Mapa, evidências e testes](docs/navigation-ux/REPORT.md).

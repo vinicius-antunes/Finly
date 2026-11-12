@@ -1116,3 +1116,47 @@ h2{
 .finance-recovery>button{margin:8px}
 .finance-app .home-toolbar{flex:0 1 auto}
 .home-overview>.home-primary-grid{margin-top:8px}
+/* Navigation UX branch: readable finance typography and contextual controls. */
+.finance-app{font-size:15px;line-height:1.65}
+.finance-app h1{font-size:clamp(26px,3vw,32px)}
+.finance-app h2{font-size:20px}
+.finance-app h3{font-size:17px}
+.finance-app button,.finance-app select,.finance-app input,.finance-app textarea{font-size:14px;line-height:1.5}
+.finance-app .muted,.finance-app .tiny,.finance-app .eyebrow,.finance-app .finance-field,.finance-app .home-subtitle,.finance-app .breadcrumbs,.finance-app .home-local-status{font-size:13px}
+.finance-app .eyebrow{letter-spacing:1px}
+.finance-app .home-badge{font-size:12px}
+.finance-app .home-balance>.muted,.finance-app .home-balance-bottom span,.finance-app .home-panel>.muted,.finance-app .home-note,.finance-app .home-empty,.finance-app .home-ledger small,.finance-app .home-indicator small{font-size:13px;line-height:1.65}
+.finance-app .home-balance-bottom strong{font-size:16px}
+.finance-app .home-indicator h3{font-size:16px;line-height:1.4}
+.finance-app .home-indicator{padding:20px;gap:10px}
+.finance-app .home-indicator strong{font-size:26px}
+.finance-app .home-ledger article{font-size:15px;gap:18px}
+.finance-app .home-ledger-value button{font-size:13px;min-height:40px}
+.finance-app .home-budget-legend,.finance-app .home-radar-heading button{font-size:14px}
+.finance-app .entries-table th{font-size:13px;padding:16px}
+.finance-app .entries-table td,.finance-app .entries-table strong{font-size:15px;padding-block:16px}
+.finance-app .entries-table td{padding-inline:16px}
+.finance-app .entries-table small{font-size:13px;line-height:1.65}
+.finance-app .entries-table td:nth-child(3){font-variant-numeric:tabular-nums;white-space:nowrap}
+.finance-app .finance-dialog{font-size:15px}
+.finance-dialog label,.finance-dialog p{font-size:14px;line-height:1.6}
+.finance-app .home-toolbar .finance-field{font-size:13px}
+.finance-app .home-toolbar .finance-field input{font-size:14px;max-width:180px;padding:9px}
+.finance-app .home-heading{gap:20px;align-items:flex-start}
+.finance-app .home-header-actions{gap:16px}
+[data-slot="sidebar-menu-button"]{font-size:14px;line-height:1.45;min-height:46px}
+[data-slot="sidebar-group-label"]{font-size:12px;letter-spacing:1px}
+.quick-entry{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.quick-entry button{min-height:42px}
+.quick-entry .finance-field{max-width:220px}
+.settings-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-block:24px}
+[role="tabpanel"]{min-width:0}
+[role="tabpanel"]>section{padding:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.danger-zone{border-top:1px solid var(--border);margin-top:24px;padding-top:20px}
+.danger-zone h3{margin:0}
+.invoice-total{display:block;font-size:32px;letter-spacing:-1px;margin-block:18px;color:var(--primary)}
+.heading h1:focus{outline:none}
+.finance-app [aria-current="page"]{font-weight:650}
+@media(max-width:1300px){.finance-app .home-indicators{grid-template-columns:repeat(2,minmax(0,1fr))}.finance-app .home-indicator{flex-direction:row}}
+@media(max-width:768px){.finance-app .workspace-top{flex-wrap:wrap;padding-block:12px;gap:12px}.finance-app .home-local-status{display:none}.finance-app .home-header-actions{width:100%;justify-content:flex-start}.quick-entry{width:100%;align-items:stretch}.quick-entry>button,.quick-entry .finance-field{flex:1;max-width:none}.finance-app .home-balance-bottom{gap:14px}.finance-app .home-ledger article{flex-wrap:wrap}.finance-app .home-ledger-value{max-width:100%}}
+@media(max-width:420px){.finance-app .home-indicators{grid-template-columns:1fr}.quick-entry{flex-direction:column}.finance-app .home-badge{white-space:normal}.finance-app .home-balance>.eyebrow{align-items:flex-start}}

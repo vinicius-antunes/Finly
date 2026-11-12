@@ -1,3 +1,4 @@
+import { useNavigation, destinations, tabs } from "./navigation";
 import { HomeOverview } from "./HomeOverview";
 import {
   lazy,
@@ -22,7 +23,7 @@ import { MagicCard as Feature } from "@/components/magicui/magic-card";
 import { RefundProgress } from "@/components/analytics/RefundProgress";
 import { ProgressBar } from "@/components/tremor/ProgressBar";
 import { savedTheme, PREF_KEY, type Theme } from "@/theme/theme";
-import { type LegacyEntry, monthNow } from "@/lib/legacy";
+import { type LegacyEntry } from "@/lib/legacy";
 import {
   empty,
   migrate,
@@ -280,16 +281,18 @@ const settingsLabels: Record<keyof Settings, string> = {
 };
 function EntryForm({
   entry,
+  initialKind,
   period,
   onSave,
   onClose,
 }: {
   entry: Entry | null;
+  initialKind: Kind;
   period: string;
   onSave: (rows: Entry[]) => void;
   onClose: () => void;
 }) {
-  const [kind, setKind] = useState<Kind>(entry?.legacyKind ?? "credit"),
+  const [kind, setKind] = useState<Kind>(entry?.legacyKind ?? initialKind),
     [parts, setParts] = useState(1),
     [repeat, setRepeat] = useState(1),
     [amount, setAmount] = useState(
@@ -357,7 +360,15 @@ function EntryForm({
             ))}
           </select>
         </Field>
-        <Field label="Valor por parcela (R$)">
+        <Field
+          label={
+            kind !== "credit"
+              ? "Valor (R$)"
+              : parts > 1 || (entry?.parts && entry.parts > 1)
+                ? "Valor por parcela (R$)"
+                : "Valor da compra (R$)"
+          }
+        >
           <input
             required
             inputMode="decimal"
@@ -376,19 +387,29 @@ function EntryForm({
         <Field label="Categoria">
           <input name="category" defaultValue={entry?.category ?? "Compras"} />
         </Field>
-        <Field label="Responsável">
-          <select name="owner" defaultValue={entry?.owner ?? "self"}>
-            <option value="self">Eu</option>
-            <option value="third">Outra pessoa</option>
-            <option value="unknown">A confirmar</option>
-          </select>
-        </Field>
-        <Field label="Situação">
-          <select name="status" defaultValue={entry?.status ?? "planned"}>
-            <option value="planned">Pendente / previsto</option>
-            <option value="received">Pago / recebido</option>
-          </select>
-        </Field>
+        {kind === "credit" && (
+          <>
+            {" "}
+            <Field label="Responsável">
+              <select name="owner" defaultValue={entry?.owner ?? "self"}>
+                <option value="self">Eu</option>
+                <option value="third">Outra pessoa</option>
+                <option value="unknown">A confirmar</option>
+              </select>
+            </Field>
+          </>
+        )}
+        {kind !== "credit" && (
+          <>
+            {" "}
+            <Field label="Situação">
+              <select name="status" defaultValue={entry?.status ?? "planned"}>
+                <option value="planned">Pendente / previsto</option>
+                <option value="received">Pago / recebido</option>
+              </select>
+            </Field>
+          </>
+        )}{" "}
         {kind === "credit" && (
           <>
             <label>
@@ -458,13 +479,30 @@ function EntryForm({
 export function FinanceApp({ initial }: { initial: State }) {
   const [s, setS] = useState(initial),
     [theme, setTheme] = useState<Theme>(savedTheme),
-    [screen, setScreen] = useState<Screen>("overview"),
-    [period, setPeriod] = useState(monthNow),
     [effects, setEffects] = useState(true),
     [error, setError] = useState(""),
     [editing, setEditing] = useState<Entry | null | undefined>(undefined),
     [importing, setImporting] = useState(false),
     [notifications, setNotifications] = useState(false);
+  const {
+    screen,
+    period,
+    tab: settingsTab,
+    setScreen,
+    setPeriod,
+    setTab,
+  } = useNavigation();
+  const [newKind, setNewKind] = useState<Kind>("credit");
+  useEffect(() => {
+    setEditing(undefined);
+    setImporting(false);
+    setNotifications(false);
+    document.title =
+      destinations.find((d) => d.id === screen)!.label + " — Finly";
+    document
+      .querySelector<HTMLElement>(".heading h1")
+      ?.focus({ preventScroll: true });
+  }, [screen]);
   const [initialRaw] = useState(() => {
     try {
       return localStorage.getItem("finly-v2");
@@ -604,14 +642,9 @@ export function FinanceApp({ initial }: { initial: State }) {
       text: "Competência a confirmar: " + x.description,
     })),
   ];
-  const title: Record<Screen, string> = {
-    overview: "Visão geral",
-    entries: "Lançamentos",
-    planning: "Planejamentos",
-    about: "Sobre o Finly",
-    installments: "Parcelas e reembolsos",
-    settings: "Ajustes e backup",
-  };
+  const title = Object.fromEntries(
+    destinations.map((d) => [d.id, d.label]),
+  ) as Record<Screen, string>;
   function rows(es: Entry[]) {
     return (
       <div className="table-scroll">
@@ -653,7 +686,10 @@ export function FinanceApp({ initial }: { initial: State }) {
                       : "Registrado / pendente"}
                 </td>
                 <td>
-                  <div className="finance-actions">
+                  <div
+                    className="finance-actions"
+                    aria-label={"Ações de " + x.description}
+                  >
                     <Button variant="outline" onClick={() => setEditing(x)}>
                       Editar
                     </Button>
@@ -663,8 +699,12 @@ export function FinanceApp({ initial }: { initial: State }) {
                     {x.legacyKind !== "credit" && (
                       <Button variant="outline" onClick={() => toggle(x)}>
                         {x.status === "received"
-                          ? "Desfazer recebimento"
-                          : "Marcar recebido / pago"}
+                          ? x.legacyKind === "out"
+                            ? "Marcar pendente"
+                            : "Desfazer recebimento"
+                          : x.legacyKind === "out"
+                            ? "Marcar pago"
+                            : "Marcar recebido"}
                       </Button>
                     )}
                   </div>
@@ -674,7 +714,20 @@ export function FinanceApp({ initial }: { initial: State }) {
           </tbody>
         </table>
         {!es.length && (
-          <p className="empty-state">Nenhum registro neste período.</p>
+          <div className="empty-state">
+            <p>
+              Nenhum registro nesta lista. Ajuste os filtros ou cadastre seu
+              primeiro lançamento.
+            </p>
+            <Button
+              onClick={() => {
+                setNewKind(screen === "refunds" ? "reimbursement" : "credit");
+                setEditing(null);
+              }}
+            >
+              Adicionar lançamento
+            </Button>
+          </div>
         )}
       </div>
     );
@@ -682,7 +735,7 @@ export function FinanceApp({ initial }: { initial: State }) {
   return (
     <SidebarProvider className="finly-shell finance-app">
       <RaysBackdrop theme={theme} enabled={effects} />
-      <FinanceSidebar functional screen={screen} onNavigate={setScreen} />
+      <FinanceSidebar screen={screen} onNavigate={setScreen} period={period} />
       <div className="content">
         <header className="workspace-top">
           <SidebarTrigger className="finance-sidebar-trigger" />
@@ -699,7 +752,7 @@ export function FinanceApp({ initial }: { initial: State }) {
           <div className="heading home-heading">
             <div>
               <p className="eyebrow">SEU ESPAÇO FINANCEIRO · LOCAL</p>
-              <h1>{title[screen]}</h1>
+              <h1 tabIndex={-1}>{title[screen]}</h1>
               <p className="muted home-subtitle">
                 {screen === "overview"
                   ? "Faturas, reembolsos e metas em um só lugar."
@@ -719,7 +772,34 @@ export function FinanceApp({ initial }: { initial: State }) {
                   />
                 </Field>
               </div>
-              <Button onClick={() => setEditing(null)}>Novo lançamento</Button>
+              <div className="quick-entry">
+                <Button
+                  onClick={() => {
+                    setNewKind("credit");
+                    setEditing(null);
+                  }}
+                >
+                  Novo lançamento
+                </Button>
+                <Field label="Criar por tipo">
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      setNewKind(e.target.value as Kind);
+                      setEditing(null);
+                    }}
+                  >
+                    <option value="" disabled>
+                      Escolher tipo…
+                    </option>
+                    {kinds.map((k) => (
+                      <option key={k} value={k}>
+                        {names[k]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
             </div>
           </div>
           {error && (
@@ -732,7 +812,12 @@ export function FinanceApp({ initial }: { initial: State }) {
               state={s}
               period={period}
               onEntries={() => setScreen("entries")}
-              onSettings={() => setScreen("settings")}
+              onSettings={() => {
+                setScreen("settings");
+                setTab("financeiro");
+              }}
+              onInvoicePage={() => setScreen("invoice")}
+              onRefunds={() => setScreen("refunds")}
               onPlanning={() => setScreen("installments")}
               onToggle={toggle}
               onInvoice={(status) =>
@@ -839,8 +924,9 @@ export function FinanceApp({ initial }: { initial: State }) {
               {rows(filtered)}
             </section>
           )}
-          {screen === "installments" && (
+          {screen === "invoice" && (
             <>
+              {" "}
               <section className="category-panel">
                 <h2>
                   {s.settings.cardLabel} · fatura de {period}
@@ -868,10 +954,34 @@ export function FinanceApp({ initial }: { initial: State }) {
                   </select>
                 </Field>
                 <p>Marcar paga não cria outra despesa.</p>
+                <strong className="invoice-total">{money(m.invoice)}</strong>
                 {rows(entries.filter((x) => x.legacyKind === "credit"))}
               </section>
+            </>
+          )}
+          {screen === "installments" && (
+            <>
+              {" "}
               <section className="category-panel">
                 <h2>Grupos de parcelas e recorrências</h2>
+                {!s.transactions.some(
+                  (x) => x.legacyKind === "credit" && x.groupId,
+                ) && (
+                  <div className="empty-state">
+                    <p>
+                      Você ainda não cadastrou grupos. Crie uma compra parcelada
+                      ou ocorrências mensais previstas.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setNewKind("credit");
+                        setEditing(null);
+                      }}
+                    >
+                      Cadastrar compra parcelada
+                    </Button>
+                  </div>
+                )}
                 {Array.from(
                   new Set(
                     s.transactions
@@ -910,11 +1020,28 @@ export function FinanceApp({ initial }: { initial: State }) {
                       >
                         Excluir grupo
                       </Button>
+                      <p className="muted">
+                        Competências:{" "}
+                        {Array.from(new Set(es.map((x) => x.period)))
+                          .sort()
+                          .join(" · ")}
+                        . Reembolsos vinculados:{" "}
+                        {
+                          es.filter((x) => x.legacyKind === "reimbursement")
+                            .length
+                        }
+                        .
+                      </p>
                       {rows(es)}
                     </article>
                   );
                 })}
               </section>
+            </>
+          )}
+          {screen === "refunds" && (
+            <>
+              {" "}
               <section className="category-panel">
                 <h2>
                   Reembolsos · total a receber{" "}
@@ -928,14 +1055,37 @@ export function FinanceApp({ initial }: { initial: State }) {
                       .reduce((n, x) => n + x.amountCents, 0),
                   )}
                 </h2>
+                <p>
+                  Recebidos:{" "}
+                  {money(
+                    s.transactions
+                      .filter(
+                        (x) =>
+                          x.legacyKind === "reimbursement" &&
+                          x.status === "received",
+                      )
+                      .reduce((n, x) => n + x.amountCents, 0),
+                  )}
+                </p>
+                <h3>Pendentes</h3>
                 {rows(
                   s.transactions.filter(
-                    (x) => x.legacyKind === "reimbursement",
+                    (x) =>
+                      x.legacyKind === "reimbursement" &&
+                      x.status !== "received",
+                  ),
+                )}
+                <h3>Recebidos</h3>
+                {rows(
+                  s.transactions.filter(
+                    (x) =>
+                      x.legacyKind === "reimbursement" &&
+                      x.status === "received",
                   ),
                 )}
               </section>
             </>
-          )}
+          )}{" "}
           {screen === "planning" && (
             <div className="feature-grid">
               <Feature
@@ -943,6 +1093,9 @@ export function FinanceApp({ initial }: { initial: State }) {
                 appearance={theme}
               >
                 <h2>Compra à vista</h2>
+                <Button variant="outline" onClick={() => setScreen("settings")}>
+                  Ajustar meta e referências
+                </Button>
                 <p>
                   Reserva protegida: {money(s.settings.reserve)}. Sobra
                   projetada: {money(m.available)}.
@@ -963,10 +1116,7 @@ export function FinanceApp({ initial }: { initial: State }) {
                       : 0
                   }
                 />
-                <p>
-                  Projeção mensal, não dinheiro guardado. Configure referências
-                  em Ajustes.
-                </p>
+                <p>Projeção mensal, não dinheiro guardado.</p>
               </Feature>
               <Feature
                 className="feature-card magic-feature"
@@ -1012,146 +1162,230 @@ export function FinanceApp({ initial }: { initial: State }) {
           )}
           {screen === "settings" && (
             <>
-              <section aria-label="Aparência">
-                <h2>Aparência</h2>{" "}
-                <div className="theme-panel">
-                  <span>APARÊNCIA</span>
-                  {(["graphite", "dark", "light"] as Theme[]).map((t, i) => (
-                    <Button
-                      key={t}
-                      variant="ghost"
-                      className={t === theme ? "theme-active" : ""}
-                      aria-pressed={t === theme}
-                      onClick={() => setTheme(t)}
-                    >
-                      {["Graphite Green", "Escuro Padrão", "Claro"][i]}
-                    </Button>
-                  ))}
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={effects}
-                      onChange={(e) => setEffects(e.target.checked)}
-                    />{" "}
-                    Efeitos de luz
-                  </label>
-                </div>
-              </section>
-              <section className="category-panel">
-                <h2>Referências financeiras</h2>
-                <form
-                  className="finance-form"
-                  key={s.revision}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    try {
-                      const f = new FormData(e.currentTarget),
-                        next = { ...s.settings };
-                      for (const k of [
-                        "salary",
-                        "reserve",
-                        "cushion",
-                        "goal",
-                        "installmentCap",
-                      ] as const)
-                        next[k] = cents(f.get(k));
-                      if (next.goal <= 0 || next.installmentCap <= 0)
-                        throw Error(
-                          "Meta e teto de parcelas devem ser maiores que zero.",
-                        );
-                      next.dueDay = Number(f.get("dueDay"));
-                      next.cardLabel = String(f.get("cardLabel")).trim();
-                      next.includeExpectedRefunds = f.has(
-                        "includeExpectedRefunds",
-                      );
-                      commit({ ...s, settings: next });
-                    } catch (e) {
-                      setError(String(e));
-                    }
-                  }}
-                >
-                  {Object.entries(settingsLabels).map(([key, label]) => (
-                    <Field key={key} label={label}>
-                      {key === "includeExpectedRefunds" ? (
-                        <input
-                          name={key}
-                          type="checkbox"
-                          defaultChecked={s.settings.includeExpectedRefunds}
-                        />
-                      ) : (
-                        <input
-                          required
-                          name={key}
-                          defaultValue={
-                            key === "cardLabel"
-                              ? s.settings.cardLabel
-                              : key === "dueDay"
-                                ? s.settings.dueDay
-                                : String(
-                                    (s.settings[
-                                      key as keyof Settings
-                                    ] as number) / 100,
-                                  )
-                          }
-                          inputMode={key === "cardLabel" ? "text" : "decimal"}
-                        />
-                      )}
-                    </Field>
-                  ))}
-                  <Button type="submit">Salvar ajustes</Button>
-                </form>
-              </section>
-              <section className="category-panel finance-stack">
-                <h2>Backup e importação</h2>
-                <p>
-                  Exporte antes de substituir ou limpar. O JSON contém seus
-                  dados privados; não publique. Outro domínio exige importação
-                  manual.
-                </p>
-                <div className="finance-actions">
+              <div
+                role="tablist"
+                aria-label="Seções de Configurações"
+                className="settings-tabs"
+              >
+                {tabs.map((t, i) => (
                   <Button
-                    onClick={() =>
-                      download(
-                        JSON.stringify(s, null, 2),
-                        "Finly-v2-backup.json",
-                      )
-                    }
-                  >
-                    Exportar backup JSON
-                  </Button>
-                  <Button onClick={() => setImporting(true)}>
-                    Importar / restaurar backup
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      download(
-                        csv(s.transactions),
-                        "Finly-lancamentos.csv",
-                        "text/csv;charset=utf-8",
-                      )
-                    }
-                  >
-                    Exportar CSV
-                  </Button>
-                  <Button onClick={() => window.print()}>Imprimir</Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
+                    key={t}
+                    role="tab"
+                    tabIndex={settingsTab === t ? 0 : -1}
+                    id={"tab-" + t}
+                    aria-controls={"panel-" + t}
+                    aria-selected={settingsTab === t}
+                    variant={settingsTab === t ? "default" : "outline"}
+                    onClick={() => setTab(t)}
+                    onKeyDown={(e) => {
                       if (
-                        confirm(
-                          "Exporte um backup antes. Limpar TODOS os dados v2? O legado permanecerá intacto.",
+                        ["ArrowRight", "ArrowLeft", "Home", "End"].includes(
+                          e.key,
                         )
-                      )
-                        commit(empty());
+                      ) {
+                        e.preventDefault();
+                        const index =
+                          e.key === "Home"
+                            ? 0
+                            : e.key === "End"
+                              ? 3
+                              : (i + (e.key === "ArrowRight" ? 1 : 3)) % 4;
+                        setTab(tabs[index]);
+                        document.getElementById("tab-" + tabs[index])?.focus();
+                      }
                     }}
                   >
-                    Limpar dados v2
+                    {["Financeiro", "Aparência", "Backup", "Sobre"][i]}
                   </Button>
-                </div>
-              </section>
+                ))}
+              </div>
+              <div
+                role="tabpanel"
+                id={"panel-" + settingsTab}
+                aria-labelledby={"tab-" + settingsTab}
+              >
+                {settingsTab === "aparencia" && (
+                  <>
+                    {" "}
+                    <section aria-label="Aparência">
+                      <h2>Aparência</h2>{" "}
+                      <div className="theme-panel">
+                        <span>APARÊNCIA</span>
+                        {(["graphite", "dark", "light"] as Theme[]).map(
+                          (t, i) => (
+                            <Button
+                              key={t}
+                              variant="ghost"
+                              className={t === theme ? "theme-active" : ""}
+                              aria-pressed={t === theme}
+                              onClick={() => setTheme(t)}
+                            >
+                              {["Graphite Green", "Escuro Padrão", "Claro"][i]}
+                            </Button>
+                          ),
+                        )}
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={effects}
+                            onChange={(e) => setEffects(e.target.checked)}
+                          />{" "}
+                          Efeitos de luz
+                        </label>
+                      </div>
+                    </section>
+                  </>
+                )}
+                {settingsTab === "financeiro" && (
+                  <>
+                    {" "}
+                    <section className="category-panel">
+                      <h2>Referências financeiras</h2>
+                      <form
+                        className="finance-form"
+                        key={s.revision}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          try {
+                            const f = new FormData(e.currentTarget),
+                              next = { ...s.settings };
+                            for (const k of [
+                              "salary",
+                              "reserve",
+                              "cushion",
+                              "goal",
+                              "installmentCap",
+                            ] as const)
+                              next[k] = cents(f.get(k));
+                            if (next.goal <= 0 || next.installmentCap <= 0)
+                              throw Error(
+                                "Meta e teto de parcelas devem ser maiores que zero.",
+                              );
+                            next.dueDay = Number(f.get("dueDay"));
+                            next.cardLabel = String(f.get("cardLabel")).trim();
+                            next.includeExpectedRefunds = f.has(
+                              "includeExpectedRefunds",
+                            );
+                            commit({ ...s, settings: next });
+                          } catch (e) {
+                            setError(String(e));
+                          }
+                        }}
+                      >
+                        {Object.entries(settingsLabels).map(([key, label]) => (
+                          <Field key={key} label={label}>
+                            {key === "includeExpectedRefunds" ? (
+                              <input
+                                name={key}
+                                type="checkbox"
+                                defaultChecked={
+                                  s.settings.includeExpectedRefunds
+                                }
+                              />
+                            ) : (
+                              <input
+                                required
+                                name={key}
+                                defaultValue={
+                                  key === "cardLabel"
+                                    ? s.settings.cardLabel
+                                    : key === "dueDay"
+                                      ? s.settings.dueDay
+                                      : String(
+                                          (s.settings[
+                                            key as keyof Settings
+                                          ] as number) / 100,
+                                        )
+                                }
+                                inputMode={
+                                  key === "cardLabel" ? "text" : "decimal"
+                                }
+                              />
+                            )}
+                          </Field>
+                        ))}
+                        <Button type="submit">Salvar ajustes</Button>
+                      </form>
+                    </section>
+                  </>
+                )}
+                {settingsTab === "backup" && (
+                  <>
+                    {" "}
+                    <section className="category-panel finance-stack">
+                      <h2>Backup e importação</h2>
+                      <p>
+                        Exporte antes de substituir ou limpar. O JSON contém
+                        seus dados privados; não publique. Outro domínio exige
+                        importação manual.
+                      </p>
+                      <div className="finance-actions">
+                        <Button
+                          onClick={() =>
+                            download(
+                              JSON.stringify(s, null, 2),
+                              "Finly-v2-backup.json",
+                            )
+                          }
+                        >
+                          Exportar backup JSON
+                        </Button>
+                        <Button onClick={() => setImporting(true)}>
+                          Importar / restaurar backup
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            download(
+                              csv(s.transactions),
+                              "Finly-lancamentos.csv",
+                              "text/csv;charset=utf-8",
+                            )
+                          }
+                        >
+                          Exportar CSV
+                        </Button>
+                        <Button onClick={() => window.print()}>Imprimir</Button>
+                      </div>
+                      <div className="danger-zone">
+                        <h3>Zona de cuidado</h3>
+                        <p>Exporte um backup antes de limpar seus dados.</p>
+                        <div className="finance-actions">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Exporte um backup antes. Limpar TODOS os dados v2? O legado permanecerá intacto.",
+                                )
+                              )
+                                commit(empty());
+                            }}
+                          >
+                            Limpar dados v2
+                          </Button>
+                        </div>
+                      </div>
+                    </section>
+                  </>
+                )}
+                {settingsTab === "sobre" && (
+                  <section className="category-panel">
+                    <h2>Sobre o Finly</h2>
+                    <p>
+                      Finanças pessoais com armazenamento local. Os dados ficam
+                      neste navegador; não há sincronização automática.
+                    </p>
+                    <p>
+                      Um cartão de referência, parcelas, recorrências previstas
+                      e reembolsos. Múltiplos cartões e assinaturas avançadas
+                      continuam planejados.
+                    </p>
+                  </section>
+                )}
+              </div>
             </>
-          )}
-          {(screen === "overview" || screen === "installments") &&
+          )}{" "}
+          {(screen === "overview" || screen === "invoice") &&
             s.pending.length > 0 && (
               <section className="category-panel">
                 <h2>Pendências sem competência (fora da fatura)</h2>
@@ -1208,18 +1442,10 @@ export function FinanceApp({ initial }: { initial: State }) {
               </Button>
             </section>
           )}
-          {screen === "about" && (
-            <section className="category-panel">
-              <h2>Finly local</h2>
-              <p>
-                Operações salvas somente neste navegador, em centavos inteiros.
-                Sem sincronização ou notificações externas.
-              </p>
-            </section>
-          )}
           {editing !== undefined && (
             <EntryForm
               entry={editing}
+              initialKind={newKind}
               period={period}
               onClose={() => setEditing(undefined)}
               onSave={(rows) => {
@@ -1228,8 +1454,16 @@ export function FinanceApp({ initial }: { initial: State }) {
                       x.id === editing.id ? rows[0] : x,
                     )
                   : [...s.transactions, ...rows];
-                if (commit({ ...s, transactions: next })) setEditing(undefined);
-                else
+                if (commit({ ...s, transactions: next })) {
+                  setEditing(undefined);
+                  setAll(true);
+                  setQuery("");
+                  setType("all");
+                  setStatus("all");
+                  setMin("");
+                  setMax("");
+                  setScreen("entries");
+                } else
                   throw Error(
                     "Não foi possível salvar. Confira o armazenamento ou atualize os dados de outra aba.",
                   );

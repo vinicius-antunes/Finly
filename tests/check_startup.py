@@ -1,3 +1,4 @@
+import re
 """Direct Home startup, failure recovery and persistence in real Chromium."""
 import functools,http.server,json,threading
 from pathlib import Path
@@ -21,9 +22,9 @@ try:
   assert page.get_by_role('button',name='Mês anterior',exact=True).count()==0 and page.get_by_role('button',name='Próximo mês',exact=True).count()==0
   page.get_by_label('Competência',exact=True).fill('2024-01');assert page.get_by_label('Competência',exact=True).input_value()=='2024-01';page.get_by_label('Competência',exact=True).fill('2030-12')
   page.evaluate('document.fonts.ready');page.screenshot(path=str(ART/'empty-desktop.png'),full_page=True);page.set_viewport_size({'width':390,'height':844});page.screenshot(path=str(ART/'empty-mobile.png'),full_page=True);page.set_viewport_size({'width':1440,'height':1000})
-  page.get_by_role('button',name='Novo lançamento',exact=True).click();d=page.get_by_role('dialog');d.get_by_label('Descrição',exact=True).fill('Primeiro lançamento sintético');d.get_by_label('Valor por parcela (R$)',exact=True).fill('33');d.get_by_role('button',name='Salvar lançamento').click();d.wait_for(state='hidden');saved=page.evaluate("localStorage.getItem('finly-v2')");assert len(json.loads(saved)['transactions'])==1
-  page.reload();page.get_by_role('heading',name='Visão geral',exact=True).wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==saved and page.evaluate('v2Writes.length')==0;assert page.evaluate("localStorage.getItem('saldoclaro-v1')")=='original legado intocado'
-  page.get_by_label('Competência',exact=True).fill('2030-12')
+  page.get_by_role('button',name='Novo lançamento',exact=True).click();d=page.get_by_role('dialog');d.get_by_label('Descrição',exact=True).fill('Primeiro lançamento sintético');d.get_by_label(re.compile(r'^Valor.*\(R\$\)$')).fill('33');d.get_by_role('button',name='Salvar lançamento').click();d.wait_for(state='hidden');saved=page.evaluate("localStorage.getItem('finly-v2')");assert len(json.loads(saved)['transactions'])==1
+  page.reload();page.get_by_role('heading',name='Lançamentos',exact=True).wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==saved and page.evaluate('v2Writes.length')==0;assert page.evaluate("localStorage.getItem('saldoclaro-v1')")=='original legado intocado'
+  page.goto(url+'/#/visao-geral?competencia=2030-12');page.get_by_role('heading',name='Visão geral',exact=True).wait_for()
   for width in [1440,390]:
    page.set_viewport_size({'width':width,'height':1000 if width==1440 else 844});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');page.screenshot(path=str(ART/f'populated-{width}.png'),full_page=True)
   # Existing valid state must not even be normalized/reformatted on startup.

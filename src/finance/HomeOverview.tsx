@@ -18,6 +18,8 @@ type Props = {
   onEntries: () => void;
   onSettings: () => void;
   onPlanning: () => void;
+  onInvoicePage: () => void;
+  onRefunds: () => void;
   onToggle: (x: Entry) => void;
   onInvoice: (status: string) => void;
   analytics: ReactNode;
@@ -79,6 +81,8 @@ export function HomeOverview({
   onEntries,
   onSettings,
   onPlanning,
+  onInvoicePage,
+  onRefunds,
   onToggle,
   onInvoice,
   analytics,
@@ -173,6 +177,22 @@ export function HomeOverview({
               <h3>{label}</h3>
               <strong>{money(value)}</strong>
               <small>{detail}</small>
+              <Button
+                variant="ghost"
+                onClick={
+                  label === "Fatura do cartão"
+                    ? onInvoicePage
+                    : label === "Reembolsos a receber"
+                      ? onRefunds
+                      : onEntries
+                }
+              >
+                {label === "Fatura do cartão"
+                  ? "Consultar fatura"
+                  : label === "Reembolsos a receber"
+                    ? "Ver reembolsos"
+                    : "Ver lançamentos"}
+              </Button>
             </div>
           </MagicCard>
         ))}
@@ -230,7 +250,7 @@ export function HomeOverview({
           <h2>Compromissos e recebimentos</h2>
         </div>
         <Button variant="outline" onClick={onPlanning}>
-          Parcelas e reembolsos
+          Parcelas e recorrências
         </Button>
       </div>
       <div className="home-obligations-grid">

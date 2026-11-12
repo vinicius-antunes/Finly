@@ -2,7 +2,7 @@ name: Finly React - validação inicial
 
 on:
   push:
-    branches: [Finly-React]
+    branches: [Finly-React, codex/finly-navegacao-ux]
   pull_request:
     paths:
       - 'src/**'
