@@ -73,3 +73,5 @@ A Visão Geral agora é um dashboard executivo em três linhas, com seis meses d
 A Visão Geral adapta as proporções à altura do desktop e compartilha o brilho MagicCard entre os nove widgets. Os dados do gráfico permanecem acessíveis sem lista expansível. [Evidências e testes](docs/dashboard-tuning/REPORT.md).
 
 Planejamentos agora reúne objetivos e cofrinhos com histórico confirmado, alocação por competência e simulações à vista/parceladas/com entrada. O saldo projetado original permanece separado. [Regras, compatibilidade, capturas, testes e limites](docs/planning/REPORT.md).
+
+A reformulação completa de Novo lançamento está em execução por fases. A Fase 1 prepara contratos e prévia de migração isolados, sem ativação ou mudança visual. [Escopo entregue, testes e fases pendentes](docs/new-entry/PHASE_1.md).
