@@ -82,6 +82,109 @@ export function validateLedgerDraft(
         String(c.onClosingDay),
       ), "Regra de fechamento inválida");
   }
+  for (const c of rows("cards"))
+    require(c.archived === undefined ||
+      flag(c.archived), "Situação de cartão inválida");
+  for (const o of rows("operations")) {
+    require(o.cancelledByRecurrence === undefined ||
+      (text(o.cancelledByRecurrence) &&
+        o.cancelled === true &&
+        typeof o.recurrenceId ===
+          "string"), "Cancelamento recorrente inválido");
+    if (o.installmentNumber !== undefined || o.installmentCount !== undefined)
+      require(Number.isInteger(o.installmentNumber) &&
+        Number(o.installmentNumber) > 0 &&
+        Number.isInteger(o.installmentCount) &&
+        Number(o.installmentCount) >= Number(o.installmentNumber) &&
+        Number(o.installmentCount) <= 120 &&
+        typeof o.purchaseId === "string", "Identificação de parcela inválida");
+  }
+  for (const p of rows("purchases")) {
+    require(p.creationKey === undefined ||
+      text(p.creationKey, 100000), "Origem da compra inválida");
+    require(p.cancelled === undefined ||
+      flag(p.cancelled), "Cancelamento de compra inválido");
+    if (p.revisions !== undefined) {
+      require(Array.isArray(p.revisions), "Histórico contratual inválido");
+      for (const revision of p.revisions as unknown[]) {
+        require(object(revision) &&
+          text(revision.id) &&
+          dateOK(revision.at) &&
+          text(revision.reason) &&
+          money(revision.previousCents), "Revisão inválida");
+        const r = revision as Obj;
+        require(!ids.has(String(r.id)), "ID de revisão duplicado");
+        ids.add(String(r.id));
+      }
+    }
+    if (p.quote !== undefined) {
+      require(object(p.quote), "Prévia contratual inválida");
+      const q = p.quote as Obj;
+      for (const k of [
+        "originalCents",
+        "enteredCents",
+        "estimatedCents",
+        "contractedCents",
+        "downCents",
+      ])
+        require(money(q[k]), "Valor contratual inválido");
+      require(Array.isArray(q.installments) &&
+        q.installments.every((x) => money(x) && Number(x) > 0) &&
+        q.installments.length > 0 &&
+        q.installments.length <= 120 &&
+        Number.isSafeInteger(q.interestCents) &&
+        Number.isSafeInteger(q.divergenceCents) &&
+        [
+          "none",
+          "contract-only",
+          "simple-monthly",
+          "compound-monthly",
+        ].includes(String(q.method)), "Parcelas ou juros inválidos");
+      require(q.interestCents ===
+        Number(q.contractedCents) - Number(q.originalCents) &&
+        q.divergenceCents ===
+          Number(q.contractedCents) -
+            Number(q.estimatedCents), "Diferença contratual inconsistente");
+      require((q.installments as number[]).reduce(
+        (a, b) => a + b,
+        Number(q.downCents),
+      ) === q.contractedCents, "Prévia não soma contrato");
+    }
+  }
+  for (const r of rows("recurrences")) {
+    require(r.description === undefined ||
+      text(r.description, 100), "Descrição recorrente inválida");
+    require(r.operationType === undefined ||
+      ["expense", "income", "card", "reimbursement"].includes(
+        String(r.operationType),
+      ), "Tipo recorrente inválido");
+    require(r.initialStatus === undefined ||
+      ["active", "paused"].includes(
+        String(r.initialStatus),
+      ), "Situação inicial inválida");
+    if (r.events !== undefined) {
+      require(Array.isArray(r.events), "Eventos inválidos");
+      let last = "";
+      for (const item of r.events as unknown[]) {
+        require(object(item) &&
+          text(item.id) &&
+          dateOK(item.effectiveOn) &&
+          ["pause", "resume", "cancel", "amount", "override"].includes(
+            String(item.kind),
+          ), "Evento inválido");
+        const e = item as Obj;
+        require(!ids.has(String(e.id)) &&
+          String(e.effectiveOn) >= last &&
+          String(e.effectiveOn) >=
+            String(r.startsOn), "Evento duplicado ou retroativo");
+        ids.add(String(e.id));
+        last = String(e.effectiveOn);
+        require(["amount", "override"].includes(String(e.kind))
+          ? money(e.amountCents) && Number(e.amountCents) > 0
+          : e.amountCents === undefined, "Valor de evento inválido");
+      }
+    }
+  }
   for (const c of rows("categories"))
     require(text(c.name, 100) &&
       Array.isArray(c.types) &&
@@ -96,7 +199,7 @@ export function validateLedgerDraft(
       Number(o.amountCents) > 0 &&
       periodOK(o.period) &&
       flag(o.cancelled), "Operação inválida");
-    for (const k of ["operationDate", "dueDate"])
+    for (const k of ["operationDate", "expectedDate", "dueDate"])
       require(o[k] === undefined || dateOK(o[k]), "Data inválida");
     ref("accounts", o.accountId, true);
     ref("cards", o.cardId, true);

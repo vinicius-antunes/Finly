@@ -15,6 +15,7 @@ export type Card = {
   closingDay?: number;
   dueDay?: number;
   onClosingDay?: "current" | "next";
+  archived?: boolean;
 };
 export type Category = {
   id: string;
@@ -28,6 +29,7 @@ export type Operation = {
   description: string;
   amountCents: Money;
   operationDate?: string;
+  expectedDate?: string;
   period: string;
   dueDate?: string;
   accountId?: string;
@@ -37,9 +39,21 @@ export type Operation = {
   recurrenceId?: string;
   salary?: boolean;
   confirmed?: boolean;
+  installmentNumber?: number;
+  installmentCount?: number;
+  cancelledByRecurrence?: string;
   cancelled: boolean;
 };
 export type Purchase = {
+  creationKey?: string;
+  cancelled?: boolean;
+  quote?: ReturnType<typeof import("./credit/quote.ts").quotePurchase>;
+  revisions?: {
+    id: string;
+    at: string;
+    reason: string;
+    previousCents: number;
+  }[];
   id: string;
   originalCents: Money;
   contractedCents: Money;
@@ -66,7 +80,17 @@ export type Transfer = {
   note: string;
   confirmed: boolean;
 };
+export type RecurrenceEvent = {
+  id: string;
+  kind: "pause" | "resume" | "cancel" | "amount" | "override";
+  effectiveOn: string;
+  amountCents?: number;
+};
 export type Recurrence = {
+  description?: string;
+  operationType?: "expense" | "income" | "card" | "reimbursement";
+  initialStatus?: "active" | "paused";
+  events?: RecurrenceEvent[];
   id: string;
   frequency: "monthly" | "annual";
   startsOn: string;

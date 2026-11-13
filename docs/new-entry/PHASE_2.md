@@ -1,5 +1,7 @@
 # Novo lançamento — Fase 2: motor financeiro
 
+Relatório desta etapa. A continuação está descrita na [Fase 3](PHASE_3.md).
+
 Base: `8b6a972c6a73c4f738dbda049cfc17ead1580341`. Branch exclusiva `codex/finly-navegacao-ux`. Esta fase entrega regras, persistência e leitura do novo motor; **não substitui ainda o modal antigo**. Cadastro e edição completos pelo novo formulário pertencem à Fase 5. Não há ativação automática do novo motor no primeiro acesso.
 
 ## Implementado

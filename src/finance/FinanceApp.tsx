@@ -1,3 +1,4 @@
+import { CreditActivity } from "./entry-system/credit/CreditActivity";
 import { combinedInvoiceStatus } from "./entry-system/finance";
 import { LedgerActivity } from "./entry-system/LedgerActivity";
 import { PlanningPage } from "./planning/PlanningPage";
@@ -962,6 +963,10 @@ export function FinanceApp({
                 {rows(entries.filter((x) => x.legacyKind === "credit"))}
               </section>
             </>
+          )}
+          {screen === "installments" && <CreditActivity state={s} />}
+          {screen === "settings" && settingsTab === "financeiro" && (
+            <CreditActivity state={s} settings />
           )}
           {screen === "installments" && (
             <>
