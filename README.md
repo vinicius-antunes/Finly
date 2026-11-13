@@ -71,3 +71,5 @@ O cabeçalho adapta o botão de menu à capacidade de hover, usa sino com contad
 A Visão Geral agora é um dashboard executivo em três linhas, com seis meses de gastos registrados e atalhos para os detalhes. [Cálculos, comparação visual e testes](docs/dashboard/REPORT.md).
 
 A Visão Geral adapta as proporções à altura do desktop e compartilha o brilho MagicCard entre os nove widgets. Os dados do gráfico permanecem acessíveis sem lista expansível. [Evidências e testes](docs/dashboard-tuning/REPORT.md).
+
+Planejamentos agora reúne objetivos e cofrinhos com histórico confirmado, alocação por competência e simulações à vista/parceladas/com entrada. O saldo projetado original permanece separado. [Regras, compatibilidade, capturas, testes e limites](docs/planning/REPORT.md).

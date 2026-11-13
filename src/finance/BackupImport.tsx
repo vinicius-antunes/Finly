@@ -18,6 +18,7 @@ function Summary({ state }: { state: State }) {
       <dl className="backup-summary">
         {[
           ["Lançamentos encontrados", s.entries],
+          ["Planejamentos preservados", s.goals],
           ["Grupos de parcelas / recorrências", s.groups],
           ["Reembolsos", s.refunds],
           ["Pendências sem competência", s.pending],

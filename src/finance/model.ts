@@ -1,3 +1,4 @@
+import { validatePlanning, type Planning } from "./planning/data.ts";
 export type Kind = "credit" | "out" | "income" | "reimbursement";
 export type Entry = {
   id: string;
@@ -37,6 +38,7 @@ export type Pending = {
   original?: Record<string, unknown>;
 };
 export type State = {
+  planning?: Planning;
   version: 2;
   transactions: Entry[];
   settings: Settings;
@@ -133,6 +135,7 @@ export function validate(s: unknown): asserts s is State {
     typeof s.settings.includeExpectedRefunds !== "boolean"
   )
     throw Error("Configurações inválidas");
+  if (s.planning !== undefined) validatePlanning(s.planning);
   const ids = new Set<string>();
   for (const x of s.transactions) {
     if (

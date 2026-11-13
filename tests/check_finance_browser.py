@@ -37,7 +37,7 @@ try:
   with page.expect_download() as dl:page.get_by_role('button',name='Exportar backup JSON',exact=True).click()
   backup=json.loads(Path(dl.value.path()).read_text());assert len(backup['transactions'])==7
   page.reload();assert json.loads(page.evaluate("localStorage.getItem('finly-v2')"))['settings']['salary']==250000
-  nav('Planejamentos');before=page.evaluate("localStorage.getItem('finly-v2')");page.get_by_label('Preço total no cartão',exact=True).fill('600');page.get_by_label('Número de parcelas').fill('6');assert page.evaluate("localStorage.getItem('finly-v2')")==before
+  nav('Planejamentos');page.get_by_role('button',name='Novo planejamento',exact=True).click();page.get_by_label('Nome do objetivo').fill('Meta de simulação sintética');page.get_by_label('Preço estimado').fill('600');page.get_by_role('button',name='Salvar planejamento').click();page.get_by_role('button',name='Gerenciar cofrinho').click();before=page.evaluate("localStorage.getItem('finly-v2')");page.get_by_label('Preço total no cartão',exact=True).fill('600');page.get_by_label('Número de parcelas').fill('6');assert page.evaluate("localStorage.getItem('finly-v2')")==before
   for theme in ['Graphite Green','Escuro Padrão','Claro']:
    nav('Configurações')
    page.get_by_role('tab',name='Aparência',exact=True).click();page.get_by_role('button',name=theme,exact=True).click();nav('Planejamentos');page.screenshot(path=str(ART/(theme.split()[0]+'-planning.png')),full_page=True)

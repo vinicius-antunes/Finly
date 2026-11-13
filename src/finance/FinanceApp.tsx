@@ -1,3 +1,4 @@
+import { PlanningPage } from "./planning/PlanningPage";
 import { Bell, CheckCircle2, X } from "lucide-react";
 import { EntriesWorkspace } from "./EntriesWorkspace";
 import {
@@ -28,8 +29,6 @@ import {
   type Screen,
 } from "@/components/navigation/FinanceSidebar";
 import { RaysBackdrop } from "@/components/visual/RaysBackdrop";
-import { MagicCard as Feature } from "@/components/magicui/magic-card";
-import { ProgressBar } from "@/components/tremor/ProgressBar";
 import { savedTheme, PREF_KEY, type Theme } from "@/theme/theme";
 import {
   empty,
@@ -652,8 +651,6 @@ export function FinanceApp({
   }
   const m = metrics(s, period),
     entries = s.transactions.filter((x) => x.period === period);
-  const [price, setPrice] = useState("1200"),
-    [simParts, setSimParts] = useState(12);
   const alerts = [
     ...(m.invoice && s.invoiceStatuses[period] !== "paid"
       ? [
@@ -805,13 +802,17 @@ export function FinanceApp({
               {screen !== "overview" && (
                 <p className="eyebrow">SEU ESPAÇO FINANCEIRO · LOCAL</p>
               )}
-              <h1 tabIndex={-1}>{title[screen]}</h1>
+              <h1 tabIndex={-1}>
+                {screen === "planning" ? "Meus planejamentos" : title[screen]}
+              </h1>
               <p className="muted home-subtitle">
                 {screen === "overview"
                   ? "Resumo das suas finanças"
                   : screen === "entries"
                     ? "Busque, confira e organize suas movimentações."
-                    : "Organize seus registros e referências financeiras."}
+                    : screen === "planning"
+                      ? "Organize suas metas e planeje suas próximas conquistas."
+                      : "Organize seus registros e referências financeiras."}
               </p>
             </div>
             <div className="home-header-actions">
@@ -1067,78 +1068,7 @@ export function FinanceApp({
             </>
           )}{" "}
           {screen === "planning" && (
-            <div className="feature-grid">
-              <Feature
-                className="feature-card magic-feature"
-                appearance={theme}
-              >
-                <h2>Compra à vista</h2>
-                <Button variant="outline" onClick={() => setScreen("settings")}>
-                  Ajustar meta e referências
-                </Button>
-                <p>
-                  Reserva protegida: {money(s.settings.reserve)}. Sobra
-                  projetada: {money(m.available)}.
-                </p>
-                <p>
-                  Meta: {money(s.settings.goal)} · falta{" "}
-                  {money(
-                    Math.max(0, s.settings.goal - Math.max(0, m.available)),
-                  )}
-                </p>
-                <ProgressBar
-                  value={
-                    s.settings.goal
-                      ? Math.min(
-                          100,
-                          (Math.max(0, m.available) / s.settings.goal) * 100,
-                        )
-                      : 0
-                  }
-                />
-                <p>Projeção mensal, não dinheiro guardado.</p>
-              </Feature>
-              <Feature
-                className="feature-card magic-feature"
-                appearance={theme}
-              >
-                <h2>Simulador sem juros</h2>
-                <Field label="Preço total no cartão">
-                  <input
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                </Field>
-                <Field label="Número de parcelas">
-                  <input
-                    type="number"
-                    min={1}
-                    max={120}
-                    value={simParts}
-                    onChange={(e) => setSimParts(Number(e.target.value))}
-                  />
-                </Field>
-                <p>
-                  {(() => {
-                    try {
-                      if (
-                        !Number.isInteger(simParts) ||
-                        simParts < 1 ||
-                        simParts > 120
-                      )
-                        throw Error();
-                      const per = Math.round(cents(price) / simParts);
-                      return `${money(per)} por mês · ${per <= s.settings.installmentCap ? "Dentro do teto" : "Acima do teto"} de ${money(s.settings.installmentCap)}. Total: ${money(cents(price))}.`;
-                    } catch {
-                      return "Informe valores válidos";
-                    }
-                  })()}
-                </p>
-                <p>
-                  Estimativa arredondada; não cria compras e não usa a reserva.
-                </p>
-              </Feature>
-            </div>
+            <PlanningPage state={s} period={period} commit={commit} />
           )}
           {screen === "settings" && (
             <>

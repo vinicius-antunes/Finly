@@ -70,6 +70,7 @@ export function needsAcknowledgment(current: CurrentBackup) {
   if (!s) return false;
   const defaults = empty().settings;
   return !!(
+    s.planning?.goals.length ||
     s.transactions.length ||
     s.pending.length ||
     Object.keys(s.invoiceStatuses).length ||
@@ -84,6 +85,7 @@ export function needsAcknowledgment(current: CurrentBackup) {
 }
 export function backupSummary(s: State) {
   return {
+    goals: s.planning?.goals.length ?? 0,
     entries: s.transactions.length,
     groups: new Set(
       s.transactions.filter((x) => x.groupId).map((x) => x.groupId),

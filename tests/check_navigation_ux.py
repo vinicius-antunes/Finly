@@ -26,7 +26,7 @@ try:
    if mobile:
     page.get_by_role('button',name='Alternar menu',exact=True).click();page.get_by_role('dialog').wait_for();page.wait_for_function("document.querySelector('[role=dialog]').getAnimations().every(a=>a.playState==='finished')")
    else:page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288")
-   page.get_by_role('link',name=label,exact=True).click();page.mouse.move(1100 if not mobile else 370,100);page.get_by_role('heading',name=label,exact=True).wait_for()
+   page.get_by_role('link',name=label,exact=True).click();page.mouse.move(1100 if not mobile else 370,100);page.get_by_role('heading',name='Meus planejamentos' if label=='Planejamentos' else label,exact=True).wait_for()
   for slug,label in routes:
    nav(label);assert '/'+slug in page.url;assert page.get_by_label('Competência',exact=True).input_value()=='2026-11';assert page.locator('[aria-current=page]').get_attribute('aria-label')==label
    page.evaluate('document.fonts.ready');page.evaluate('window.scrollTo(0,0)');page.wait_for_timeout(250);page.screenshot(path=str(ART/(slug+'.png')),full_page=True)
@@ -37,7 +37,7 @@ try:
   page.get_by_role('tab',name='Aparência',exact=True).evaluate('(e)=>{if(e!==document.activeElement)throw Error("Tab focus lost")}')
   nav('Visão geral');page.get_by_label('Competência',exact=True).fill('2026-12');nav('Fatura do cartão');nav('Reembolsos');page.go_back();page.get_by_role('heading',name='Fatura do cartão',exact=True).wait_for();page.go_forward();page.get_by_role('heading',name='Reembolsos',exact=True).wait_for();assert page.get_by_label('Competência',exact=True).input_value()=='2026-12'
   for slug,label in routes:
-   page.goto(url+'/#/'+slug+'?competencia=2026-11');page.get_by_role('heading',name=label,exact=True).wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==raw
+   page.goto(url+'/#/'+slug+'?competencia=2026-11');page.get_by_role('heading',name='Meus planejamentos' if label=='Planejamentos' else label,exact=True).wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==raw
   assert page.evaluate('financialWrites')==[]
   # Desktop hover/pin and keyboard remain available with the new links.
   page.mouse.move(1100,100);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===60");page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288");page.get_by_role('link',name='Reembolsos',exact=True).hover();page.mouse.move(1100,100);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===60")
