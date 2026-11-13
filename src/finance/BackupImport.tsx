@@ -19,6 +19,8 @@ function Summary({ state }: { state: State }) {
         {[
           ["Lançamentos encontrados", s.entries],
           ["Planejamentos preservados", s.goals],
+          ["Operações do novo motor", s.ledgerOperations],
+          ["Transferências", s.ledgerTransfers],
           ["Grupos de parcelas / recorrências", s.groups],
           ["Reembolsos", s.refunds],
           ["Pendências sem competência", s.pending],
@@ -297,8 +299,9 @@ export function BackupImport({
               variant="outline"
               onClick={() => {
                 try {
-                  const latest=localStorage.getItem('finly-v2');
-                  if(latest===null)throw Error('Não existem dados atuais para baixar.');
+                  const latest = localStorage.getItem("finly-v2");
+                  if (latest === null)
+                    throw Error("Não existem dados atuais para baixar.");
                   download(latest, "Finly-dados-atuais.json");
                   setDownloadError("");
                 } catch {

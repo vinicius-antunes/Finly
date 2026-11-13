@@ -70,6 +70,10 @@ export function needsAcknowledgment(current: CurrentBackup) {
   if (!s) return false;
   const defaults = empty().settings;
   return !!(
+    s.entryLedger?.operations.length ||
+    s.entryLedger?.settlements.length ||
+    s.entryLedger?.transfers.length ||
+    s.entryLedger?.accounts.length ||
     s.planning?.goals.length ||
     s.transactions.length ||
     s.pending.length ||
@@ -85,8 +89,10 @@ export function needsAcknowledgment(current: CurrentBackup) {
 }
 export function backupSummary(s: State) {
   return {
+    ledgerOperations: s.entryLedger?.operations.length ?? 0,
+    ledgerTransfers: s.entryLedger?.transfers.length ?? 0,
     goals: s.planning?.goals.length ?? 0,
-    entries: s.transactions.length,
+    entries: s.transactions.length + (s.entryLedger?.operations.length ?? 0),
     groups: new Set(
       s.transactions.filter((x) => x.groupId).map((x) => x.groupId),
     ).size,

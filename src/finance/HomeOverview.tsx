@@ -1,3 +1,5 @@
+import { combinedInvoiceStatus, settled } from "./entry-system/finance";
+import { ledgerChartEntries } from "./entry-system/state";
 import { lazy, Suspense } from "react";
 import {
   CreditCard,
@@ -32,15 +34,25 @@ export function HomeOverview({
 }: Props) {
   const m = metrics(s, period),
     a = s.transactions.filter((x) => x.period === period),
-    pending = a.filter(
-      (x) => x.legacyKind === "reimbursement" && x.status !== "received",
-    ).length;
-  const status =
-    s.invoiceStatuses[period] === "paid"
-      ? "Paga"
-      : s.invoiceStatuses[period] === "unpaid"
-        ? "Em aberto"
-        : "A confirmar";
+    pending =
+      (s.entryLedger?.operations.filter(
+        (o) =>
+          o.type === "reimbursement" &&
+          o.period === period &&
+          !o.cancelled &&
+          settled(s.entryLedger!, o.id) < o.amountCents,
+      ).length ?? 0) +
+      a.filter(
+        (x) => x.legacyKind === "reimbursement" && x.status !== "received",
+      ).length;
+  const status = combinedInvoiceStatus(
+    s.entryLedger,
+    period,
+    s.transactions
+      .filter((x) => x.period === period && x.legacyKind === "credit")
+      .reduce((n, x) => n + x.amountCents, 0),
+    s.invoiceStatuses[period],
+  );
   const attention = [
     ...(m.invoice > 0 && status !== "Paga"
       ? [{ text: "Fatura em aberto ou a confirmar", action: onInvoicePage }]
@@ -48,7 +60,7 @@ export function HomeOverview({
     ...(pending
       ? [{ text: `${pending} reembolsos pendentes`, action: onRefunds }]
       : []),
-    ...(a.some((x) => x.legacyKind === "credit" && !x.confirmed)
+    ...(m.unconfirmed > 0
       ? [{ text: "Compras previstas para confirmar", action: onEntries }]
       : []),
     ...(s.pending.length
@@ -98,7 +110,7 @@ export function HomeOverview({
             </section>
           }
         >
-          <Chart entries={s.transactions} period={period} />
+          <Chart entries={ledgerChartEntries(s)} period={period} />
         </Suspense>
       </div>
       <div className="home-indicators">
@@ -120,7 +132,16 @@ export function HomeOverview({
           {
             label: "Entradas recebidas",
             value: m.income + m.received,
-            detail: "Além da referência mensal",
+            detail: s.entryLedger?.operations.some(
+              (o) =>
+                o.type === "income" &&
+                o.salary &&
+                o.period === period &&
+                !o.cancelled &&
+                settled(s.entryLedger!, o.id) > 0,
+            )
+              ? "Salário recebido substitui a previsão"
+              : "Além da referência mensal",
             Icon: ArrowDownLeft,
             action: onEntries,
           },

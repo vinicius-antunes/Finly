@@ -100,9 +100,7 @@ export function simulate(s: State, g: Goal, v: Simulation) {
   const impact = Array.from({ length: v.cash ? 1 : v.parts }, (_, i) => {
     const period = offset(v.period, i),
       m = metrics(s, period),
-      existing = s.transactions
-        .filter((x) => x.period === period && x.legacyKind === "credit")
-        .reduce((n, x) => n + x.amountCents, 0);
+      existing = m.invoice;
     return {
       period,
       existing: m.commitment,

@@ -1,5 +1,7 @@
 # Novo lançamento — Fase 1: contratos e preparação de migração
 
+Relatório histórico desta etapa. A integração posterior está descrita na [Fase 2](PHASE_2.md).
+
 **Entrega parcial. A reformulação completa e o formulário com cinco abas ainda não estão implementados.** Esta execução entrega os fundamentos isolados e testados, sem ativar um segundo modelo financeiro na aplicação. Base: `a088c314150a561c8e97b548dc97a34dc6257446`, exclusivamente em `codex/finly-navegacao-ux`.
 
 O pedido permite encerrar uma execução em estado consistente: “Se não for possível concluir todas as fases com segurança na mesma execução, parar em um estado consistente, documentar claramente o que foi concluído e o que falta, sem apresentar funcionalidades incompletas como prontas.” A separação preserva o aplicativo funcional enquanto o novo domínio financeiro é construído e validado.

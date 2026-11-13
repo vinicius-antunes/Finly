@@ -75,3 +75,5 @@ A Visão Geral adapta as proporções à altura do desktop e compartilha o brilh
 Planejamentos agora reúne objetivos e cofrinhos com histórico confirmado, alocação por competência e simulações à vista/parceladas/com entrada. O saldo projetado original permanece separado. [Regras, compatibilidade, capturas, testes e limites](docs/planning/REPORT.md).
 
 A reformulação completa de Novo lançamento está em execução por fases. A Fase 1 prepara contratos e prévia de migração isolados, sem ativação ou mudança visual. [Escopo entregue, testes e fases pendentes](docs/new-entry/PHASE_1.md).
+
+A Fase 2 de Novo lançamento acrescenta o motor opcional de liquidações parciais, salário identificado, transferências neutras e correções auditadas, com integração de projeções e backup. O novo cadastro visual permanece na Fase 5. [Regras, testes e limites](docs/new-entry/PHASE_2.md).

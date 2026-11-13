@@ -1,3 +1,9 @@
+import {
+  validateFinancialLedger,
+  ledgerProjection,
+  checkedSum,
+} from "./entry-system/finance.ts";
+import type { LedgerDraft } from "./entry-system/contracts.ts";
 import { validatePlanning, type Planning } from "./planning/data.ts";
 export type Kind = "credit" | "out" | "income" | "reimbursement";
 export type Entry = {
@@ -38,6 +44,7 @@ export type Pending = {
   original?: Record<string, unknown>;
 };
 export type State = {
+  entryLedger?: LedgerDraft;
   planning?: Planning;
   version: 2;
   transactions: Entry[];
@@ -192,6 +199,14 @@ export function validate(s: unknown): asserts s is State {
     )
   )
     throw Error("Situação de fatura inválida");
+  if (s.entryLedger !== undefined) {
+    validateFinancialLedger(s.entryLedger);
+    for (const list of Object.values(s.entryLedger)) {
+      if (Array.isArray(list))
+        for (const row of list)
+          if (ids.has(row.id)) throw Error("Identidade já existe no legado");
+    }
+  }
   const total = (s.transactions as Entry[]).reduce(
     (a, x) => a + x.amountCents,
     0,
@@ -206,6 +221,14 @@ export function validate(s: unknown): asserts s is State {
     (n, k) => n + Number((s.settings as Record<string, unknown>)[k]),
     total,
   );
+  if (s.entryLedger)
+    checkedSum([
+      budget,
+      ...s.entryLedger.operations.map((x) => x.amountCents),
+      ...s.entryLedger.settlements.map((x) => x.amountCents),
+      ...s.entryLedger.invoicePayments.map((x) => x.amountCents),
+      ...s.entryLedger.transfers.map((x) => x.amountCents),
+    ]);
   if (!Number.isSafeInteger(budget)) throw Error("Soma excede o limite seguro");
 }
 export async function migrate(raw: string): Promise<State> {
@@ -361,19 +384,32 @@ export function generate(
   return entries;
 }
 export function metrics(s: State, period: string) {
+  const n = s.entryLedger
+    ? ledgerProjection(s.entryLedger, period)
+    : {
+        invoice: 0,
+        cash: 0,
+        income: 0,
+        salary: 0,
+        received: 0,
+        pending: 0,
+        unconfirmed: 0,
+      };
   const a = s.transactions.filter((x) => x.period === period);
   const sum = (xs: Entry[]) => xs.reduce((n, x) => n + x.amountCents, 0),
     cards = a.filter((x) => x.legacyKind === "credit"),
     refund = a.filter((x) => x.legacyKind === "reimbursement"),
-    received = sum(refund.filter((x) => x.status === "received")),
-    pending = sum(refund.filter((x) => x.status !== "received")),
-    income = sum(
-      a.filter((x) => x.legacyKind === "income" && x.status === "received"),
-    ),
-    invoice = sum(cards),
-    cash = sum(a.filter((x) => x.legacyKind === "out")),
+    received = n.received + sum(refund.filter((x) => x.status === "received")),
+    pending = n.pending + sum(refund.filter((x) => x.status !== "received")),
+    income =
+      n.income +
+      sum(
+        a.filter((x) => x.legacyKind === "income" && x.status === "received"),
+      ),
+    invoice = n.invoice + sum(cards),
+    cash = n.cash + sum(a.filter((x) => x.legacyKind === "out")),
     revenue =
-      s.settings.salary +
+      (n.salary > 0 ? n.salary : s.settings.salary) +
       received +
       income +
       (s.settings.includeExpectedRefunds ? pending : 0),
@@ -383,11 +419,11 @@ export function metrics(s: State, period: string) {
     cash,
     received,
     pending,
-    income,
+    income: income + n.salary,
     revenue,
     commitment,
     available: revenue - commitment,
-    unconfirmed: sum(cards.filter((x) => !x.confirmed)),
+    unconfirmed: n.unconfirmed + sum(cards.filter((x) => !x.confirmed)),
     third: sum(cards.filter((x) => x.owner === "third")),
     unknown: sum(cards.filter((x) => x.owner === "unknown")),
   };

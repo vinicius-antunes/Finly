@@ -1,4 +1,4 @@
-/** Phase 1 contracts. These collections are not an active financial ledger yet. */
+/** Versioned contracts. Financial validation is required before activation/posting. */
 export type Money = number; // validators require safe, nonnegative integer cents
 export type EntryType =
   "expense" | "income" | "card" | "reimbursement" | "transfer";
@@ -36,6 +36,7 @@ export type Operation = {
   purchaseId?: string;
   recurrenceId?: string;
   salary?: boolean;
+  confirmed?: boolean;
   cancelled: boolean;
 };
 export type Purchase = {
@@ -114,6 +115,7 @@ export type InvoicePayment = {
   date: string;
   method: string;
   note: string;
+  reversesId?: string;
 };
 export type LedgerDraft = {
   invoices: Invoice[];

@@ -1,3 +1,5 @@
+import { combinedInvoiceStatus } from "./entry-system/finance";
+import { LedgerActivity } from "./entry-system/LedgerActivity";
 import { PlanningPage } from "./planning/PlanningPage";
 import { Bell, CheckCircle2, X } from "lucide-react";
 import { EntriesWorkspace } from "./EntriesWorkspace";
@@ -239,7 +241,7 @@ export function FinanceRoot() {
           onClose={() => setRecovering(false)}
           onRestored={(next) => {
             setNotice(
-              `Backup importado com sucesso. ${next.transactions.length} lançamentos restaurados.`,
+              `Backup importado com sucesso. ${next.transactions.length + (next.entryLedger?.operations.length ?? 0)} lançamentos restaurados.`,
             );
             setState(next);
           }}
@@ -652,7 +654,15 @@ export function FinanceApp({
   const m = metrics(s, period),
     entries = s.transactions.filter((x) => x.period === period);
   const alerts = [
-    ...(m.invoice && s.invoiceStatuses[period] !== "paid"
+    ...(m.invoice &&
+    combinedInvoiceStatus(
+      s.entryLedger,
+      period,
+      entries
+        .filter((x) => x.legacyKind === "credit")
+        .reduce((n, x) => n + x.amountCents, 0),
+      s.invoiceStatuses[period],
+    ) !== "Paga"
       ? [
           {
             id: "invoice:" + period,
@@ -892,6 +902,9 @@ export function FinanceApp({
               onRefunds={() => setScreen("refunds")}
             />
           )}
+          {["entries", "invoice", "refunds"].includes(screen) && (
+            <LedgerActivity state={s} period={period} screen={screen} />
+          )}
           {screen === "entries" && (
             <EntriesWorkspace
               entries={s.transactions}
@@ -914,7 +927,11 @@ export function FinanceApp({
                 </h2>
                 <p>
                   Vencimento estimado dia {s.settings.dueDay} · total{" "}
-                  {money(m.invoice)}
+                  {money(
+                    entries
+                      .filter((x) => x.legacyKind === "credit")
+                      .reduce((n, x) => n + x.amountCents, 0),
+                  )}
                 </p>
                 <Field label="Status da fatura">
                   <select
@@ -935,7 +952,13 @@ export function FinanceApp({
                   </select>
                 </Field>
                 <p>Marcar paga não cria outra despesa.</p>
-                <strong className="invoice-total">{money(m.invoice)}</strong>
+                <strong className="invoice-total">
+                  {money(
+                    entries
+                      .filter((x) => x.legacyKind === "credit")
+                      .reduce((n, x) => n + x.amountCents, 0),
+                  )}
+                </strong>
                 {rows(entries.filter((x) => x.legacyKind === "credit"))}
               </section>
             </>
@@ -1421,7 +1444,7 @@ export function FinanceApp({
                 setS(next);
                 setImporting(false);
                 setNotice(
-                  `Backup importado com sucesso. ${next.transactions.length} lançamentos restaurados.`,
+                  `Backup importado com sucesso. ${next.transactions.length + (next.entryLedger?.operations.length ?? 0)} lançamentos restaurados.`,
                 );
               }}
             />
