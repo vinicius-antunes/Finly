@@ -1,3 +1,4 @@
+import { reimbursementTotals } from "./entry-system/reimbursements/totals";
 import { CreditActivity } from "./entry-system/credit/CreditActivity";
 import { combinedInvoiceStatus } from "./entry-system/finance";
 import { LedgerActivity } from "./entry-system/LedgerActivity";
@@ -1054,28 +1055,9 @@ export function FinanceApp({
               <section className="category-panel">
                 <h2>
                   Reembolsos · total a receber{" "}
-                  {money(
-                    s.transactions
-                      .filter(
-                        (x) =>
-                          x.legacyKind === "reimbursement" &&
-                          x.status !== "received",
-                      )
-                      .reduce((n, x) => n + x.amountCents, 0),
-                  )}
+                  {money(reimbursementTotals(s).pending)}
                 </h2>
-                <p>
-                  Recebidos:{" "}
-                  {money(
-                    s.transactions
-                      .filter(
-                        (x) =>
-                          x.legacyKind === "reimbursement" &&
-                          x.status === "received",
-                      )
-                      .reduce((n, x) => n + x.amountCents, 0),
-                  )}
-                </p>
+                <p>Recebidos: {money(reimbursementTotals(s).received)}</p>
                 <h3>Pendentes</h3>
                 {rows(
                   s.transactions.filter(

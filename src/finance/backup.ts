@@ -89,6 +89,7 @@ export function needsAcknowledgment(current: CurrentBackup) {
 }
 export function backupSummary(s: State) {
   return {
+    ledgerAgreements: s.entryLedger?.agreements?.length ?? 0,
     ledgerCards: s.entryLedger?.cards.length ?? 0,
     ledgerPurchases: s.entryLedger?.purchases.length ?? 0,
     ledgerRecurrences: s.entryLedger?.recurrences.length ?? 0,

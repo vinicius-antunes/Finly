@@ -1,4 +1,5 @@
 export type Movement = {
+  ledgerPurchaseId?: string;
   id: string;
   delta: number;
   date: string;
@@ -8,6 +9,8 @@ export type Movement = {
   purchase?: boolean;
 };
 export type Goal = {
+  ledgerPurchaseId?: string;
+  completionKey?: string;
   id: string;
   name: string;
   category: string;

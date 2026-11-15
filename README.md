@@ -79,3 +79,5 @@ A reformulação completa de Novo lançamento está em execução por fases. A F
 A Fase 2 de Novo lançamento acrescenta o motor opcional de liquidações parciais, salário identificado, transferências neutras e correções auditadas, com integração de projeções e backup. O novo cadastro visual permanece na Fase 5. [Regras, testes e limites](docs/new-entry/PHASE_2.md).
 
 A Fase 3 de Novo lançamento implementa o motor de cartões, contratos exatos em centavos, juros explícitos, entradas e recorrências sob demanda. Consultas estão nas abas existentes; o novo modal permanece na Fase 5. [Regras, exemplos, testes e limites](docs/new-entry/PHASE_3.md).
+
+A Fase 4 de Novo lançamento acrescenta acordos de reembolso por responsável, cronogramas, recebimentos parciais e correções, além de comandos de compra com uso confirmado dos cofrinhos em uma única gravação. O cadastro visual pelo novo modal segue na Fase 5. [Modelo, integração, testes e limites](docs/new-entry/PHASE_4.md).

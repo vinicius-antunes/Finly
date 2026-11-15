@@ -23,6 +23,7 @@ function Summary({ state }: { state: State }) {
           ["Transferências", s.ledgerTransfers],
           ["Cartões do novo motor", s.ledgerCards],
           ["Contratos de compra", s.ledgerPurchases],
+          ["Acordos de reembolso", s.ledgerAgreements],
           ["Recorrências", s.ledgerRecurrences],
           ["Grupos de parcelas / recorrências", s.groups],
           ["Reembolsos", s.refunds],

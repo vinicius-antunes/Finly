@@ -51,6 +51,20 @@ export function CreditActivity({
               </p>
               <details>
                 <summary>Parcelas e revisões</summary>
+                {p.goalId && <p>Planejamento vinculado: {p.goalId}</p>}
+                {p.downPaymentEntryId &&
+                  (() => {
+                    const entry = l.operations.find(
+                      (o) => o.id === p.downPaymentEntryId,
+                    )!;
+                    return (
+                      <p>
+                        {entry.description} · {entry.period} ·{" "}
+                        {money(entry.amountCents)} ·{" "}
+                        {entry.cancelled ? "Cancelada" : "Registrada"}
+                      </p>
+                    );
+                  })()}
                 {p.installmentIds.map((id) => {
                   const o = l.operations.find((x) => x.id === id)!;
                   return (

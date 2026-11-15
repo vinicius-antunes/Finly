@@ -45,6 +45,7 @@ export type Operation = {
   cancelled: boolean;
 };
 export type Purchase = {
+  responsibility?: "personal" | "other" | "shared";
   creationKey?: string;
   cancelled?: boolean;
   quote?: ReturnType<typeof import("./credit/quote.ts").quotePurchase>;
@@ -60,6 +61,7 @@ export type Purchase = {
   downPaymentEntryId?: string;
   installmentIds: string[];
   goalId?: string;
+  planningCompletionKey?: string;
 };
 export type Settlement = {
   id: string;
@@ -142,6 +144,7 @@ export type InvoicePayment = {
   reversesId?: string;
 };
 export type LedgerDraft = {
+  agreements?: import("./reimbursements/contracts.ts").Agreement[];
   invoices: Invoice[];
   invoicePayments: InvoicePayment[];
   version: 1;

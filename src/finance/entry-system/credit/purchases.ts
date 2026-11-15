@@ -41,6 +41,7 @@ export function syncInvoices(l: LedgerDraft) {
 export type PurchaseInput = {
   id: string;
   description: string;
+  responsibility?: "personal" | "other" | "shared";
   cardId: string;
   operationDate: string;
   firstPeriod?: string;
@@ -143,6 +144,7 @@ export function registerPurchase(l: LedgerDraft, input: PurchaseInput) {
   }
   next.purchases.push({
     id: input.id,
+    responsibility: input.responsibility,
     originalCents: quote.originalCents,
     contractedCents: quote.contractedCents,
     installmentIds,
@@ -236,6 +238,9 @@ export function previewInstallments(
       purchase.contractedCents,
       ...impacts.map((x) => x.amountCents - x.previousAmountCents),
     ]),
+    linkedClaimIds: l.claims
+      .filter((c) => c.purchaseId === purchase.id)
+      .map((c) => c.id),
     requiresPaidInvoiceAcknowledgement: impacts.some(
       (x) => x.paidInvoiceCents > 0 || x.destinationPaidCents > 0,
     ),
@@ -249,6 +254,7 @@ export function applyInstallments(
   preview: ReturnType<typeof previewInstallments>,
   approval: {
     confirmed: boolean;
+    acknowledgeReimbursements?: boolean;
     acknowledgePaidInvoices?: boolean;
     date: string;
     reason: string;
@@ -270,6 +276,13 @@ export function applyInstallments(
       preview.changes.length
   )
     throw Error("Compra inválida");
+  if (
+    l.claims.some((c) => c.purchaseId === purchase.id) &&
+    !approval.acknowledgeReimbursements
+  )
+    throw Error(
+      "Confirme a preservação dos acordos vinculados; ajuste-os antes se excederem o novo custo",
+    );
   for (const c of preview.changes) {
     const o = next.operations.find((x) => x.id === c.operationId)!;
     if (
@@ -346,6 +359,16 @@ export function cancelPurchase(
   const p = l.purchases.find((x) => x.id === id);
   if (!p) throw Error("Compra inexistente");
   if (p.cancelled) return l;
+  if (
+    l.claims.some(
+      (c) =>
+        c.purchaseId === id &&
+        !l.operations.find((o) => o.id === c.operationId)!.cancelled,
+    )
+  )
+    throw Error(
+      "Regularize ou cancele explicitamente os reembolsos antes de cancelar a compra",
+    );
   const ids = [
     ...p.installmentIds,
     ...(p.downPaymentEntryId ? [p.downPaymentEntryId] : []),

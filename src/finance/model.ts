@@ -1,3 +1,4 @@
+import { validatePlanningLinks } from "./planning/entry-links.ts";
 import {
   validateFinancialLedger,
   ledgerProjection,
@@ -207,6 +208,7 @@ export function validate(s: unknown): asserts s is State {
           if (ids.has(row.id)) throw Error("Identidade já existe no legado");
     }
   }
+  validatePlanningLinks(s as State);
   const total = (s.transactions as Entry[]).reduce(
     (a, x) => a + x.amountCents,
     0,

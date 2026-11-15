@@ -99,6 +99,14 @@ export function PlanningPage({
             Voltar aos planejamentos
           </button>
           <h2>{g.name}</h2>
+          {g.ledgerPurchaseId && (
+            <p>
+              Compra vinculada:{" "}
+              <a href={`#/parcelas?competencia=${period}`}>
+                {g.ledgerPurchaseId}
+              </a>
+            </p>
+          )}
           <p>
             {g.note} · Meta {money(g.target)} ·{" "}
             {g.deadline && `Data desejada: ${g.deadline}`}
@@ -219,6 +227,14 @@ export function PlanningPage({
                   <MagicCard className="planning-goal" key={g.id}>
                     <span>{g.category}</span>
                     <h2>{g.name}</h2>
+                    {g.ledgerPurchaseId && (
+                      <p>
+                        Compra vinculada:{" "}
+                        <a href={`#/parcelas?competencia=${period}`}>
+                          {g.ledgerPurchaseId}
+                        </a>
+                      </p>
+                    )}
                     <strong>
                       {money(reserved)} <small>de {money(g.target)}</small>
                     </strong>

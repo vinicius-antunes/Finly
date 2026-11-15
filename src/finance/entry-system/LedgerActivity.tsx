@@ -1,3 +1,4 @@
+import { AgreementActivity } from "./reimbursements/AgreementActivity";
 import { money, type State } from "../model";
 import { operationBalance, invoiceBalance } from "./finance";
 const situation: Record<string, string> = {
@@ -33,6 +34,12 @@ export function LedgerActivity({
       className="category-panel"
       style={{ minWidth: 0, overflowWrap: "anywhere" }}
     >
+      {screen === "refunds" && (
+        <AgreementActivity
+          ledger={l}
+          asOf={new Date().toISOString().slice(0, 10)}
+        />
+      )}
       <h2>Operações do novo motor financeiro</h2>
       <p>
         Histórico financeiro da Fase 2. O cadastro e a edição pelo novo

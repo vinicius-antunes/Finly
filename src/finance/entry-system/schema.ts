@@ -25,6 +25,7 @@ export function validateLedgerDraft(
   require(object(input), "Contrato deve ser objeto");
   const s = input as Obj;
   const lists = [
+    "agreements",
     "invoices",
     "invoicePayments",
     "accounts",
@@ -46,10 +47,11 @@ export function validateLedgerDraft(
   const ids = new Set<string>();
   const maps = new Map<string, Map<string, Obj>>();
   for (const key of lists) {
-    require(Array.isArray(s[key]) &&
-      (s[key] as unknown[]).length <= 20000, "Coleção inválida: " + key);
+    require(Array.isArray(s[key] === undefined && key === "agreements" ? [] : s[key]) &&
+      ((s[key] ?? []) as unknown[]).length <= 20000, "Coleção inválida: " +
+      key);
     const map = new Map<string, Obj>();
-    for (const row of s[key] as unknown[]) {
+    for (const row of (s[key] ?? []) as unknown[]) {
       require(object(row) && text(row.id, 200), "Identidade inválida: " + key);
       const x = row as Obj;
       require(!ids.has(x.id as string), "ID duplicado");
@@ -320,7 +322,8 @@ export function validateLedgerDraft(
     require(maps.get("operations")!.get(String(c.operationId))!.type ===
       "reimbursement" &&
       text(c.personId, 200) &&
-      text(c.personLabel, 100), "Reembolso inválido");
+      typeof c.personLabel === "string" &&
+      c.personLabel.length <= 100, "Reembolso inválido");
   }
   for (const a of rows("attachments")) {
     ref("operations", a.operationId);

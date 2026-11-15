@@ -1,3 +1,4 @@
+import { validateAgreements } from "./reimbursements/validation.ts";
 import type { LedgerDraft, Settlement, InvoicePayment } from "./contracts.ts";
 import { validateLedgerDraft } from "./schema.ts";
 export function checkedSum(values: number[]) {
@@ -54,6 +55,7 @@ export function validateFinancialLedger(
 ): asserts value is LedgerDraft {
   validateLedgerDraft(value);
   const l = value;
+  validateAgreements(l);
   const ids = new Set<string>();
   for (const inv of l.invoices) {
     const key = inv.cardId + ":" + inv.period;

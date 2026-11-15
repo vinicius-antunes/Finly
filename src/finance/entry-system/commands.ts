@@ -48,6 +48,8 @@ export function confirmTransfer(l: LedgerDraft, id: string) {
   });
 }
 export function cancelOperation(l: LedgerDraft, id: string) {
+  if (l.agreements?.some((a) => a.operationIds.includes(id)))
+    throw Error("Use o cancelamento auditado do acordo");
   if (!l.operations.some((x) => x.id === id))
     throw Error("Operação inexistente");
   if (
