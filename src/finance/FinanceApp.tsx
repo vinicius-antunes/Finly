@@ -1,7 +1,15 @@
+import { EntryComposer } from "./entry-system/ui/EntryComposer";
+import { Activation } from "./entry-system/ui/Activation";
+import { CatalogSettings } from "./entry-system/ui/CatalogSettings";
+import { entryViews } from "./entry-system/ui/views";
+import { OperationsManager } from "./entry-system/ui/OperationsManager";
+import type { EntryType } from "./entry-system/contracts";
+import "./entry-system/ui/entry.css";
 import { reimbursementTotals } from "./entry-system/reimbursements/totals";
 import { CreditActivity } from "./entry-system/credit/CreditActivity";
 import { combinedInvoiceStatus } from "./entry-system/finance";
-import { LedgerActivity } from "./entry-system/LedgerActivity";
+import { AgreementActivity } from "./entry-system/reimbursements/AgreementActivity";
+import { today } from "./entry-system/ui/money";
 import { PlanningPage } from "./planning/PlanningPage";
 import { Bell, CheckCircle2, X } from "lucide-react";
 import { EntriesWorkspace } from "./EntriesWorkspace";
@@ -11,10 +19,11 @@ import {
   canonicalCategory,
   categoryOptions,
   toggleSituation,
+  entrySituation,
 } from "./entries";
 import { BackupImport } from "./BackupImport";
 import { prepareBackup } from "./backup";
-import { useNavigation, destinations, tabs } from "./navigation";
+import { useNavigation, destinations, tabs, routeHref } from "./navigation";
 import { HomeOverview } from "./HomeOverview";
 import {
   cloneElement,
@@ -146,7 +155,10 @@ function Modal({
         }
       }}
       ref={ref}
-      onCancel={onClose}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
       aria-labelledby={titleId}
       onKeyDown={(e) => {
         if (e.key !== "Tab") return;
@@ -286,6 +298,10 @@ function EntryForm({
       entry ? String(entry.amountCents / 100) : "",
     ),
     [error, setError] = useState("");
+  const [dirty, setDirty] = useState(false);
+  const close = () => {
+    if (!dirty || confirm("Descartar as alterações não salvas?")) onClose();
+  };
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
@@ -340,7 +356,11 @@ function EntryForm({
           : generate(input, parts, repeat, f.has("refund")),
       );
     } catch (e) {
-      setError(String(e));
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível salvar. Confira os dados.",
+      );
     }
   }
   return (
@@ -352,9 +372,17 @@ function EntryForm({
             ? "Editar lançamento"
             : "Novo lançamento"
       }
-      onClose={onClose}
+      onClose={close}
     >
-      <form className="finance-form" onSubmit={submit}>
+      <p className="entry-hint">
+        Cadastro anterior: seus IDs, parcelas e dados originais serão
+        preservados. Este registro não será convertido para o novo sistema.
+      </p>
+      <form
+        className="finance-form"
+        onChangeCapture={() => setDirty(true)}
+        onSubmit={submit}
+      >
         <Field label="Descrição">
           <input
             name="description"
@@ -551,25 +579,44 @@ export function FinanceApp({
     setPeriod,
     setTab,
   } = useNavigation();
+  const [composer, setComposer] = useState<{
+    type: EntryType;
+    operationId?: string;
+    duplicate?: boolean;
+  }>();
   const [newKind, setNewKind] = useState<Kind>("credit");
   const [duplicating, setDuplicating] = useState(false);
   const [filters, setFilters] = useState({ ...initialFilters });
   function newEntry(kind: Kind) {
     setNewKind(kind);
-    setDuplicating(false);
-    setEditing(null);
+    setComposer({
+      type: kind === "out" ? "expense" : kind === "credit" ? "card" : kind,
+    });
   }
   function editEntry(x: Entry) {
+    if (s.entryLedger?.operations.some((o) => o.id === x.id)) {
+      setComposer({
+        type: s.entryLedger!.operations.find((o) => o.id === x.id)!.type,
+        operationId: x.id,
+      });
+      return;
+    }
     setDuplicating(false);
-    setEditing(x);
+    setEditing(s.transactions.find((row) => row.id === x.id) ?? x);
   }
   function duplicateEntry(x: Entry) {
+    if (s.entryLedger?.operations.some((o) => o.id === x.id)) {
+      setComposer({
+        type: s.entryLedger!.operations.find((o) => o.id === x.id)!.type,
+        operationId: x.id,
+        duplicate: true,
+      });
+      return;
+    }
     setDuplicating(true);
-    setEditing(x);
+    setEditing(s.transactions.find((row) => row.id === x.id) ?? x);
   }
   useEffect(() => {
-    setEditing(undefined);
-    setDuplicating(false);
     setImporting(false);
     setNotifications(false);
     document.title =
@@ -606,7 +653,6 @@ export function FinanceApp({
           if (!next) throw Error("Dados removidos em outra aba");
           raw.current = e.newValue;
           setS(next);
-          setEditing(undefined);
         } catch (e) {
           setError(String(e));
         }
@@ -617,6 +663,12 @@ export function FinanceApp({
   }, []);
   function commit(next: State) {
     try {
+      if (
+        JSON.stringify(s) !== JSON.stringify(JSON.parse(raw.current ?? "null"))
+      )
+        throw Error(
+          "Os dados foram atualizados. Revise o estado atual antes de salvar.",
+        );
       next = { ...next, revision: s.revision + 1 };
       raw.current = save(next, raw.current);
       setS(next);
@@ -628,6 +680,10 @@ export function FinanceApp({
     }
   }
   function remove(x: Entry) {
+    if (s.entryLedger?.operations.some((o) => o.id === x.id)) {
+      editEntry(x);
+      return;
+    }
     if (
       confirm(
         "Excluir " +
@@ -646,6 +702,10 @@ export function FinanceApp({
       });
   }
   function toggle(x: Entry) {
+    if (s.entryLedger?.operations.some((o) => o.id === x.id)) {
+      editEntry(x);
+      return;
+    }
     commit({
       ...s,
       transactions: s.transactions.map((e) =>
@@ -727,11 +787,13 @@ export function FinanceApp({
                 </td>
                 <td>{money(x.amountCents)}</td>
                 <td>
-                  {!x.confirmed
-                    ? "Previsão"
-                    : x.status === "received"
-                      ? "Pago / recebido"
-                      : "Registrado / pendente"}
+                  {x.ledgerManaged
+                    ? entrySituation(x).label
+                    : !x.confirmed
+                      ? "Previsão"
+                      : x.status === "received"
+                        ? "Pago / recebido"
+                        : "Registrado / pendente"}
                 </td>
                 <td>
                   <div
@@ -742,17 +804,19 @@ export function FinanceApp({
                       Editar
                     </Button>
                     <Button variant="outline" onClick={() => remove(x)}>
-                      Excluir
+                      {x.ledgerManaged ? "Cancelar / regularizar" : "Excluir"}
                     </Button>
                     {x.legacyKind !== "credit" && (
                       <Button variant="outline" onClick={() => toggle(x)}>
-                        {x.status === "received"
-                          ? x.legacyKind === "out"
-                            ? "Marcar pendente"
-                            : "Desfazer recebimento"
-                          : x.legacyKind === "out"
-                            ? "Marcar pago"
-                            : "Marcar recebido"}
+                        {x.ledgerManaged
+                          ? "Gerenciar recebimentos"
+                          : x.status === "received"
+                            ? x.legacyKind === "out"
+                              ? "Marcar pendente"
+                              : "Desfazer recebimento"
+                            : x.legacyKind === "out"
+                              ? "Marcar pago"
+                              : "Marcar recebido"}
                       </Button>
                     )}
                   </div>
@@ -769,8 +833,7 @@ export function FinanceApp({
             </p>
             <Button
               onClick={() => {
-                setNewKind(screen === "refunds" ? "reimbursement" : "credit");
-                setEditing(null);
+                newEntry(screen === "refunds" ? "reimbursement" : "credit");
               }}
             >
               Adicionar lançamento
@@ -840,43 +903,19 @@ export function FinanceApp({
                   />
                 </Field>
               </div>
-              <details
-                className="new-entry-menu"
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    e.preventDefault();
-                    e.currentTarget.removeAttribute("open");
-                    e.currentTarget.querySelector("summary")?.focus();
-                  }
-                }}
+              <Button
+                onClick={() =>
+                  newEntry(
+                    screen === "refunds"
+                      ? "reimbursement"
+                      : screen === "invoice"
+                        ? "credit"
+                        : "out",
+                  )
+                }
               >
-                <summary>Novo lançamento</summary>
-                <div>
-                  {(["out", "income", "credit", "reimbursement"] as Kind[]).map(
-                    (k, i) => (
-                      <Button
-                        key={k}
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.currentTarget
-                            .closest("details")
-                            ?.removeAttribute("open");
-                          newEntry(k);
-                        }}
-                      >
-                        {
-                          [
-                            "Nova despesa",
-                            "Nova receita",
-                            "Nova compra no cartão",
-                            "Novo reembolso",
-                          ][i]
-                        }
-                      </Button>
-                    ),
-                  )}
-                </div>
-              </details>
+                Novo lançamento
+              </Button>
             </div>
           </div>
           {error && (
@@ -904,12 +943,12 @@ export function FinanceApp({
               onRefunds={() => setScreen("refunds")}
             />
           )}
-          {["entries", "invoice", "refunds"].includes(screen) && (
-            <LedgerActivity state={s} period={period} screen={screen} />
+          {screen === "refunds" && s.entryLedger && (
+            <AgreementActivity ledger={s.entryLedger} asOf={today()} />
           )}
           {screen === "entries" && (
             <EntriesWorkspace
-              entries={s.transactions}
+              entries={entryViews(s)}
               period={period}
               filters={filters}
               setFilters={setFilters}
@@ -918,6 +957,23 @@ export function FinanceApp({
               onRemove={remove}
               onToggle={toggle}
               onNew={() => newEntry("out")}
+            />
+          )}
+          {["entries", "invoice", "installments"].includes(screen) && (
+            <OperationsManager
+              state={s}
+              period={period}
+              screen={screen}
+              onCommit={commit}
+              onEdit={(operationId) =>
+                setComposer({
+                  type: s.entryLedger!.operations.find(
+                    (o) => o.id === operationId,
+                  )!.type,
+                  operationId,
+                })
+              }
+              onNewTransfer={() => setComposer({ type: "transfer" })}
             />
           )}
           {screen === "invoice" && (
@@ -984,8 +1040,7 @@ export function FinanceApp({
                     </p>
                     <Button
                       onClick={() => {
-                        setNewKind("credit");
-                        setEditing(null);
+                        newEntry("credit");
                       }}
                     >
                       Cadastrar compra parcelada
@@ -1060,7 +1115,7 @@ export function FinanceApp({
                 <p>Recebidos: {money(reimbursementTotals(s).received)}</p>
                 <h3>Pendentes</h3>
                 {rows(
-                  s.transactions.filter(
+                  entryViews(s).filter(
                     (x) =>
                       x.legacyKind === "reimbursement" &&
                       x.status !== "received",
@@ -1068,7 +1123,7 @@ export function FinanceApp({
                 )}
                 <h3>Recebidos</h3>
                 {rows(
-                  s.transactions.filter(
+                  entryViews(s).filter(
                     (x) =>
                       x.legacyKind === "reimbursement" &&
                       x.status === "received",
@@ -1155,6 +1210,11 @@ export function FinanceApp({
                       </div>
                     </section>
                   </>
+                )}
+                {settingsTab === "financeiro" && s.entryLedger && (
+                  <section className="category-panel">
+                    <CatalogSettings state={s} onCommit={commit} />
+                  </section>
                 )}
                 {settingsTab === "financeiro" && (
                   <>
@@ -1260,7 +1320,7 @@ export function FinanceApp({
                           <Button
                             onClick={() =>
                               download(
-                                csv(s.transactions),
+                                csv(entryViews(s)),
                                 "Finly-lancamentos.csv",
                                 "text/csv;charset=utf-8",
                               )
@@ -1325,9 +1385,9 @@ export function FinanceApp({
                       neste navegador; não há sincronização automática.
                     </p>
                     <p>
-                      Um cartão de referência, parcelas, recorrências previstas
-                      e reembolsos. Múltiplos cartões e assinaturas avançadas
-                      continuam planejados.
+                      {s.entryLedger
+                        ? "Contas e cartões, parcelas, recorrências, acordos de reembolso e planejamentos. Comprovantes e backup ZIP serão disponibilizados na próxima fase."
+                        : "Cadastro anterior preservado. Prepare Novo lançamento para usar contas, cartões, reembolsos parciais e transferências."}
                     </p>
                   </section>
                 )}
@@ -1377,6 +1437,44 @@ export function FinanceApp({
               ))}
             </section>
           )}
+          {composer &&
+            (s.entryLedger ? (
+              <EntryComposer
+                state={s}
+                type={composer.type}
+                period={period}
+                operationId={composer.operationId}
+                duplicate={composer.duplicate}
+                onCommit={commit}
+                onClose={() => setComposer(undefined)}
+                onSaved={(targetPeriod) => {
+                  setComposer(undefined);
+                  setNotice(
+                    "Lançamento salvo com sucesso. Se não aparecer, confira os filtros da lista.",
+                  );
+                  window.location.hash = routeHref("entries", targetPeriod);
+                }}
+              />
+            ) : (
+              <Activation
+                state={s}
+                onCommit={commit}
+                onClose={() => setComposer(undefined)}
+                onLegacy={() => {
+                  setComposer(undefined);
+                  setNewKind(
+                    composer.type === "expense"
+                      ? "out"
+                      : composer.type === "card"
+                        ? "credit"
+                        : composer.type === "transfer"
+                          ? "out"
+                          : composer.type,
+                  );
+                  setEditing(null);
+                }}
+              />
+            ))}
           {editing !== undefined && (
             <EntryForm
               entry={editing}
@@ -1389,6 +1487,17 @@ export function FinanceApp({
                 setDuplicating(false);
               }}
               onSave={(rows) => {
+                if (
+                  editing &&
+                  !duplicating &&
+                  JSON.stringify(editing) !==
+                    JSON.stringify(
+                      s.transactions.find((x) => x.id === editing.id),
+                    )
+                )
+                  throw Error(
+                    "Este lançamento foi alterado em outra aba. Seus campos foram preservados; feche e reabra para revisar os dados atuais.",
+                  );
                 const next =
                   editing && !duplicating
                     ? s.transactions.map((x) =>

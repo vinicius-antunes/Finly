@@ -88,6 +88,7 @@ export function validateLedgerDraft(
     require(c.archived === undefined ||
       flag(c.archived), "Situação de cartão inválida");
   for (const o of rows("operations")) {
+    require(o.note === undefined || (typeof o.note === "string" && o.note.length <= 500), "Observação inválida");
     require(o.cancelledByRecurrence === undefined ||
       (text(o.cancelledByRecurrence) &&
         o.cancelled === true &&
@@ -154,6 +155,8 @@ export function validateLedgerDraft(
     }
   }
   for (const r of rows("recurrences")) {
+    require(r.note === undefined || (typeof r.note === "string" && r.note.length <= 500), "Observação recorrente inválida");
+    require(r.salary === undefined || (typeof r.salary === "boolean" && r.operationType === "income"), "Identificação salarial recorrente inválida");
     require(r.description === undefined ||
       text(r.description, 100), "Descrição recorrente inválida");
     require(r.operationType === undefined ||
@@ -187,13 +190,15 @@ export function validateLedgerDraft(
       }
     }
   }
-  for (const c of rows("categories"))
+  for (const c of rows("categories")) {
     require(text(c.name, 100) &&
       Array.isArray(c.types) &&
       c.types.length > 0 &&
       c.types.every((t) => kinds.includes(String(t))) &&
       new Set(c.types).size === c.types.length &&
       flag(c.archived), "Categoria inválida");
+    require(c.previousNames === undefined || (Array.isArray(c.previousNames) && c.previousNames.length <= 20000 && c.previousNames.every(name=>text(name,100))), "Histórico de categoria inválido");
+  }
   for (const o of rows("operations")) {
     require(kinds.includes(String(o.type)) &&
       text(o.description, 100) &&
@@ -339,6 +344,17 @@ export function validateLedgerDraft(
   }
   for (const c of rows("corrections")) {
     ref("operations", c.operationId);
+    for (const [key, amountKey] of [
+      ["previousOperation", "previousAmountCents"],
+      ["nextOperation", "nextAmountCents"],
+    ]) {
+      if (c[key] !== undefined) {
+        const snapshot = c[key];
+        require(object(snapshot) && snapshot.id === c.operationId &&
+          snapshot.amountCents === c[amountKey] && text(snapshot.description),
+          "Histórico de correção inválido");
+      }
+    }
     require(dateOK(c.at) &&
       text(c.reason) &&
       money(c.previousAmountCents) &&

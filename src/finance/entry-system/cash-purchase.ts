@@ -8,6 +8,7 @@ export type CashPurchaseInput = {
   confirmed: boolean;
   responsibility?: Purchase["responsibility"];
   cash: {
+    paymentDate?: string;
     amountCents: number;
     accountId: string;
     method: string;
@@ -25,6 +26,7 @@ export function registerCashPurchase(l: LedgerDraft, input: CashPurchaseInput) {
   const c = input.cash;
   if (
     !dateOK(input.operationDate) ||
+    (c.paymentDate !== undefined && !dateOK(c.paymentDate)) ||
     !periodOK(c.period) ||
     !c.method.trim() ||
     typeof input.confirmed !== "boolean" ||
@@ -64,7 +66,7 @@ export function registerCashPurchase(l: LedgerDraft, input: CashPurchaseInput) {
       amountCents: c.amountCents,
       accountId: c.accountId,
       method: c.method,
-      date: input.operationDate,
+      date: c.paymentDate ?? input.operationDate,
       note: "Compra à vista confirmada",
     });
   validateFinancialLedger(next);

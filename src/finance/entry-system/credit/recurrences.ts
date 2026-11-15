@@ -38,7 +38,7 @@ export function registerRecurrence(l: LedgerDraft, r: Recurrence) {
   validateFinancialLedger(next);
   return next;
 }
-function schedule(r: Recurrence, from: string, to: string) {
+export function recurrenceDates(r: Pick<Recurrence,"startsOn"|"endsOn"|"frequency">, from: string, to: string) {
   if (
     !dateOK(from) ||
     !dateOK(to) ||
@@ -101,7 +101,7 @@ export function generateOccurrences(
     r = next.recurrences.find((x) => x.id === id);
   if (!r || !r.description || !r.operationType)
     throw Error("Configure a recorrência antes de gerar");
-  for (const date of schedule(r, from, to)) {
+  for (const date of recurrenceDates(r, from, to)) {
     if (r.occurrences.some((x) => x.scheduledOn === date)) continue;
     const config = configurationAt(r, date);
     if (config.status !== "active") continue;
@@ -134,11 +134,13 @@ export function generateOccurrences(
       id: operationId,
       type: r.operationType,
       description: r.description,
+      note: r.note,
       amountCents: config.amount,
       expectedDate: date,
       period,
       dueDate: card?.dueDay ? dateInMonth(period, card.dueDay) : undefined,
       recurrenceId: r.id,
+      salary: r.operationType === "income" ? r.salary : undefined,
       accountId: card?.accountId ?? r.accountId,
       cardId: card?.id,
       categoryId: r.categoryId,

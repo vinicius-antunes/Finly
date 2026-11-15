@@ -76,9 +76,16 @@ export function selectEntries(
           (f.status === "received" &&
             x.legacyKind !== "credit" &&
             x.status === "received") ||
+          (f.status === "partial" &&
+            x.ledgerManaged &&
+            x.status === "partial") ||
+          (f.status === "cancelled" &&
+            x.ledgerManaged &&
+            x.status === "cancelled") ||
           (f.status === "pending" &&
             x.legacyKind !== "credit" &&
-            x.status !== "received")),
+            x.status !== "received" &&
+            (!x.ledgerManaged || x.status !== "cancelled"))),
     )
     .sort((a, b) => {
       if (f.all && a.period !== b.period)
@@ -109,6 +116,24 @@ export function selectEntries(
     });
 }
 export function entrySituation(x: Entry) {
+  if (x.ledgerManaged && x.status === "cancelled")
+    return { label: "Cancelada", action: "Consultar registro" };
+  if (x.ledgerManaged && x.status === "partial")
+    return {
+      label:
+        x.legacyKind === "out" ? "Parcialmente paga" : "Parcialmente recebido",
+      action: "Gerenciar pagamentos",
+    };
+  if (x.ledgerManaged && x.legacyKind !== "credit")
+    return {
+      label:
+        x.status === "received"
+          ? x.legacyKind === "out"
+            ? "Paga"
+            : "Recebida"
+          : "Pendente",
+      action: "Gerenciar pagamentos",
+    };
   if (x.legacyKind === "credit")
     return {
       label: x.confirmed ? "Confirmada" : "Prevista",
@@ -140,21 +165,27 @@ export function toggleSituation(x: Entry): Entry {
     : { ...x, status: x.status === "received" ? "planned" : "received" };
 }
 export function filteredTotals(es: Entry[]) {
-  const sum = (kind: Kind, paid?: boolean) =>
-    es
-      .filter(
-        (x) =>
-          x.legacyKind === kind &&
-          (paid === undefined || (x.status === "received") === paid),
-      )
+  const rows = es.filter((x) => !x.ledgerManaged || x.status !== "cancelled");
+  const total = (kind: Kind) =>
+    rows
+      .filter((x) => x.legacyKind === kind)
       .reduce((n, x) => n + x.amountCents, 0);
+  const paid = (kind: Kind) =>
+    rows
+      .filter((x) => x.legacyKind === kind)
+      .reduce(
+        (n, x) =>
+          n +
+          (x.ledgerPaidCents ?? (x.status === "received" ? x.amountCents : 0)),
+        0,
+      );
   return {
-    income: sum("income"),
-    incomeReceived: sum("income", true),
-    out: sum("out"),
-    outPaid: sum("out", true),
-    credit: sum("credit"),
-    refundReceived: sum("reimbursement", true),
-    refundPending: sum("reimbursement", false),
+    income: total("income"),
+    incomeReceived: paid("income"),
+    out: total("out"),
+    outPaid: paid("out"),
+    credit: total("credit"),
+    refundReceived: paid("reimbursement"),
+    refundPending: total("reimbursement") - paid("reimbursement"),
   };
 }

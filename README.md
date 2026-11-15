@@ -81,3 +81,5 @@ A Fase 2 de Novo lançamento acrescenta o motor opcional de liquidações parcia
 A Fase 3 de Novo lançamento implementa o motor de cartões, contratos exatos em centavos, juros explícitos, entradas e recorrências sob demanda. Consultas estão nas abas existentes; o novo modal permanece na Fase 5. [Regras, exemplos, testes e limites](docs/new-entry/PHASE_3.md).
 
 A Fase 4 de Novo lançamento acrescenta acordos de reembolso por responsável, cronogramas, recebimentos parciais e correções, além de comandos de compra com uso confirmado dos cofrinhos em uma única gravação. O cadastro visual pelo novo modal segue na Fase 5. [Modelo, integração, testes e limites](docs/new-entry/PHASE_4.md).
+
+A Fase 5 conecta o Novo lançamento a um modal responsivo com cinco abas, ativação com backup/prévia, edição e correções, pagamentos parciais, compras/recorrências/acordos, transferências e uso confirmado de cofrinhos. Os novos registros entram nas consultas principais; dados antigos mantêm edição compatível. [Componentes, regras, evidências e limites](docs/new-entry/PHASE_5.md). Anexos e ZIP continuam na Fase 6.

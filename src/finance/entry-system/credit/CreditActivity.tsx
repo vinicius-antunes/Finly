@@ -20,8 +20,8 @@ export function CreditActivity({
           : "Contratos e recorrências do novo motor"}
       </h2>
       <p>
-        Consulta dos registros da Fase 3. O cadastro e a edição pelo novo modal
-        serão integrados na Fase 5.
+        Consulte os contratos e seu histórico. Cadastre em Novo lançamento e use
+        as ações de gerenciamento para corrigir parcelas e recorrências.
       </p>
       {settings ? (
         l.cards.map((c) => (

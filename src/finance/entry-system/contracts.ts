@@ -18,12 +18,14 @@ export type Card = {
   archived?: boolean;
 };
 export type Category = {
+  previousNames?: string[];
   id: string;
   name: string;
   types: EntryType[];
   archived: boolean;
 };
 export type Operation = {
+  note?: string;
   id: string;
   type: EntryType;
   description: string;
@@ -89,6 +91,8 @@ export type RecurrenceEvent = {
   amountCents?: number;
 };
 export type Recurrence = {
+  note?: string;
+  salary?: boolean;
   description?: string;
   operationType?: "expense" | "income" | "card" | "reimbursement";
   initialStatus?: "active" | "paused";
@@ -120,6 +124,8 @@ export type AttachmentMetadata = {
   sha256: string;
 };
 export type Correction = {
+  previousOperation?: Operation;
+  nextOperation?: Operation;
   id: string;
   operationId: string;
   at: string;

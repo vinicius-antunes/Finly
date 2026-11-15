@@ -46,7 +46,9 @@ export function ledgerChartEntries(s: State): Entry[] {
                 ? ("reimbursement" as const)
                 : ("income" as const),
         accountId: o.accountId ?? "",
-        category: "",
+        category:
+          s.entryLedger?.categories.find((c) => c.id === o.categoryId)?.name ??
+          "",
         owner: "unknown",
         status:
           s.entryLedger && settled(s.entryLedger, o.id) === o.amountCents

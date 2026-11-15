@@ -135,15 +135,21 @@ export function EntriesWorkspace({
           <div>
             <button
               onClick={(e) => {
-                e.currentTarget.closest("details")?.removeAttribute("open");
+                const menu = e.currentTarget.closest("details");
+                menu?.removeAttribute("open");
+                menu?.querySelector("summary")?.focus();
                 onToggle(x);
               }}
             >
-              {entrySituation(x).action}
+              {x.ledgerManaged
+                ? "Gerenciar registro"
+                : entrySituation(x).action}
             </button>
             <button
               onClick={(e) => {
-                e.currentTarget.closest("details")?.removeAttribute("open");
+                const menu = e.currentTarget.closest("details");
+                menu?.removeAttribute("open");
+                menu?.querySelector("summary")?.focus();
                 onDuplicate(x);
               }}
             >
@@ -151,11 +157,15 @@ export function EntriesWorkspace({
             </button>
             <button
               onClick={(e) => {
-                e.currentTarget.closest("details")?.removeAttribute("open");
+                const menu = e.currentTarget.closest("details");
+                menu?.removeAttribute("open");
+                menu?.querySelector("summary")?.focus();
                 onRemove(x);
               }}
             >
-              Excluir lançamento
+              {x.ledgerManaged
+                ? "Cancelar / regularizar obrigação"
+                : "Excluir lançamento"}
             </button>
           </div>
         </details>
@@ -186,6 +196,13 @@ export function EntriesWorkspace({
           {x.category || "Sem categoria"} · {x.period}
           {x.part ? ` · Parcela ${x.part}/${x.parts}` : ""}
         </small>
+        {x.ledgerManaged && (
+          <small>
+            {x.ledgerPaidCents
+              ? `Pago / recebido ${money(x.ledgerPaidCents)} · saldo ${money(x.amountCents - x.ledgerPaidCents)}`
+              : ""}
+          </small>
+        )}
         {x.note && <small>{x.note}</small>}
       </>
     );
@@ -296,21 +313,29 @@ export function EntriesWorkspace({
                 value={filters.status}
                 onChange={(e) => update({ status: e.target.value })}
               >
-                {["all", "pending", "received", "forecast", "confirmed"].map(
-                  (s, i) => (
-                    <option value={s} key={s}>
-                      {
-                        [
-                          "Todas",
-                          "Pendentes / a receber",
-                          "Pagos / recebidos",
-                          "Cartão previsto",
-                          "Cartão confirmado",
-                        ][i]
-                      }
-                    </option>
-                  ),
-                )}
+                {[
+                  "all",
+                  "pending",
+                  "received",
+                  "forecast",
+                  "confirmed",
+                  "partial",
+                  "cancelled",
+                ].map((s, i) => (
+                  <option value={s} key={s}>
+                    {
+                      [
+                        "Todas",
+                        "Pendentes / a receber",
+                        "Pagos / recebidos",
+                        "Cartão previsto",
+                        "Cartão confirmado",
+                        "Parcialmente pago / recebido",
+                        "Cancelados",
+                      ][i]
+                    }
+                  </option>
+                ))}
               </select>
             </label>
             <label>

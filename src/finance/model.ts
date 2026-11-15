@@ -8,6 +8,9 @@ import type { LedgerDraft } from "./entry-system/contracts.ts";
 import { validatePlanning, type Planning } from "./planning/data.ts";
 export type Kind = "credit" | "out" | "income" | "reimbursement";
 export type Entry = {
+  /** UI-only fields from entryViews; never persist adapted rows. */
+  ledgerManaged?: boolean;
+  ledgerPaidCents?: number;
   id: string;
   description: string;
   amountCents: number;
