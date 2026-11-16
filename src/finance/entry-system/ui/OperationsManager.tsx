@@ -1,3 +1,6 @@
+import { ReceiptManager } from "../../receipts/ReceiptFields";
+import { linked, type Target } from "../../receipts/model";
+import { Paperclip } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { State } from "../../model";
@@ -26,6 +29,7 @@ export function OperationsManager({
 }) {
   const [error, setError] = useState(""),
     [invoice, setInvoice] = useState<string>();
+  const [receiptTarget, setReceiptTarget] = useState<Target>();
   const l = state.entryLedger;
   if (!l) return null;
   function apply(fn: () => NonNullable<State["entryLedger"]>) {
@@ -41,6 +45,14 @@ export function OperationsManager({
   }
   return (
     <>
+      {receiptTarget && (
+        <ReceiptManager
+          state={state}
+          target={receiptTarget}
+          onCommit={onCommit}
+          onClose={() => setReceiptTarget(undefined)}
+        />
+      )}
       {screen === "entries" && (
         <section className="category-panel">
           <div className="entry-inline-actions">
@@ -63,6 +75,17 @@ export function OperationsManager({
                     {t.confirmed ? "Efetivada" : "Prevista"} · {t.note}
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  aria-label={"Comprovantes da transferência " + t.id}
+                  onClick={() =>
+                    setReceiptTarget({ kind: "transfer", id: t.id })
+                  }
+                >
+                  <Paperclip aria-hidden="true" />{" "}
+                  {linked(state, { kind: "transfer", id: t.id }).length ||
+                    "Comprovantes"}
+                </Button>
                 {!t.confirmed && (
                   <Button
                     variant="outline"

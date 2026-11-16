@@ -1,3 +1,12 @@
+import { ReceiptFields, SavedReceipts } from "../../receipts/ReceiptFields";
+import {
+  allReceipts,
+  withReceipts,
+  entryTargets,
+  type PendingReceipt,
+  type Target,
+} from "../../receipts/model";
+import { coordinatedSave } from "../../receipts/storage";
 import { EntryTabs } from "./EntryTabs";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -51,11 +60,17 @@ export function EntryComposer({
   const [d, setD] = useState(() =>
     initialDraft(state, type, period, operationId, duplicate),
   );
+  const [filesValidating, setFilesValidating] = useState(false);
+  const [files, setFiles] = useState<PendingReceipt[]>([]);
   const original = useRef(draftKey(d));
   const [paymentDirty, setPaymentDirty] = useState(false),
     [catalogDirty, setCatalogDirty] = useState(false);
   const dirty =
-    draftKey(d) !== original.current || paymentDirty || catalogDirty;
+    draftKey(d) !== original.current ||
+    paymentDirty ||
+    catalogDirty ||
+    files.length > 0 ||
+    filesValidating;
   const [errors, setErrors] = useState<Record<string, string>>({}),
     [preview, setPreview] = useState<PreparedEntry>(),
     [ack, setAck] = useState(false),
@@ -118,14 +133,45 @@ export function EntryComposer({
       node?.focus();
     });
   };
-  function save(prepared: PreparedEntry) {
-    if (sent.current) return;
+  async function save(prepared: PreparedEntry) {
+    if (sent.current || filesValidating) return;
     sent.current = true;
     setSaving(true);
     try {
       if (prepared.source !== JSON.stringify(state))
         throw Error("Os dados mudaram. Revise novamente.");
-      if (!onCommit(prepared.next))
+      const next = prepared.next;
+      const ledger = next.entryLedger!;
+      let receiptTarget: Target;
+      if (d.type === "transfer") receiptTarget = { kind: "transfer", id: d.id };
+      else {
+        const op = old
+          ? ledger.operations.find((o) => o.id === old.id)
+          : (ledger.operations.find((o) => o.id === d.id) ??
+            ledger.operations.find(
+              (o) =>
+                !state.entryLedger!.operations.some((x) => x.id === o.id) &&
+                o.type === d.type,
+            ));
+        if (!op)
+          throw Error(
+            "Não foi possível identificar o vínculo dos comprovantes.",
+          );
+        receiptTarget = op.purchaseId
+          ? { kind: "purchase", id: op.purchaseId }
+          : { kind: "operation", id: op.id };
+      }
+      if (files.length)
+        await coordinatedSave(
+          withReceipts(next, [
+            ...allReceipts(next),
+            ...files.map((p) => ({ ...p.receipt, target: receiptTarget })),
+          ]),
+          files,
+          prepared.source,
+          onCommit,
+        );
+      else if (!onCommit(next))
         throw Error(
           "Não foi possível salvar. Verifique o armazenamento e os dados de outra aba.",
         );
@@ -148,7 +194,7 @@ export function EntryComposer({
   }
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (sent.current || conflict) return;
+    if (sent.current || conflict || filesValidating) return;
     if (paymentDirty || catalogDirty) {
       errorFocus({
         _form:
@@ -238,7 +284,12 @@ export function EntryComposer({
   const monetary = (
     label: string,
     key:
-      "amount" | "paymentAmount" | "down" | "original" | "final" | "useReserve",
+      | "amount"
+      | "paymentAmount"
+      | "down"
+      | "original"
+      | "final"
+      | "useReserve",
   ) => (
     <FormField label={label} name={key} error={errors[key]}>
       {(p) => (
@@ -272,6 +323,7 @@ export function EntryComposer({
     </FormField>
   );
   const close = () => {
+    if (saving || filesValidating) return;
     if (!dirty || confirm("Descartar as alterações não salvas?")) onClose();
   };
   function switchType(type: EntryType) {
@@ -363,7 +415,9 @@ export function EntryComposer({
           : "Uma movimentação de cada vez, sem perder os detalhes."
       }
       dirty={dirty}
-      onClose={onClose}
+      onClose={() => {
+        if (!saving) onClose();
+      }}
     >
       <EntryTabs value={d.type} editing={isEdit} onChange={switchType} />
       <form onSubmit={submit} noValidate>
@@ -759,6 +813,20 @@ export function EntryComposer({
                   </section>
                 )}
               </div>
+              <ReceiptFields
+                pending={files}
+                onChange={setFiles}
+                onBusyChange={setFilesValidating}
+                known={allReceipts(state)}
+                disabled={saving || filesValidating}
+              />
+              {old && (
+                <SavedReceipts
+                  state={state}
+                  targets={entryTargets(state, old.id)}
+                  onCommit={onCommit}
+                />
+              )}
               {isEdit && old.type !== "card" && (
                 <details className="entry-section">
                   <summary>Gerenciar pagamentos e histórico</summary>
@@ -828,6 +896,7 @@ export function EntryComposer({
           <Button
             type="button"
             variant="outline"
+            disabled={saving || filesValidating}
             onClick={
               preview
                 ? () => {
@@ -842,7 +911,7 @@ export function EntryComposer({
           {preview ? (
             <Button
               type="button"
-              disabled={!ack || saving}
+              disabled={!ack || saving || filesValidating}
               onClick={() => save(preview)}
             >
               Confirmar e salvar
@@ -850,7 +919,9 @@ export function EntryComposer({
           ) : (
             <Button
               type="submit"
-              disabled={saving || !!old?.cancelled || conflict}
+              disabled={
+                saving || filesValidating || !!old?.cancelled || conflict
+              }
             >
               {isEdit ? "Revisar alterações" : "Salvar lançamento"}
             </Button>

@@ -1,3 +1,15 @@
+import {
+  ReceiptFields,
+  SavedReceipts,
+  ReceiptManager,
+} from "../../receipts/ReceiptFields";
+import {
+  allReceipts,
+  withReceipts,
+  type PendingReceipt,
+  type Target,
+} from "../../receipts/model";
+import { coordinatedSave } from "../../receipts/storage";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { State } from "../../model";
@@ -39,9 +51,14 @@ export function Payments({
     [error, setError] = useState(""),
     [id, setId] = useState(() => crypto.randomUUID()),
     [busy, setBusy] = useState(false);
+  const [filesValidating, setFilesValidating] = useState(false);
+  const [files, setFiles] = useState<PendingReceipt[]>([]);
+  const sending = useRef(false);
+  const [receiptTarget, setReceiptTarget] = useState<Target>();
   const snapshot = JSON.stringify({ value, date, account, method, note });
   const baseline = useRef(snapshot);
-  const dirty = snapshot !== baseline.current;
+  const dirty =
+    snapshot !== baseline.current || files.length > 0 || filesValidating;
   useEffect(() => {
     onDirtyChange?.(dirty);
   }, [dirty, onDirtyChange]);
@@ -56,8 +73,10 @@ export function Payments({
     }>,
   ) {
     onDirtyChange?.(
-      JSON.stringify({ value, date, account, method, note, ...next }) !==
-        baseline.current,
+      files.length > 0 ||
+        filesValidating ||
+        JSON.stringify({ value, date, account, method, note, ...next }) !==
+          baseline.current,
     );
   }
   const op = l.operations.find((o) => o.id === target);
@@ -81,13 +100,31 @@ export function Payments({
   const received = agreement
     ? ids.reduce((n, id) => n + operationBalance(l, id).paid, 0)
     : b.paid;
-  const apply = (fn: () => NonNullable<State["entryLedger"]>) => {
+  const apply = async (fn: () => NonNullable<State["entryLedger"]>) => {
+    if (sending.current || filesValidating) return;
+    sending.current = true;
     setBusy(true);
     try {
-      if (!onCommit({ ...state, entryLedger: fn() }))
+      const next = { ...state, entryLedger: fn() };
+      const t = {
+        kind: invoiceId ? ("invoicePayment" as const) : ("settlement" as const),
+        id,
+      };
+      if (files.length)
+        await coordinatedSave(
+          withReceipts(next, [
+            ...allReceipts(next),
+            ...files.map((p) => ({ ...p.receipt, target: t })),
+          ]),
+          files,
+          JSON.stringify(state),
+          onCommit,
+        );
+      else if (!onCommit(next))
         throw Error(
           "Não foi possível salvar. Confira o armazenamento ou atualize os dados.",
         );
+      setFiles([]);
       setId(crypto.randomUUID());
       baseline.current = JSON.stringify({
         value: "",
@@ -103,11 +140,20 @@ export function Payments({
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível registrar.");
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   };
   return (
     <section className="entry-history">
+      {receiptTarget && (
+        <ReceiptManager
+          state={state}
+          target={receiptTarget}
+          onCommit={onCommit}
+          onClose={() => setReceiptTarget(undefined)}
+        />
+      )}
       <h3>
         {invoiceId
           ? "Pagamentos da fatura"
@@ -217,10 +263,17 @@ export function Payments({
           )}
         </FormField>
       </div>
+      <ReceiptFields
+        pending={files}
+        onChange={setFiles}
+        onBusyChange={setFilesValidating}
+        known={allReceipts(state)}
+        disabled={busy}
+      />
       <div className="entry-inline-actions">
         <Button
           type="button"
-          disabled={busy || b.remaining <= 0}
+          disabled={busy || filesValidating || b.remaining <= 0}
           onClick={() =>
             apply(() => {
               const base = {
@@ -249,6 +302,7 @@ export function Payments({
           <Button
             type="button"
             variant="ghost"
+            disabled={busy || files.length > 0}
             onClick={() => {
               if (
                 confirm(
@@ -280,6 +334,25 @@ export function Payments({
       {history.length ? (
         history.map((p) => (
           <div key={p.id} className="catalog-row">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() =>
+                setReceiptTarget({
+                  kind: invoiceId ? "invoicePayment" : "settlement",
+                  id: p.id,
+                })
+              }
+            >
+              Comprovantes deste registro
+            </Button>
+            <SavedReceipts
+              state={state}
+              targets={[
+                { kind: invoiceId ? "invoicePayment" : "settlement", id: p.id },
+              ]}
+              onCommit={onCommit}
+            />
             <span>
               {p.reversesId ? "Estorno" : "Confirmado"} · {money(p.amountCents)}{" "}
               · {p.date} · {l.accounts.find((a) => a.id === p.accountId)?.name}{" "}
@@ -289,6 +362,7 @@ export function Payments({
               <Button
                 type="button"
                 variant="ghost"
+                disabled={busy || files.length > 0}
                 onClick={() => {
                   if (
                     confirm(
@@ -347,6 +421,16 @@ export function InvoicePayments({
   onClose: () => void;
 }) {
   const [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    if (!dirty) return;
+    const protect = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", protect);
+    return () => window.removeEventListener("beforeunload", protect);
+  }, [dirty]);
+
   const close = () => {
     if (!dirty || confirm("Descartar o pagamento ainda não registrado?"))
       onClose();

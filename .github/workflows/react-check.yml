@@ -9,6 +9,7 @@ on:
       - 'public/legacy/**'
       - 'tests/**'
       - 'package.json'
+      - 'package-lock.json'
       - 'vite.config.ts'
       - 'tsconfig.json'
       - '.github/workflows/react-check.yml'
@@ -42,6 +43,7 @@ jobs:
           node tests/check_credit.mjs
           node tests/check_reimbursements.mjs
           node tests/check_entry_ui.mjs
+          node tests/check_receipts.mjs
       - name: Build estático
         run: npm run build
       - name: Verificar salvaguardas e fallback
@@ -55,3 +57,9 @@ jobs:
           test -f dist/legacy/index.html
           test -f dist/legacy/assets/aurora.css
           test -f dist/legacy/assets/theme.js
+      - name: Instalar navegador para comprovantes e restauração real
+        run: |
+          python3 -m pip install playwright Pillow
+          python3 -m playwright install --with-deps chromium
+      - name: Comprovantes e backup ZIP no Chromium
+        run: python3 tests/check_receipts_browser.py

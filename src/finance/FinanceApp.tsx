@@ -1,3 +1,7 @@
+import { StoragePanel } from "./receipts/StoragePanel";
+import { ReceiptManager } from "./receipts/ReceiptFields";
+import { allReceipts, entryTargets, type Target } from "./receipts/model";
+import "./receipts/receipts.css";
 import { EntryComposer } from "./entry-system/ui/EntryComposer";
 import { Activation } from "./entry-system/ui/Activation";
 import { CatalogSettings } from "./entry-system/ui/CatalogSettings";
@@ -584,6 +588,7 @@ export function FinanceApp({
     operationId?: string;
     duplicate?: boolean;
   }>();
+  const [receiptTarget, setReceiptTarget] = useState<Target>();
   const [newKind, setNewKind] = useState<Kind>("credit");
   const [duplicating, setDuplicating] = useState(false);
   const [filters, setFilters] = useState({ ...initialFilters });
@@ -688,7 +693,11 @@ export function FinanceApp({
       confirm(
         "Excluir " +
           x.description +
-          "?" +
+          "? " +
+          allReceipts(s).filter(
+            (r) => r.target.kind === "legacy" && r.target.id === x.id,
+          ).length +
+          " vínculo(s) de comprovantes serão removidos; arquivos permanecem recuperáveis até limpeza confirmada. " +
           (x.groupId ||
           x.purchaseId ||
           s.transactions.some((e) => e.purchaseId === x.id)
@@ -699,6 +708,9 @@ export function FinanceApp({
       commit({
         ...s,
         transactions: s.transactions.filter((e) => e.id !== x.id),
+        receipts: (s.receipts ?? []).filter(
+          (r) => r.target.kind !== "legacy" || r.target.id !== x.id,
+        ),
       });
   }
   function toggle(x: Entry) {
@@ -948,6 +960,8 @@ export function FinanceApp({
           )}
           {screen === "entries" && (
             <EntriesWorkspace
+              state={s}
+              onReceipts={(id) => setReceiptTarget(entryTargets(s, id).at(-1)!)}
               entries={entryViews(s)}
               period={period}
               filters={filters}
@@ -1292,12 +1306,15 @@ export function FinanceApp({
                 {settingsTab === "backup" && (
                   <>
                     {" "}
+                    <StoragePanel state={s} onCommit={commit} />
                     <section className="category-panel finance-stack">
                       <h2>Backup e importação</h2>
                       <p>
-                        Exporte antes de substituir ou limpar. O JSON contém
-                        seus dados privados; não publique. Outro domínio exige
-                        importação manual.
+                        O JSON preserva os metadados, mas não os arquivos dos
+                        comprovantes: use também o backup completo ZIP. Exporte
+                        antes de substituir ou limpar. O JSON contém seus dados
+                        privados; não publique. Outro domínio exige importação
+                        manual.
                       </p>
                       <section className="backup-settings-group">
                         <h3>Salvar meus dados</h3>
@@ -1346,7 +1363,7 @@ export function FinanceApp({
                             setImporting(true);
                           }}
                         >
-                          Importar backup JSON
+                          Importar backup JSON ou ZIP
                         </Button>
                         <LegacyBackupOption
                           onSelect={(raw) => {
@@ -1364,7 +1381,7 @@ export function FinanceApp({
                             onClick={() => {
                               if (
                                 confirm(
-                                  "Exporte um backup antes. Limpar TODOS os dados v2? O legado permanecerá intacto.",
+                                  `Exporte um backup antes. Limpar TODOS os dados v2? ${allReceipts(s).length} vínculos de comprovantes serão removidos. Os arquivos ficam recuperáveis até uma limpeza confirmada de órfãos. O legado permanecerá intacto.`,
                                 )
                               )
                                 commit(empty());
@@ -1386,7 +1403,7 @@ export function FinanceApp({
                     </p>
                     <p>
                       {s.entryLedger
-                        ? "Contas e cartões, parcelas, recorrências, acordos de reembolso e planejamentos. Comprovantes e backup ZIP serão disponibilizados na próxima fase."
+                        ? "Contas e cartões, parcelas, recorrências, acordos de reembolso e planejamentos. Comprovantes locais e backup completo ZIP disponíveis em Backup e importação."
                         : "Cadastro anterior preservado. Prepare Novo lançamento para usar contas, cartões, reembolsos parciais e transferências."}
                     </p>
                   </section>
@@ -1529,6 +1546,14 @@ export function FinanceApp({
                     "Não foi possível salvar. Confira o armazenamento ou atualize os dados de outra aba.",
                   );
               }}
+            />
+          )}
+          {receiptTarget && (
+            <ReceiptManager
+              state={s}
+              target={receiptTarget}
+              onCommit={commit}
+              onClose={() => setReceiptTarget(undefined)}
             />
           )}
           {importing && (

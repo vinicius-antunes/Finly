@@ -1,3 +1,6 @@
+import type { State } from "./model";
+import { entryTargets, linked } from "./receipts/model";
+import { Paperclip } from "lucide-react";
 import { useId, useEffect } from "react";
 import {
   Pencil,
@@ -20,6 +23,8 @@ import {
 } from "./entries";
 export function EntriesWorkspace({
   entries,
+  state,
+  onReceipts,
   period,
   filters,
   setFilters,
@@ -30,6 +35,8 @@ export function EntriesWorkspace({
   onNew,
 }: {
   entries: Entry[];
+  state: State;
+  onReceipts: (id: string) => void;
   period: string;
   filters: EntryFilters;
   setFilters: (next: EntryFilters) => void;
@@ -89,6 +96,13 @@ export function EntriesWorkspace({
   function actions(x: Entry) {
     return (
       <div className="entry-actions">
+        <Button
+          variant="ghost"
+          aria-label={"Comprovantes de " + x.description}
+          onClick={() => onReceipts(x.id)}
+        >
+          <Paperclip aria-hidden="true" />
+        </Button>
         <Button
           variant="ghost"
           onClick={() => onEdit(x)}
@@ -192,6 +206,16 @@ export function EntriesWorkspace({
     return (
       <>
         <strong>{x.description}</strong>
+        {entryTargets(state, x.id).flatMap((t) => linked(state, t)).length >
+          0 && (
+          <span className="receipt-badge">
+            <Paperclip aria-hidden="true" />
+            {
+              entryTargets(state, x.id).flatMap((t) => linked(state, t)).length
+            }{" "}
+            comprovante(s)
+          </span>
+        )}
         <small>
           {x.category || "Sem categoria"} · {x.period}
           {x.part ? ` · Parcela ${x.part}/${x.parts}` : ""}

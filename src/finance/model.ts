@@ -1,3 +1,4 @@
+import { validateReceipts, type Receipt } from "./receipts/model.ts";
 import { validatePlanningLinks } from "./planning/entry-links.ts";
 import {
   validateFinancialLedger,
@@ -48,6 +49,7 @@ export type Pending = {
   original?: Record<string, unknown>;
 };
 export type State = {
+  receipts?: Receipt[];
   entryLedger?: LedgerDraft;
   planning?: Planning;
   version: 2;
@@ -212,6 +214,7 @@ export function validate(s: unknown): asserts s is State {
     }
   }
   validatePlanningLinks(s as State);
+  validateReceipts(s as State);
   const total = (s.transactions as Entry[]).reduce(
     (a, x) => a + x.amountCents,
     0,

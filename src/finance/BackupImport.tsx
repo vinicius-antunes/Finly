@@ -1,7 +1,10 @@
+import { ZIP_LIMIT } from "./receipts/model";
+import { allReceipts, type PendingReceipt } from "./receipts/model";
+import { coordinatedSave, storageHealth } from "./receipts/storage";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { State } from "./model";
-import { save, download } from "./storage";
+import { download } from "./storage";
 import {
   BACKUP_LIMIT,
   BackupError,
@@ -18,6 +21,7 @@ function Summary({ state }: { state: State }) {
       <dl className="backup-summary">
         {[
           ["Lançamentos encontrados", s.entries],
+          ["Comprovantes (metadados)", allReceipts(state).length],
           ["Planejamentos preservados", s.goals],
           ["Operações do novo motor", s.ledgerOperations],
           ["Transferências", s.ledgerTransfers],
@@ -53,7 +57,13 @@ function Summary({ state }: { state: State }) {
     </>
   );
 }
-type Prepared = { state: State; current: CurrentBackup };
+type Prepared = {
+  state: State;
+  current: CurrentBackup;
+  pending: PendingReceipt[];
+  problems: string[];
+  zip: boolean;
+};
 export function BackupImport({
   onClose,
   onRestored,
@@ -77,7 +87,8 @@ export function BackupImport({
     heading = useRef<HTMLHeadingElement>(null),
     sequence = useRef(0),
     legacySource = useRef<string | null>(null),
-    id = useId();
+    id = useId(),
+    restoring = useRef(false);
   function fail(e: unknown) {
     if (e instanceof BackupError) {
       setError(e.message);
@@ -109,15 +120,28 @@ export function BackupImport({
     setAck(false);
     setBusy(true);
     try {
-      if (file.size > BACKUP_LIMIT)
-        throw new BackupError("O arquivo ultrapassa o limite de 4 MB.");
-      if (!/\.json$/i.test(file.name))
+      const isZip = /\.zip$/i.test(file.name);
+      if (file.size > (isZip ? ZIP_LIMIT : BACKUP_LIMIT))
         throw new BackupError(
-          "Selecione um arquivo de backup com extensão .json.",
+          "O arquivo ultrapassa o limite (JSON: 4 MiB; ZIP: 106 MiB).",
+        );
+      if (!/\.(json|zip)$/i.test(file.name))
+        throw new BackupError(
+          "Selecione um arquivo de backup com extensão .json ou .zip.",
         );
       const current = readCurrentBackup();
-      const state = await prepareBackup(await file.text());
-      if (token === sequence.current) setPrepared({ state, current });
+      const restored = isZip
+        ? await (await import("./receipts/zip")).importZip(file)
+        : { state: await prepareBackup(await file.text()), pending: [] };
+      const problems = isZip
+        ? []
+        : await storageHealth(restored.state)
+            .then((h) => h.problems)
+            .catch(() => [
+              "Não foi possível verificar os arquivos locais. Os dados financeiros podem ser restaurados; confira os comprovantes depois.",
+            ]);
+      if (token === sequence.current)
+        setPrepared({ ...restored, current, problems, zip: isZip });
     } catch (e) {
       if (token === sequence.current) fail(e);
     } finally {
@@ -137,9 +161,16 @@ export function BackupImport({
     heading.current?.focus();
     if (ref.current) ref.current.scrollTop = 0;
   }, [step]);
-  function restore() {
-    if (!prepared || busy || (needsAcknowledgment(prepared.current) && !ack))
+  async function restore() {
+    if (
+      restoring.current ||
+      !prepared ||
+      busy ||
+      (needsAcknowledgment(prepared.current) && !ack)
+    )
       return;
+    restoring.current = true;
+    setBusy(true);
     try {
       setError("");
       setDetails("");
@@ -150,7 +181,12 @@ export function BackupImport({
         throw new BackupError(
           "Os dados antigos mudaram. Selecione novamente a recuperação avançada antes de restaurar.",
         );
-      const serialized = save(prepared.state, prepared.current.raw);
+      const serialized = await coordinatedSave(
+        prepared.state,
+        prepared.pending,
+        prepared.current.raw,
+      );
+      // Every ZIP file has already been validated and prepared before financial replacement.
       onRestored(prepared.state, serialized);
     } catch (e) {
       if (localStorageAvailableChanged(prepared.current.raw)) {
@@ -160,6 +196,9 @@ export function BackupImport({
         setDetails(e instanceof Error ? e.message : "Alteração concorrente.");
         setPrepared(null);
       } else fail(e);
+    } finally {
+      restoring.current = false;
+      setBusy(false);
     }
   }
   const title =
@@ -174,7 +213,10 @@ export function BackupImport({
       className="finance-dialog backup-dialog"
       aria-labelledby={id + "-title"}
       aria-describedby={id + "-description"}
-      onCancel={onClose}
+      onCancel={(e) => {
+        if (busy) e.preventDefault();
+        else onClose();
+      }}
       onKeyDown={(event) => {
         if (event.key !== "Tab") return;
         const nodes = Array.from(
@@ -197,6 +239,7 @@ export function BackupImport({
         <span>Etapa {step} de 3</span>
         <Button
           variant="ghost"
+          disabled={busy}
           onClick={onClose}
           aria-label="Fechar importação"
         >
@@ -228,7 +271,7 @@ export function BackupImport({
                 setDetails("");
                 setAck(false);
                 legacySource.current = null;
-                setError("Selecione somente um arquivo JSON por vez.");
+                setError("Selecione somente um arquivo JSON ou ZIP por vez.");
                 setPrepared(null);
                 return;
               }
@@ -236,20 +279,23 @@ export function BackupImport({
             }}
           >
             <label htmlFor={id + "-file"}>
-              Selecionar arquivo JSON ou arrastar aqui
+              Selecionar arquivo JSON ou ZIP ou arrastar aqui
             </label>
             <input
               id={id + "-file"}
               type="file"
-              accept=".json,application/json"
-              aria-label="Selecionar arquivo JSON"
+              accept=".json,.zip,application/json,application/zip"
+              aria-label="Selecionar arquivo JSON ou ZIP"
               onChange={(e) => {
                 const f = e.currentTarget.files?.[0];
                 if (f) void select(f);
                 e.currentTarget.value = "";
               }}
             />
-            <p>Compatível com backups Finly v1 e v2 · limite de 4 MB.</p>
+            <p>
+              Compatível com backups Finly v1 e v2 · JSON até 4 MiB; ZIP até 106
+              MiB.
+            </p>
           </div>
           {selected && (
             <p className="backup-file">
@@ -265,6 +311,19 @@ export function BackupImport({
             <p role="status">Arquivo válido. Você pode continuar.</p>
           )}
         </>
+      )}
+      {prepared && (
+        <p role="status">
+          {prepared.zip
+            ? `ZIP completo: ${prepared.pending.length} comprovantes e hashes validados.`
+            : `JSON: arquivos binários não incluídos. ${prepared.problems.length} referências ausentes ou com problemas. Arquivos locais serão preservados.`}
+        </p>
+      )}
+      {prepared && prepared.current.state && (
+        <p>
+          A restauração substitui os dados; não mescla registros. Os arquivos
+          locais sem vínculo poderão ser revisados em Armazenamento local.
+        </p>
       )}
       {step === 2 && prepared && (
         <div className="backup-compare">
@@ -344,12 +403,13 @@ export function BackupImport({
         </div>
       )}
       <footer className="backup-actions">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" disabled={busy} onClick={onClose}>
           Cancelar
         </Button>
         {step > 1 && (
           <Button
             variant="outline"
+            disabled={busy}
             onClick={() => {
               setStep(step - 1);
               setError("");
@@ -375,7 +435,7 @@ export function BackupImport({
             }
             onClick={restore}
           >
-            Restaurar dados
+            {busy ? "Restaurando dados e arquivos…" : "Restaurar dados"}
           </Button>
         )}
       </footer>

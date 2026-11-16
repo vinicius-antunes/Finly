@@ -15,14 +15,14 @@ try:
   ctx=b.new_context(viewport={'width':1440,'height':1000},locale='pt-BR');ctx.add_init_script(f"if(!localStorage.getItem('finly-v2'))localStorage.setItem('finly-v2',{json.dumps(v2)});if(!localStorage.getItem('saldoclaro-v1'))localStorage.setItem('saldoclaro-v1','legado intocado')")
   page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url+'/#/configuracoes/backup?competencia=2026-11');page.get_by_role('heading',name='Salvar meus dados').wait_for();baseline=page.evaluate("localStorage.getItem('finly-v2')")
   assert page.get_by_text('Recuperação avançada',exact=True).count()==0
-  trigger=page.get_by_role('button',name='Importar backup JSON',exact=True);trigger.click();m=page.get_by_role('dialog');assert m.count()==1
+  trigger=page.get_by_role('button',name='Importar backup JSON ou ZIP',exact=True);trigger.click();m=page.get_by_role('dialog');assert m.count()==1
   assert m.get_by_role('button',name='Continuar',exact=True).is_disabled();assert m.get_by_role('button',name='Cancelar',exact=True).count()==1
   page.screenshot(path=str(ART/'step-1-desktop.png'),full_page=True)
   def choose(content,name='synthetic-v1.json'):
-   m.get_by_label('Selecionar arquivo JSON',exact=True).set_input_files({'name':name,'mimeType':'application/json','buffer':content.encode()})
+   m.get_by_label('Selecionar arquivo JSON ou ZIP',exact=True).set_input_files({'name':name,'mimeType':'application/json','buffer':content.encode()})
   for invalid,name in [('{bad','synthetic-corrupt.json'),(json.dumps({'version':9}),'synthetic-incompatible.json'),(raw,'synthetic.txt')]:
    choose(invalid,name);m.get_by_role('alert').wait_for();assert m.get_by_role('button',name='Continuar',exact=True).is_disabled();assert page.evaluate("localStorage.getItem('finly-v2')")==baseline
-  choose(' '*(4*1024*1024+1),'synthetic-large.json');m.get_by_text('O arquivo ultrapassa o limite de 4 MB.',exact=True).wait_for();assert m.get_by_role('button',name='Continuar',exact=True).is_disabled()
+  choose(' '*(4*1024*1024+1),'synthetic-large.json');m.get_by_text('O arquivo ultrapassa o limite (JSON: 4 MiB; ZIP: 106 MiB).',exact=True).wait_for();assert m.get_by_role('button',name='Continuar',exact=True).is_disabled()
   transfer=page.evaluate_handle("raw=>{const data=new DataTransfer();data.items.add(new File([raw],'synthetic-drop.json',{type:'application/json'}));return data}",raw);m.locator('.backup-drop').dispatch_event('drop',{'dataTransfer':transfer});transfer.dispose();m.get_by_text('Arquivo válido. Você pode continuar.',exact=True).wait_for();assert m.get_by_role('alert').count()==0;m.get_by_role('button',name='Continuar',exact=True).click();m.get_by_role('heading',name='Confira os dados do backup').wait_for()
   assert m.get_by_text('Dados do arquivo',exact=True).is_visible();assert m.get_by_text('Dados atuais',exact=True).is_visible();assert m.get_by_text('Soma descritiva',exact=False).count()==0;assert page.get_by_role('dialog').count()==1
   page.screenshot(path=str(ART/'step-2-desktop.png'),full_page=True);m.get_by_role('button',name='Voltar',exact=True).click();m.get_by_role('heading',name='Importar backup',exact=True).wait_for();m.get_by_role('button',name='Continuar',exact=True).click();m.get_by_role('button',name='Continuar',exact=True).click();m.get_by_role('heading',name='Confirmar restauração',exact=True).wait_for();assert m.get_by_role('button',name='Restaurar dados',exact=True).is_disabled()
