@@ -1,3 +1,4 @@
+import { InstallmentsWorkspace } from "./InstallmentsWorkspace";
 import { MonthPicker } from "@/components/ui/month-picker";
 import { StoragePanel } from "./receipts/StoragePanel";
 import { ReceiptManager } from "./receipts/ReceiptFields";
@@ -590,6 +591,7 @@ export function FinanceApp({
     type: EntryType;
     operationId?: string;
     duplicate?: boolean;
+    mode?: "installments" | "recurring";
   }>();
   const [receiptTarget, setReceiptTarget] = useState<Target>();
   const [newKind, setNewKind] = useState<Kind>("credit");
@@ -976,7 +978,7 @@ export function FinanceApp({
               onNew={() => newEntry("out")}
             />
           )}
-          {["entries", "invoice", "installments"].includes(screen) && (
+          {["entries", "invoice"].includes(screen) && (
             <OperationsManager
               state={s}
               period={period}
@@ -1038,88 +1040,42 @@ export function FinanceApp({
               </section>
             </>
           )}
-          {screen === "installments" && <CreditActivity state={s} />}
           {screen === "settings" && settingsTab === "financeiro" && (
             <CreditActivity state={s} settings />
           )}
           {screen === "installments" && (
-            <>
-              {" "}
-              <section className="category-panel">
-                <h2>Grupos de parcelas e recorrências</h2>
-                {!s.transactions.some(
-                  (x) => x.legacyKind === "credit" && x.groupId,
-                ) && (
-                  <div className="empty-state">
-                    <p>
-                      Você ainda não cadastrou grupos. Crie uma compra parcelada
-                      ou ocorrências mensais previstas.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        newEntry("credit");
-                      }}
-                    >
-                      Cadastrar compra parcelada
-                    </Button>
-                  </div>
-                )}
-                {Array.from(
-                  new Set(
-                    s.transactions
-                      .filter((x) => x.legacyKind === "credit" && x.groupId)
-                      .map((x) => x.groupId!),
-                  ),
-                ).map((id) => {
-                  const es = s.transactions.filter((x) => x.groupId === id);
-                  return (
-                    <article key={id}>
-                      <h3>{es[0].description}</h3>
-                      <p>
-                        {es.filter((x) => x.legacyKind === "credit").length}{" "}
-                        compras registradas ·{" "}
-                        {money(
-                          es
-                            .filter((x) => x.legacyKind === "credit")
-                            .reduce((n, x) => n + x.amountCents, 0),
-                        )}
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Excluir todo o grupo, incluindo reembolsos vinculados?",
-                            )
-                          )
-                            commit({
-                              ...s,
-                              transactions: s.transactions.filter(
-                                (x) => x.groupId !== id,
-                              ),
-                            });
-                        }}
-                      >
-                        Excluir grupo
-                      </Button>
-                      <p className="muted">
-                        Meses de referência:{" "}
-                        {Array.from(new Set(es.map((x) => x.period)))
-                          .sort()
-                          .join(" · ")}
-                        . Reembolsos vinculados:{" "}
-                        {
-                          es.filter((x) => x.legacyKind === "reimbursement")
-                            .length
-                        }
-                        .
-                      </p>
-                      {rows(es)}
-                    </article>
-                  );
-                })}
-              </section>
-            </>
+            <InstallmentsWorkspace
+              state={s}
+              period={period}
+              onCommit={commit}
+              onEdit={(id) =>
+                setComposer({
+                  type: s.entryLedger!.operations.find((o) => o.id === id)!
+                    .type,
+                  operationId: id,
+                })
+              }
+              onLegacyRows={rows}
+              onNew={(recurring) =>
+                setComposer({
+                  type: recurring ? "expense" : "card",
+                  mode: recurring ? "recurring" : "installments",
+                })
+              }
+              onDeleteGroup={(id) => {
+                if (
+                  confirm(
+                    "Excluir todo o grupo, incluindo reembolsos vinculados?",
+                  )
+                )
+                  commit({
+                    ...s,
+                    transactions: s.transactions.filter(
+                      (x) => x.groupId !== id,
+                    ),
+                  });
+              }}
+            />
           )}
           {screen === "refunds" && (
             <>
@@ -1462,6 +1418,7 @@ export function FinanceApp({
               <EntryComposer
                 state={s}
                 type={composer.type}
+                initialMode={composer.mode}
                 period={period}
                 operationId={composer.operationId}
                 duplicate={composer.duplicate}

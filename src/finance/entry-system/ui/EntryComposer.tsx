@@ -46,6 +46,7 @@ export function EntryComposer({
   period,
   operationId,
   duplicate = false,
+  initialMode,
   onCommit,
   onClose,
   onSaved,
@@ -56,14 +57,16 @@ export function EntryComposer({
   period: string;
   operationId?: string;
   duplicate?: boolean;
+  initialMode?: "installments" | "recurring";
   onCommit: (s: State) => boolean;
   onClose: () => void;
   onSaved: (period: string) => void;
   onDeleted: () => void;
 }) {
-  const [d, setD] = useState(() =>
-    initialDraft(state, type, period, operationId, duplicate),
-  );
+  const [d, setD] = useState(() => ({
+    ...initialDraft(state, type, period, operationId, duplicate),
+    ...(initialMode && !operationId ? { paymentMode: initialMode } : {}),
+  }));
   const [filesValidating, setFilesValidating] = useState(false);
   const [files, setFiles] = useState<PendingReceipt[]>([]);
   const original = useRef(draftKey(d));
@@ -305,12 +308,7 @@ export function EntryComposer({
   const monetary = (
     label: string,
     key:
-      | "amount"
-      | "paymentAmount"
-      | "down"
-      | "original"
-      | "final"
-      | "useReserve",
+      "amount" | "paymentAmount" | "down" | "original" | "final" | "useReserve",
   ) => (
     <FormField label={label} name={key} error={errors[key]}>
       {(p) => (

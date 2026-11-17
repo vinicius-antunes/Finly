@@ -1,0 +1,223 @@
+.installments-workspace {
+  min-width: 0;
+}
+.contract-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.contract-indicators {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.contract-indicators > div,
+.contract-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.contract-indicators span,
+.contract-indicators strong {
+  display: block;
+}
+.contract-indicators strong {
+  font-size: 1.3rem;
+  overflow-wrap: anywhere;
+  margin-top: 6px;
+}
+.contract-filters {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.contract-filters label {
+  display: grid;
+  gap: 6px;
+}
+.contract-filters label:last-child {
+  display: flex;
+  align-items: center;
+}
+.contract-card {
+  margin: 12px 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.contract-card header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.contract-card header > div {
+  flex: 1;
+}
+.contract-card h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.contract-card p {
+  margin: 8px 0;
+}
+.contract-card progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--primary);
+}
+.contract-card summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font-weight: 600;
+}
+.contract-actions > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.contract-actions svg {
+  width: 18px;
+}
+.contract-actions .category-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+.contract-actions .category-panel > h2 {
+  display: none;
+}
+.contract-table {
+  overflow-x: auto;
+}
+.contract-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.contract-table th,
+.contract-table td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.contract-card .catalog-row {
+  flex-wrap: wrap;
+}
+.contract-card .entry-subcard {
+  min-width: 0;
+}
+.contract-card details[open] {
+  animation: contract-open 0.15s ease-out;
+}
+@keyframes contract-open {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 650px) {
+  .contract-indicators {
+    grid-template-columns: 1fr;
+  }
+  .contract-card header {
+    flex-wrap: wrap;
+  }
+  .contract-table table,
+  .contract-table tbody,
+  .contract-table tr,
+  .contract-table td {
+    display: block;
+  }
+  .contract-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .contract-table tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 8px 0;
+    padding: 8px;
+  }
+  .contract-table td {
+    border: 0;
+  }
+  .contract-card .catalog-row {
+    display: block;
+  }
+  .contract-filters > label {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contract-card details[open] {
+    animation: none;
+  }
+}
+.contract-tabs [aria-selected="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.contract-filters input:not([type="checkbox"]),
+.contract-filters select {
+  background: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  padding: 9px 12px;
+  min-height: 40px;
+  max-width: 100%;
+}
+.contract-filters input:focus-visible,
+.contract-filters select:focus-visible,
+.contract-card summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.contract-card progress::-webkit-progress-value {
+  background: var(--primary);
+}
+@media (max-width: 650px) {
+  .contract-indicators {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .contract-indicators > div {
+    padding: 10px;
+  }
+  .contract-indicators span {
+    font-size: 0.75rem;
+  }
+  .contract-indicators strong {
+    font-size: 1rem;
+  }
+}
+@media (max-width: 650px) {
+  .contract-table td::before {
+    font-weight: 600;
+  }
+  .contract-table td:nth-child(1)::before {
+    content: "Parcela: ";
+  }
+  .contract-table td:nth-child(2)::before {
+    content: "Mês de referência: ";
+  }
+  .contract-table td:nth-child(3)::before {
+    content: "Valor: ";
+  }
+  .contract-table td:nth-child(4)::before {
+    content: "Situação: ";
+  }
+  .contract-table td:nth-child(5)::before {
+    content: "Pago: ";
+  }
+  .contract-table td:nth-child(6)::before {
+    content: "Restante: ";
+  }
+}

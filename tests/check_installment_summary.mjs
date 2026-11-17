@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {syntheticCreditState} from './fixtures/credit-ledger.mjs';
+import {installmentPayment,pendingInstallments} from '../src/finance/installment-summary.ts';
+import {recordInvoicePayment} from '../src/finance/entry-system/commands.ts';
+const s=syntheticCreditState(),l=s.entryLedger,p=l.purchases[0],o=l.operations.find(o=>o.id===p.installmentIds[0]),inv=l.invoices.find(i=>i.installmentIds.includes(o.id));
+const raw=JSON.stringify(s),ids=new Set(p.installmentIds),start=pendingInstallments(s,ids);
+assert.equal(start.minimum,p.contractedCents);assert.equal(start.maximum,p.contractedCents);assert.equal(installmentPayment(s,o).paid,0);assert.equal(JSON.stringify(s),raw);
+s.entryLedger=recordInvoicePayment(l,{id:'test-partial',invoiceId:inv.id,amountCents:100,date:'2026-11-14',accountId:'cash-a',method:'Pix',note:''});
+assert.equal(installmentPayment(s,o).known,false);assert.equal(pendingInstallments(s,ids).minimum,p.contractedCents-100);assert.equal(pendingInstallments(s,ids).maximum,p.contractedCents-100);
+s.entryLedger=recordInvoicePayment(s.entryLedger,{id:'test-complete',invoiceId:inv.id,amountCents:o.amountCents-100,date:'2026-11-14',accountId:'cash-a',method:'Pix',note:''});assert.equal(installmentPayment(s,o).remaining,0);assert.equal(installmentPayment(s,o).paid,o.amountCents);
+assert.deepEqual(installmentPayment(s,{...o,cancelled:true}),{paid:0,remaining:0,known:true});
+console.log('PASS: read-only projection, confirmation is not payment, exact partial aggregate, completed invoice and cancelled installment');

@@ -20,7 +20,11 @@ export function OperationsManager({
   onCommit,
   onEdit,
   onNewTransfer,
+  purchaseId,
+  recurrenceId,
 }: {
+  purchaseId?: string;
+  recurrenceId?: string;
   state: State;
   period: string;
   screen: string;
@@ -143,68 +147,79 @@ export function OperationsManager({
           })}
       {screen === "installments" && (
         <>
-          <section className="category-panel">
-            <h2>Gerenciar compras e parcelas</h2>
-            {l.purchases.map((p) => (
-              <article className="catalog-row" key={p.id}>
-                <div>
-                  <strong>
-                    {l.operations.find((o) => o.purchaseId === p.id)
-                      ?.description ?? "Compra"}
-                  </strong>
-                  <p>
-                    {money(p.contractedCents)} · {p.installmentIds.length || 1}{" "}
-                    parcela(s){p.goalId ? " · Planejamento vinculado" : ""}
-                    {p.cancelled ? " · Cancelada" : ""}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    onEdit(p.installmentIds[0] ?? p.downPaymentEntryId!)
-                  }
-                >
-                  Editar parcelas
-                </Button>
-                {!p.cancelled && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      const reason = prompt("Motivo do cancelamento da compra");
-                      if (
-                        reason &&
-                        confirm(
-                          "Cancelar a compra? Pagamentos e acordos ativos deverão ser regularizados antes. A reserva do cofrinho não será devolvida automaticamente.",
-                        )
-                      )
-                        apply(() =>
-                          cancelPurchase(l, p.id, {
-                            id: crypto.randomUUID(),
-                            date: today(),
-                            reason,
-                            confirmed: true,
-                          }),
-                        );
-                    }}
-                  >
-                    Cancelar compra
-                  </Button>
-                )}
-              </article>
-            ))}
-          </section>
-          <section className="category-panel">
-            <h2>Gerenciar recorrências</h2>
-            {l.recurrences.map((r) => (
-              <RecurrenceControls
-                key={r.id}
-                state={state}
-                id={r.id}
-                onApply={apply}
-                onEdit={onEdit}
-              />
-            ))}
-          </section>
+          {!recurrenceId && (
+            <section className="category-panel">
+              <h2>Gerenciar compras e parcelas</h2>
+              {l.purchases
+                .filter((p) => !purchaseId || p.id === purchaseId)
+                .map((p) => (
+                  <article className="catalog-row" key={p.id}>
+                    <div>
+                      <strong>
+                        {l.operations.find((o) => o.purchaseId === p.id)
+                          ?.description ?? "Compra"}
+                      </strong>
+                      <p>
+                        {money(p.contractedCents)} ·{" "}
+                        {p.installmentIds.length || 1} parcela(s)
+                        {p.goalId ? " · Planejamento vinculado" : ""}
+                        {p.cancelled ? " · Cancelada" : ""}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        onEdit(p.installmentIds[0] ?? p.downPaymentEntryId!)
+                      }
+                    >
+                      Editar parcelas
+                    </Button>
+                    {!p.cancelled && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          const reason = prompt(
+                            "Motivo do cancelamento da compra",
+                          );
+                          if (
+                            reason &&
+                            confirm(
+                              "Cancelar a compra? Pagamentos e acordos ativos deverão ser regularizados antes. A reserva do cofrinho não será devolvida automaticamente.",
+                            )
+                          )
+                            apply(() =>
+                              cancelPurchase(l, p.id, {
+                                id: crypto.randomUUID(),
+                                date: today(),
+                                reason,
+                                confirmed: true,
+                              }),
+                            );
+                        }}
+                      >
+                        Cancelar compra
+                      </Button>
+                    )}
+                  </article>
+                ))}
+            </section>
+          )}
+          {!purchaseId && (
+            <section className="category-panel">
+              <h2>Gerenciar recorrências</h2>
+              {l.recurrences
+                .filter((r) => !recurrenceId || r.id === recurrenceId)
+                .map((r) => (
+                  <RecurrenceControls
+                    key={r.id}
+                    state={state}
+                    id={r.id}
+                    onApply={apply}
+                    onEdit={onEdit}
+                  />
+                ))}
+            </section>
+          )}
         </>
       )}
       {error && (

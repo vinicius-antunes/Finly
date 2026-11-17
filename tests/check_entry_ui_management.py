@@ -78,6 +78,7 @@ try:
   assert len(state()['entryLedger']['invoicePayments'])==3
   d.get_by_role('button',name='Concluir',exact=True).click()
   page.goto(url+'/#/parcelas?competencia=2026-11')
+  page.get_by_role('tab',name='Recorrências',exact=True).click();page.locator('.contract-card').filter(has=page.get_by_role('heading',name='Recorrência sintética mensal',exact=True)).get_by_text('Ocorrências, histórico e ações',exact=True).click()
   recurring=page.locator('.entry-subcard').filter(has=page.get_by_role('heading',name='Recorrência sintética mensal',exact=True))
   recurring.get_by_text('Alterar recorrência e consultar ocorrências',exact=True).click()
   for action,date,status in [('Pausar','2026-11-15','paused'),('Retomar','2026-11-16','active'),('Cancelar recorrência','2026-11-17','cancelled')]:
