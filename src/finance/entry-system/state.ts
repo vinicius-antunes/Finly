@@ -2,7 +2,7 @@ import { validate, type State, type Entry } from "../model.ts";
 import type { LedgerDraft } from "./contracts.ts";
 import { emptyLedgerDraft } from "./contracts.ts";
 import { confirmEntryMigration, type MigrationPreview } from "./migration.ts";
-import { validateFinancialLedger, settled } from "./finance.ts";
+import { validateFinancialLedger, settlementTotals } from "./finance.ts";
 import { save } from "../storage.ts";
 export async function activateEntryLedger(
   source: State,
@@ -28,6 +28,12 @@ export function persistEntryLedger(
 }
 /** Read-only chart adapter. Never persist these views in transactions. */
 export function ledgerChartEntries(s: State): Entry[] {
+  const paid = s.entryLedger
+    ? settlementTotals(s.entryLedger)
+    : new Map<string, number>();
+  const categories = new Map(
+    s.entryLedger?.categories.map((c) => [c.id, c.name]) ?? [],
+  );
   return [
     ...s.transactions,
     ...(s.entryLedger?.operations ?? [])
@@ -46,12 +52,10 @@ export function ledgerChartEntries(s: State): Entry[] {
                 ? ("reimbursement" as const)
                 : ("income" as const),
         accountId: o.accountId ?? "",
-        category:
-          s.entryLedger?.categories.find((c) => c.id === o.categoryId)?.name ??
-          "",
+        category: categories.get(o.categoryId ?? "") ?? "",
         owner: "unknown",
         status:
-          s.entryLedger && settled(s.entryLedger, o.id) === o.amountCents
+          s.entryLedger && (paid.get(o.id) ?? 0) === o.amountCents
             ? "received"
             : "planned",
         confirmed: o.confirmed ?? true,

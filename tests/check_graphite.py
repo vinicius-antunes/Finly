@@ -1,3 +1,4 @@
+from visual_helpers import seed
 #!/usr/bin/env python3
 """Synthetic only, production build, before/after + dynamic evidence."""
 import functools, http.server, json, sys, threading, base64, tempfile, subprocess
@@ -22,7 +23,7 @@ try:
   browser=pw.chromium.launch(executable_path='/usr/bin/chromium',headless=True)
   for theme,label in [('graphite','Graphite Green'),('dark','Escuro Padrão'),('light','Claro')]:
    ctx=browser.new_context(viewport={'width':1440,'height':1000},locale='pt-BR')
-   ctx.add_init_script(f"localStorage.setItem('saldoclaro-v1',JSON.stringify({json.dumps(fixture)}));localStorage.setItem('finly-react-theme','{('aurora' if theme=='graphite' else theme)}');")
+   seed(ctx,fixture,'aurora' if theme=='graphite' else theme)
    page=ctx.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
    recorder=None; frames=[]; temporary=None
    if not BEFORE and theme=='graphite':
@@ -37,7 +38,7 @@ try:
    if not BEFORE:
     assert page.locator('html').get_attribute('data-theme')==theme
    page.evaluate('document.fonts.ready')
-   if not BEFORE: page.wait_for_selector('.recharts-sector')
+   if not BEFORE: page.locator('.monthly-spending table').wait_for(state='attached')
    page.locator('h1').click()
    for w,h,name in [(1440,1000,'desktop'),(390,844,'mobile')]:
     page.set_viewport_size({'width':w,'height':h})
@@ -45,12 +46,10 @@ try:
     page.screenshot(path=str(ART/f'{"before" if BEFORE else "after"}-{theme}-{name}.png'),full_page=True)
    if BEFORE: ctx.close();continue
    baseline=page.evaluate("localStorage.getItem('saldoclaro-v1')")
-   assert page.locator('.summary-card strong').all_text_contents()==['R$\xa01.000,00','R$\xa0400,00','R$\xa0500,00','R$\xa075,00']
-   assert page.locator('.recharts-sector').count()==2
-   assert page.locator('.category-legend').inner_text().count('260,00')==1
-   assert page.locator('.category-legend').inner_text().count('140,00')==1
-   bar=page.get_by_role('progressbar')
-   assert bar.get_attribute('aria-valuenow')=='7500' and bar.get_attribute('aria-valuemax')=='10000'
+   assert page.locator('.home-indicator strong').all_text_contents()==['R$\xa0500,00','R$\xa0400,00','R$\xa01.075,00','R$\xa025,00']
+   assert page.locator('.monthly-spending table tbody tr').count()==6
+   assert '900,00' in page.locator('.monthly-spending table tbody tr').last.inner_text()
+   bar=page.get_by_role('progressbar');assert float(bar.get_attribute('aria-valuenow'))>0
    assert page.locator('[tremor-id="tremor-raw"]').count()==1
    for width,height in [(1366,768),(768,1024)]:
     page.set_viewport_size({'width':width,'height':height});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
@@ -60,16 +59,16 @@ try:
     page.locator('.magic-card').first.hover();page.wait_for_timeout(200)
     assert page.locator('.magic-card').first.get_attribute('data-active')=='true'
     page.locator('input[type="month"]').fill('2026-12')
-    page.wait_for_function("document.querySelector('.period-morph').getAttribute('aria-label')==='dezembro de 2026'")
+    page.wait_for_function("location.hash.includes('competencia=2026-12') && document.querySelector('.monthly-spending table tbody tr:last-child th').textContent==='2026-12'")
     page.wait_for_timeout(500)
-    assert page.locator('.recharts-sector').count()==0
-    assert 'Sem despesas' in page.locator('.category-panel').inner_text()
+    assert '0,00' in page.locator('.monthly-spending table tbody tr').last.inner_text()
     page.locator('input[type="month"]').fill('2026-11');page.wait_for_timeout(500)
     page.emulate_media(reduced_motion='reduce');page.wait_for_function("!document.querySelector('.light-rays__canvas')")
     page.locator('input[type="month"]').fill('2026-12')
-    page.wait_for_function("document.querySelector('.period-morph').textContent.replace(/\\s/g,' ').includes('dezembro de 2026')")
+    page.wait_for_function("location.hash.includes('competencia=2026-12') && document.querySelector('.monthly-spending table tbody tr:last-child th').textContent==='2026-12'")
     page.locator('input[type="month"]').fill('2026-11');page.emulate_media(reduced_motion='no-preference')
    assert page.evaluate("localStorage.getItem('saldoclaro-v1')")==baseline
+   assert page.evaluate('financialWrites')==[]
    assert not errors,errors
    if recorder:
     recorder.send('Page.stopScreencast')

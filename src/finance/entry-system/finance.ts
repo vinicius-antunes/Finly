@@ -12,6 +12,19 @@ function net(rows: (Settlement | InvoicePayment)[]) {
     rows.map((x) => (x.reversesId ? -x.amountCents : x.amountCents)),
   );
 }
+/** Bulk projection index: preserves the same signed settlement rule without scanning all payments per row. */
+export function settlementTotals(l: LedgerDraft) {
+  const totals = new Map<string, number>();
+  for (const p of l.settlements)
+    totals.set(
+      p.operationId,
+      checkedSum([
+        totals.get(p.operationId) ?? 0,
+        p.amountCents * (p.reversesId ? -1 : 1),
+      ]),
+    );
+  return totals;
+}
 export function settled(l: LedgerDraft, id: string) {
   return net(l.settlements.filter((x) => x.operationId === id));
 }
@@ -90,13 +103,14 @@ export function validateFinancialLedger(
       }
     }
   }
+  const paidTotals = settlementTotals(l);
   for (const o of l.operations) {
     if (o.type === "card") {
       if (typeof o.confirmed !== "boolean" || !o.cardId)
         throw Error("Compra exige cartão e confirmação explícita");
     } else {
-      const b = operationBalance(l, o.id);
-      if (b.paid < 0 || b.paid > o.amountCents || (o.cancelled && b.paid !== 0))
+      const paid = paidTotals.get(o.id) ?? 0;
+      if (paid < 0 || paid > o.amountCents || (o.cancelled && paid !== 0))
         throw Error(
           "Liquidação excedente ou cancelamento de registro liquidado",
         );
@@ -142,23 +156,24 @@ export function validateFinancialLedger(
   ]);
 }
 export function ledgerProjection(l: LedgerDraft, period: string) {
+  const totals = settlementTotals(l);
   const ops = l.operations.filter((x) => x.period === period && !x.cancelled);
   const sum = (type: string) =>
     checkedSum(ops.filter((x) => x.type === type).map((x) => x.amountCents));
   const income = checkedSum(
       ops
         .filter((x) => x.type === "income" && !x.salary)
-        .map((x) => settled(l, x.id)),
+        .map((x) => totals.get(x.id) ?? 0),
     ),
     salary = checkedSum(
       ops
         .filter((x) => x.type === "income" && x.salary)
-        .map((x) => settled(l, x.id)),
+        .map((x) => totals.get(x.id) ?? 0),
     ),
     received = checkedSum(
       ops
         .filter((x) => x.type === "reimbursement")
-        .map((x) => settled(l, x.id)),
+        .map((x) => totals.get(x.id) ?? 0),
     );
   return {
     invoice: sum("card"),
@@ -181,13 +196,14 @@ export function accountVariation(
   period?: string,
 ) {
   const inPeriod = (date: string) => !period || date.slice(0, 7) === period;
+  const operationTypes = new Map(l.operations.map((o) => [o.id, o.type]));
   const rows: number[] = [];
   for (const p of l.settlements.filter(
     (x) => x.accountId === accountId && inPeriod(x.date),
   )) {
-    const o = l.operations.find((x) => x.id === p.operationId)!;
+    const type = operationTypes.get(p.operationId)!;
     rows.push(
-      p.amountCents * (o.type === "expense" ? -1 : 1) * (p.reversesId ? -1 : 1),
+      p.amountCents * (type === "expense" ? -1 : 1) * (p.reversesId ? -1 : 1),
     );
   }
   for (const p of l.invoicePayments.filter(

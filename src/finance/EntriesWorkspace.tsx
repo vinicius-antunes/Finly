@@ -1,7 +1,7 @@
 import type { State } from "./model";
 import { entryTargets, linked } from "./receipts/model";
 import { Paperclip } from "lucide-react";
-import { useId, useEffect } from "react";
+import { useId, useEffect, useState } from "react";
 import {
   Pencil,
   MoreHorizontal,
@@ -78,9 +78,19 @@ export function EntriesWorkspace({
   } catch (e) {
     error = e instanceof Error ? e.message : "Confira os filtros de valor.";
   }
+  const [page, setPage] = useState(0);
+  const pageSize = 50,
+    pageCount = Math.max(1, Math.ceil(selected.length / pageSize)),
+    currentPage = Math.min(page, pageCount - 1),
+    pageRows = selected.slice(
+      currentPage * pageSize,
+      (currentPage + 1) * pageSize,
+    );
+  useEffect(() => setPage(0), [filters, period]);
+  useEffect(() => setPage((p) => Math.min(p, pageCount - 1)), [pageCount]);
   const totals = filteredTotals(selected),
     groups = filters.all
-      ? Array.from(new Set(selected.map((x) => x.period))).sort((a, b) =>
+      ? Array.from(new Set(pageRows.map((x) => x.period))).sort((a, b) =>
           filters.order === "period-asc"
             ? a.localeCompare(b)
             : b.localeCompare(a),
@@ -463,6 +473,46 @@ export function EntriesWorkspace({
         </div>
       ) : (
         <>
+          {pageCount > 1 && (
+            <nav
+              className="finance-actions"
+              aria-label="Páginas de lançamentos"
+            >
+              <Button
+                variant="outline"
+                disabled={currentPage === 0}
+                onClick={() => setPage(0)}
+              >
+                Primeira página
+              </Button>
+              <Button
+                variant="outline"
+                disabled={currentPage === 0}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                Página anterior
+              </Button>
+              <span>
+                Mostrando {currentPage * pageSize + 1}–
+                {Math.min((currentPage + 1) * pageSize, selected.length)} de{" "}
+                {selected.length}. Totais e CSV incluem todos os resultados.
+              </span>
+              <Button
+                variant="outline"
+                disabled={currentPage === pageCount - 1}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                Próxima página
+              </Button>
+              <Button
+                variant="outline"
+                disabled={currentPage === pageCount - 1}
+                onClick={() => setPage(pageCount - 1)}
+              >
+                Última página
+              </Button>
+            </nav>
+          )}
           <div className="entries-desktop">
             <table>
               <thead>
@@ -485,7 +535,7 @@ export function EntriesWorkspace({
                       </th>
                     </tr>
                   )}
-                  {selected
+                  {pageRows
                     .filter((x) => x.period === p)
                     .map((x) => (
                       <tr key={x.id} className="entry-row" data-entry-id={x.id}>
@@ -515,7 +565,7 @@ export function EntriesWorkspace({
             {groups.map((p) => (
               <section key={p}>
                 {filters.all && <h2>Competência {p}</h2>}
-                {selected
+                {pageRows
                   .filter((x) => x.period === p)
                   .map((x) => (
                     <article

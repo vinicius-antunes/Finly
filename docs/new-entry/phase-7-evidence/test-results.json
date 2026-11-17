@@ -1,0 +1,297 @@
+{
+  "branch": "codex/finly-navegacao-ux",
+  "baseCommit": "3f26f44bc4c91448853050003d715e57c0855f44",
+  "scope": "Local execution; remote GitHub Actions conclusion is not included.",
+  "node": [
+    {
+      "suite": "check_backup.mjs",
+      "passed": true,
+      "seconds": 0.462,
+      "output": "PASS: v1/v2/BOM compatibility, full validation, duplicates/corruption/size refusal, cents/groups/refunds/pending/invoices and financial-data acknowledgment\n"
+    },
+    {
+      "suite": "check_credit.mjs",
+      "passed": true,
+      "seconds": 0.312,
+      "output": "PASS: independent cards, closing rules/manual/year/leap dates, exact total/per-part/custom/interest/down contracts, atomic posting and idempotence, scoped audited edits/paid history, monthly/annual/clamped recurring schedules, overrides/future amounts, pause/resume/cancel/end, deterministic generation and backup compatibility\n"
+    },
+    {
+      "suite": "check_entries.mjs",
+      "passed": true,
+      "seconds": 0.258,
+      "output": "PASS: combined read-only filters, normalized suggestions, independent totals, contextual status without schema changes and invoice isolation\n"
+    },
+    {
+      "suite": "check_entry_finance.mjs",
+      "passed": true,
+      "seconds": 0.318,
+      "output": "PASS: opt-in activation, legacy compatibility, partial/total/reversed settlements, overpay/duplicate refusal, salary replacement, transfer neutrality/account deltas, invoice partial payments without double expense, paid invoice audit, duplicate warnings, charts, JSON roundtrip and atomic storage/concurrency/quota\n"
+    },
+    {
+      "suite": "check_entry_foundation.mjs",
+      "passed": true,
+      "seconds": 0.2,
+      "output": "PASS: versioned contracts, safe cents/dates/IDs/references, independent invoice payments/transfers, legacy unknown fields preserved, idempotent pure preview, complete-state fingerprint, consent/stale/tamper refusal, clone isolation, planning/backup/metrics unchanged\n"
+    },
+    {
+      "suite": "check_entry_ui.mjs",
+      "passed": true,
+      "seconds": 0.391,
+      "output": "PASS: form money integers, five persisted types, partial payments, salary, exact installments/interest/down, multi-person/custom claims, transfer neutrality, recurrence forecasts, atomic goal use, audited edits, independent duplicates and protected categories\n"
+    },
+    {
+      "suite": "check_finance.mjs",
+      "passed": true,
+      "seconds": 0.182,
+      "output": "PASS: exact cents, installments, third-party links, reimbursement isolation, invoice, individual edits, migration identity/idempotence/failure, backup roundtrip, CSV safety and legacy metric equivalence\nPASS: storage compare-and-set, quota failure and untouched v1\nPASS: idempotent absent-only initialization, valid state unchanged, invalid state preserved\n"
+    },
+    {
+      "suite": "check_integration.mjs",
+      "passed": true,
+      "seconds": 0.403,
+      "output": "PASS Fase 7: salário parcial em contas distintas, centavos/fechamento/quitação neutra, correção paga com impacto, múltiplos responsáveis/teto/parciais, transferência neutra, recorrência 31/pausa/retomada/fim/sem pagamentos, cofrinho preservado, JSON equivalente, aviso real de duplicata, última conta e verificação binária sem leitura duplicada\n"
+    },
+    {
+      "suite": "check_monthly_spending.mjs",
+      "passed": true,
+      "seconds": 0.232,
+      "output": "PASS: six months/year rollover/zero months, installment competence, confirmed-only cards, no income/refund/payment double count, immutable inputs\n"
+    },
+    {
+      "suite": "check_planning.mjs",
+      "passed": true,
+      "seconds": 0.185,
+      "output": "PASS: optional v2 compatibility, multiple goals, confirmed monthly idempotence, withdrawals/undo/overdraft, cents/history validation, period allocations, immutable simulations, simple interest, cap aggregation, confirmed purchase linked rows/no duplicates and backup roundtrip\n"
+    },
+    {
+      "suite": "check_react_scaffold.mjs",
+      "passed": true,
+      "seconds": 0.094,
+      "output": "OK: scaffold React, fallback legado protegido e modelo financeiro v2 separado.\n"
+    },
+    {
+      "suite": "check_receipts.mjs",
+      "passed": true,
+      "seconds": 0.779,
+      "output": "PASS receipts: signatures/MIME/limits, links and legacy metadata, deduplication, IndexedDB rollback/quota, CAS/concurrent saves, interruption recovery/orphans, shared-safe removal, JSON missing files, real ZIP/SHA-256 roundtrip and tamper/traversal/bomb rejection, unchanged finance/legacy\n"
+    },
+    {
+      "suite": "check_reimbursements.mjs",
+      "passed": true,
+      "seconds": 0.283,
+      "output": "PASS: phase 4 synthetic agreements, multiple/unknown people, single/installment/custom schedules, cents, bounds, mixed-account partial receipts, reversals, corrections, purchase/invoice isolation, goal links, reserve use, legacy guards, backup and atomic persistence\n"
+    }
+  ],
+  "pythonRegression": [
+    {
+      "suite": "check_backup_browser.py",
+      "passed": true,
+      "seconds": 50.78,
+      "output": "PASS: v1/v2 wizard steps/back/cancel, backup download, invalid/corrupt/oversize refusal, explicit replacement, linked cents/pending, reload, concurrency, single modal, themes/mobile/focus/Escape and advanced compatible-only legacy\n"
+    },
+    {
+      "suite": "check_credit_browser.py",
+      "passed": true,
+      "seconds": 19.12,
+      "output": "PASS: explicit restore of exact installments, separate cards, recurrence history, read-only integrations, three themes/mobile, complete export/reload and preserved goals/legacy\n"
+    },
+    {
+      "suite": "check_dashboard_widgets.py",
+      "passed": true,
+      "seconds": 46.79,
+      "output": "PASS: nine shared MagicCards, pointer-transparent glow, tooltip, keyboard chart, accessible six-row table, height-aware desktop/notebook/mobile, themes/reduced motion, actions and unchanged finances\n"
+    },
+    {
+      "suite": "check_entries_browser.py",
+      "passed": true,
+      "seconds": 86.76,
+      "output": "PASS: imported edit/metadata/period/category/cancel, retained filters, 4 statuses/invoice isolation, duplicate without links, explicit deletion, 4 create types, grouping/CSV/reload, themes/desktop/mobile/keyboard\n"
+    },
+    {
+      "suite": "check_entry_finance_browser.py",
+      "passed": true,
+      "seconds": 15.82,
+      "output": "PASS: explicit JSON restore, partial salary/payment/refund dashboard and chart, separate readable ledger/transfers/invoices, reload/export persistence, themes/three sizes and preserved legacy\n"
+    },
+    {
+      "suite": "check_entry_ui_browser.py",
+      "passed": true,
+      "seconds": 61.85,
+      "output": "PASS: safe activation, direct five tabs/preservation/discard/focus/field errors, real expense/income/salary/card/down/multi-person/refund/transfer/recurrence/goal forms, previews, audited edits, partial settlement management, themes/mobile, primary list, persistence/reload and preserved legacy\n"
+    },
+    {
+      "suite": "check_entry_ui_management.py",
+      "passed": true,
+      "seconds": 45.2,
+      "output": "PASS: installment scopes, audited edits, independent duplication, exact custom schedules/double-submit, quota preservation/retry, stale preview invalidation, real category/account creation without accidental submit, independent invoice payment/reversal and recurrence pause/resume/cancel\n"
+    },
+    {
+      "suite": "check_finance_browser.py",
+      "passed": true,
+      "seconds": 76.21,
+      "output": "PASS: explicit migration, CRUD/edit, installments/refunds, filters, invoice, cancelled group deletion, settings, backup, persistence, simulation, themes/mobile, unchanged legacy\n"
+    },
+    {
+      "suite": "check_global_rays.py",
+      "passed": true,
+      "standaloneRerun": true,
+      "output": "PASS: global viewport/scroll/navigation, one persistent canvas, layers/clicks/Sidebar, toggle, three themes, mobile, reduced motion/save-data/WebGL fallback, zero financial writes",
+      "rerunReason": "Readiness helper must also work while the mobile drawer is closed; now waits for the destination heading."
+    },
+    {
+      "suite": "check_graphite.py",
+      "passed": true,
+      "seconds": 34.36,
+      "output": "PASS: comparable synthetic captures after\n"
+    },
+    {
+      "suite": "check_header.py",
+      "passed": true,
+      "seconds": 34.66,
+      "output": "PASS: hover/keyboard/shortcut, capability-based trigger, touch, import toast count/timeout/dismiss/reload, notification reads/count/close/focus, three themes, unchanged financial records\n"
+    },
+    {
+      "suite": "check_home.py",
+      "passed": true,
+      "seconds": 51.85,
+      "output": "PASS: compact executive Home organization, v2 financial values, three themes/appearance settings, four viewports, invoice/refund actions, navigation/alerts, empty state, preserved legacy, full-page evidence\n"
+    },
+    {
+      "suite": "check_integration_browser.py",
+      "passed": true,
+      "seconds": 22.37,
+      "output": "PASS S1: salário em duas contas e substituição da previsão\nPASS S2: 1.000,01 / 3 e quitação sem segunda despesa\nPASS S7: fatura paga, prévia específica, confirmação e histórico\nPASS S3: vários responsáveis e recebimentos parciais independentes\nPASS S4: datas 31, término, alteração, pausa, retomada e cancelamento\nPASS S5: aporte, simulação sem gravação, uso único da reserva e Home\nPASS: juros/entrada/contratado e parcelas individuais pela interface\nPASS Fase 7 Chromium: connected financial scenarios, deliberate duplicate allowed, persistence, correct areas/metrics and preserved legacy; ZIP/failures covered by receipts/management suites\n"
+    },
+    {
+      "suite": "check_navigation_cards.py",
+      "passed": true,
+      "seconds": 40.02,
+      "output": "PASS: current seven routes, 60/288 hover/leave/descendants, pin/unpin, keyboard/Ctrl+B/focus, Magic Card hover/text/reduced motion, touch390/768 drawer/overlay/Escape/focus/navigation, three themes and zero financial writes after seeding\n"
+    },
+    {
+      "suite": "check_navigation_ux.py",
+      "passed": true,
+      "seconds": 77.3,
+      "output": "PASS: seven direct routes, back/forward, preserved period/data, selected links, settings keyboard tabs, quick CRUD/list return, invoice/groups/refunds, backup restore, themes/responsive/hover/pin/mobile/Escape\n"
+    },
+    {
+      "suite": "check_planning_browser.py",
+      "passed": true,
+      "seconds": 37.19,
+      "output": "PASS: multiple goals/initial confirmation, monthly dedupe, withdrawals/overdraft/reversal/history, cash/interest/down comparisons without writes, separately authorized purchase/linked rows/reload, defer/pause/resume, themes/three sizes and preserved legacy\n"
+    },
+    {
+      "suite": "check_premium.py",
+      "passed": true,
+      "seconds": 17.16,
+      "output": "PASS: premium layouts, both themes, filters, XSS search, local alerts, data invariance, backup/CSV/import, installments; 10 synthetic screenshots\n"
+    },
+    {
+      "suite": "check_public_release.py",
+      "passed": true,
+      "seconds": 0.19,
+      "output": "OK: JavaScript valido; instalacao vazia; sem exemplos financeiros anteriores conhecidos.\n"
+    },
+    {
+      "suite": "check_react_visual.py",
+      "passed": true,
+      "seconds": 18.82,
+      "output": "PASS: current Home/themes/preferences/contrast/four widths/hover/reduced motion/touch, exact financial invariance, corrupt/denied storage, GPU fallback, byte-identical legacy\n"
+    },
+    {
+      "suite": "check_receipts_browser.py",
+      "passed": true,
+      "seconds": 104.16,
+      "output": "PASS receipts browser: forms/validation/themes/reload/download\nPASS receipts browser: five entry types and installments\nPASS receipts browser: legacy/quota retry and independent duplication\nPASS receipts browser: ZIP downloaded and restored\nPASS receipts browser: restored IndexedDB hashes\nPASS Chromium: actual images/PDF/signature+size rejection/multiple/draft protection, saved previews/download/reload, all five types/contracts/partial settlements/legacy, duplication, storage/themes/1366/1440/390/768, real ZIP download+restore and IndexedDB hashes, corrupt ZIP preservation, metadata-only JSON missing reports, unchanged financial data/legacy\n"
+    },
+    {
+      "suite": "check_reimbursements_browser.py",
+      "passed": true,
+      "seconds": 15.55,
+      "output": "PASS: partial agreement/person/history, three themes/mobile, full ledger and goal purchase links roundtrip, reload and untouched legacy\n"
+    },
+    {
+      "suite": "check_sidebar_alignment.py",
+      "passed": true,
+      "seconds": 24.37,
+      "output": "PASS: four icon centers x=30, active highlight centered, hidden labels/arrow, expanded submenu, animation frames aligned, three themes\n"
+    },
+    {
+      "suite": "check_startup.py",
+      "passed": true,
+      "seconds": 28.88,
+      "output": "PASS: direct empty Home, zero indicators, exactly one initial write, CRUD reload, existing raw state unchanged, absent legacy links/intro/arrows, month selection, corrupt/denied/quota recovery and explicit backup restoration\n"
+    },
+    {
+      "suite": "check_theme.py",
+      "passed": true,
+      "seconds": 49.68,
+      "output": "PASS: default, persistence, cross-tab sync, data preservation, accordion/modal, views, mobile, print and storage denial\n127.0.0.1 - - [17/Nov/2026 12:55:18] \"GET /public/legacy/ HTTP/1.1\" 200 -\n127.0.0.1 - - [17/Nov/2026 12:55:18] \"GET /public/legacy/assets/theme.js HTTP/1.1\" 200 -\n127.0.0.1 - - [17/Nov/2026 12:55:18] \"GET /public/legacy/assets/aurora.css HTTP/1.1\" 200 -\n127.0.0.1 - - [17/Nov/2026 12:55:19] code 404, message File not found\n127.0.0.1 - - [17/Nov/2026 12:55:19] \"GET /favicon.ico HTTP/1.1\" 404 -\n127.0.0.1 - - [17/Nov/2026 12:55:20] \"GET /public/legacy/ HTTP/1.1\" 304 -\n127.0.0.1 - - [17/Nov/2026 12:56:03] \"GET /public/legacy/ HTTP/1.1\" 200 -\n127.0.0.1 - - [17/Nov/2026 12:56:03] \"GET /public/legacy/assets/aurora.css HTTP/1.1\" 200 -\n127.0.0.1 - - [17/Nov/2026 12:56:03] \"GET /public/legacy/assets/theme.js HTTP/1.1\" 200 -\n"
+    }
+  ],
+  "accessibility": {
+    "command": "python3 tests/check_accessibility.py",
+    "passed": true,
+    "runs": 39,
+    "violations": 0,
+    "realKeyboardFocusTouchAndViewportChecks": true
+  },
+  "postCompactCssReruns": [
+    {
+      "suite": "check_dashboard_widgets.py",
+      "passed": true,
+      "seconds": 46.79,
+      "output": "PASS: nine shared MagicCards, pointer-transparent glow, tooltip, keyboard chart, accessible six-row table, height-aware desktop/notebook/mobile, themes/reduced motion, actions and unchanged finances\n"
+    },
+    {
+      "suite": "check_home.py",
+      "passed": true,
+      "seconds": 51.85,
+      "output": "PASS: compact executive Home organization, v2 financial values, three themes/appearance settings, four viewports, invoice/refund actions, navigation/alerts, empty state, preserved legacy, full-page evidence\n"
+    },
+    {
+      "suite": "check_graphite.py",
+      "passed": true,
+      "seconds": 34.36,
+      "output": "PASS: comparable synthetic captures after\n"
+    },
+    {
+      "suite": "check_navigation_cards.py",
+      "passed": true,
+      "seconds": 40.02,
+      "output": "PASS: current seven routes, 60/288 hover/leave/descendants, pin/unpin, keyboard/Ctrl+B/focus, Magic Card hover/text/reduced motion, touch390/768 drawer/overlay/Escape/focus/navigation, three themes and zero financial writes after seeding\n"
+    },
+    {
+      "suite": "check_react_visual.py",
+      "passed": true,
+      "seconds": 18.82,
+      "output": "PASS: current Home/themes/preferences/contrast/four widths/hover/reduced motion/touch, exact financial invariance, corrupt/denied storage, GPU fallback, byte-identical legacy\n"
+    }
+  ],
+  "requiredCommands": {
+    "npm run check": "passed",
+    "npm run build": "passed",
+    "npm run test:static": "passed",
+    "python3 tests/check_public_release.py": "passed",
+    "node --check public/legacy/assets/theme.js": "passed"
+  },
+  "dependencyAudit": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": {
+      "prod": 94,
+      "dev": 157,
+      "optional": 82,
+      "peer": 1,
+      "peerOptional": 0,
+      "total": 251
+    }
+  },
+  "financialData": "Exclusively synthetic, transient browser profiles; unchanged legacy key and roundtrip checks passed."
+}

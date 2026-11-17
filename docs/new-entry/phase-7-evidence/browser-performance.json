@@ -1,0 +1,23 @@
+[
+  {
+    "entries": 100,
+    "homeMs": 1153.1,
+    "entriesMs": 364.0,
+    "renderedDesktopRows": 50,
+    "sourceUnchanged": true
+  },
+  {
+    "entries": 1000,
+    "homeMs": 1237.7,
+    "entriesMs": 485.4,
+    "renderedDesktopRows": 50,
+    "sourceUnchanged": true
+  },
+  {
+    "entries": 5000,
+    "homeMs": 1449.3,
+    "entriesMs": 570.4,
+    "renderedDesktopRows": 50,
+    "sourceUnchanged": true
+  }
+]

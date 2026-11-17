@@ -187,6 +187,13 @@ export function BackupImport({
         prepared.current.raw,
       );
       // Every ZIP file has already been validated and prepared before financial replacement.
+      if (localStorage.getItem("finly-v2") !== serialized) {
+        setError(
+          "A restauração foi gravada, mas os dados mudaram em outra aba em seguida. Feche esta janela e confira a versão atual antes de continuar.",
+        );
+        setPrepared(null);
+        return;
+      }
       onRestored(prepared.state, serialized);
     } catch (e) {
       if (localStorageAvailableChanged(prepared.current.raw)) {

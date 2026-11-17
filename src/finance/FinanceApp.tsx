@@ -253,7 +253,9 @@ export function FinanceRoot() {
       >
         Exportar dados v2 para recuperação
       </Button>
-      <Button onClick={() => setRecovering(true)}>Importar backup JSON</Button>
+      <Button onClick={() => setRecovering(true)}>
+        Importar backup JSON ou ZIP
+      </Button>
       {recovering && (
         <BackupImport
           onClose={() => setRecovering(false)}
@@ -1464,6 +1466,12 @@ export function FinanceApp({
                 duplicate={composer.duplicate}
                 onCommit={commit}
                 onClose={() => setComposer(undefined)}
+                onDeleted={() => {
+                  setComposer(undefined);
+                  setNotice(
+                    "Registro excluído com confirmação. Os demais vínculos foram preservados.",
+                  );
+                }}
                 onSaved={(targetPeriod) => {
                   setComposer(undefined);
                   setNotice(

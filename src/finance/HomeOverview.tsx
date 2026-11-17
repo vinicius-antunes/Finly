@@ -1,6 +1,7 @@
+import { overviewDetails } from "./overview";
 import { combinedInvoiceStatus, settled } from "./entry-system/finance";
 import { ledgerChartEntries } from "./entry-system/state";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import {
   CreditCard,
   ArrowUpRight,
@@ -32,7 +33,9 @@ export function HomeOverview({
   onInvoicePage,
   onRefunds,
 }: Props) {
-  const m = metrics(s, period),
+  const details = useMemo(() => overviewDetails(s, period), [s, period]);
+  const chartEntries = useMemo(() => ledgerChartEntries(s), [s]);
+  const m = useMemo(() => metrics(s, period), [s, period]),
     a = s.transactions.filter((x) => x.period === period),
     pending =
       (s.entryLedger?.operations.filter(
@@ -82,11 +85,13 @@ export function HomeOverview({
           >
             {money(m.available)}
           </strong>
-          <p className="muted">{period} · Projeção, não é saldo bancário.</p>
+          <p className="muted">
+            {period} · Saldos dos registros, não do banco.
+          </p>
           <div className="home-balance-bottom">
             <div>
-              <span>Referência mensal</span>
-              <strong>{money(s.settings.salary)}</strong>
+              <span>Saldo atual registrado</span>
+              <strong>{money(details.recordedCash)}</strong>
             </div>
             <div>
               <span>Margem de segurança</span>
@@ -97,7 +102,12 @@ export function HomeOverview({
         <MagicCard className="home-reserve">
           <h2>Reserva protegida</h2>
           <strong>{money(s.settings.reserve)}</strong>
-          <p className="muted">Separada da projeção.</p>
+          <p className="muted">
+            Separada da projeção. Cofrinhos:{" "}
+            <strong data-testid="goal-reserve">
+              {money(details.goalReserve)}
+            </strong>
+          </p>
           <Button variant="ghost" onClick={onSettings}>
             Ajustar referências →
           </Button>
@@ -110,7 +120,7 @@ export function HomeOverview({
             </section>
           }
         >
-          <Chart entries={ledgerChartEntries(s)} period={period} />
+          <Chart entries={chartEntries} period={period} />
         </Suspense>
       </div>
       <div className="home-indicators">
@@ -125,23 +135,25 @@ export function HomeOverview({
           {
             label: "Despesas fora do cartão",
             value: m.cash,
-            detail: "Registradas no período",
+            detail: `Pago ${money(details.expensePaid)} · pendente ${money(details.expensePending)}`,
             Icon: ArrowUpRight,
             action: onEntries,
           },
           {
             label: "Entradas recebidas",
             value: m.income + m.received,
-            detail: s.entryLedger?.operations.some(
-              (o) =>
-                o.type === "income" &&
-                o.salary &&
-                o.period === period &&
-                !o.cancelled &&
-                settled(s.entryLedger!, o.id) > 0,
-            )
-              ? "Salário recebido substitui a previsão"
-              : "Além da referência mensal",
+            detail:
+              `Receitas previstas ${money(details.incomeExpected)}. ` +
+              (s.entryLedger?.operations.some(
+                (o) =>
+                  o.type === "income" &&
+                  o.salary &&
+                  o.period === period &&
+                  !o.cancelled &&
+                  settled(s.entryLedger!, o.id) > 0,
+              )
+                ? "Salário recebido substitui a previsão"
+                : "Além da referência mensal"),
             Icon: ArrowDownLeft,
             action: onEntries,
           },

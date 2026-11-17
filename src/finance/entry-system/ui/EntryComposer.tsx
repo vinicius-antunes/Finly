@@ -1,3 +1,4 @@
+import { deleteOperation } from "../commands";
 import { ReceiptFields, SavedReceipts } from "../../receipts/ReceiptFields";
 import {
   allReceipts,
@@ -6,7 +7,7 @@ import {
   type PendingReceipt,
   type Target,
 } from "../../receipts/model";
-import { coordinatedSave } from "../../receipts/storage";
+import { coordinatedSave, currentSnapshot } from "../../receipts/storage";
 import { EntryTabs } from "./EntryTabs";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export function EntryComposer({
   onCommit,
   onClose,
   onSaved,
+  onDeleted,
 }: {
   state: State;
   type: EntryType;
@@ -56,6 +58,7 @@ export function EntryComposer({
   onCommit: (s: State) => boolean;
   onClose: () => void;
   onSaved: (period: string) => void;
+  onDeleted: () => void;
 }) {
   const [d, setD] = useState(() =>
     initialDraft(state, type, period, operationId, duplicate),
@@ -74,6 +77,7 @@ export function EntryComposer({
   const [errors, setErrors] = useState<Record<string, string>>({}),
     [preview, setPreview] = useState<PreparedEntry>(),
     [ack, setAck] = useState(false),
+    [paidAck, setPaidAck] = useState(false),
     [saving, setSaving] = useState(false),
     [catalog, setCatalog] = useState(false);
   const sent = useRef(false),
@@ -107,15 +111,30 @@ export function EntryComposer({
     return () => window.removeEventListener("beforeunload", protect);
   }, [dirty]);
   function patch(v: Partial<EntryDraft>) {
+    if (
+      v.paymentMode &&
+      v.paymentMode !== d.paymentMode &&
+      d.customInstallments.length
+    ) {
+      if (
+        !confirm(
+          "Alterar a modalidade e descartar os ajustes individuais das parcelas?",
+        )
+      )
+        return;
+      v = { ...v, customInstallments: [] };
+    }
     setD((x) => ({ ...x, ...v }));
     setPreview(undefined);
     setAck(false);
+    setPaidAck(false);
     setErrors({});
   }
   useEffect(() => {
     if (preview && preview.source !== JSON.stringify(state)) {
       setPreview(undefined);
       setAck(false);
+      setPaidAck(false);
       setErrors({
         _form:
           "Os dados foram atualizados. Confira os campos e gere outra prévia.",
@@ -168,7 +187,7 @@ export function EntryComposer({
             ...files.map((p) => ({ ...p.receipt, target: receiptTarget })),
           ]),
           files,
-          prepared.source,
+          currentSnapshot(state),
           onCommit,
         );
       else if (!onCommit(next))
@@ -207,6 +226,7 @@ export function EntryComposer({
       if (p.complex) {
         setPreview(p);
         setAck(false);
+        setPaidAck(false);
       } else save(p);
     } catch (e) {
       errorFocus(
@@ -442,6 +462,8 @@ export function EntryComposer({
               isEdit={isEdit}
               ack={ack}
               setAck={setAck}
+              paidAck={paidAck}
+              setPaidAck={setPaidAck}
             />
           ) : (
             <>
@@ -827,6 +849,72 @@ export function EntryComposer({
                   onCommit={onCommit}
                 />
               )}
+              {old && (
+                <details className="entry-section">
+                  <summary>Ações e vínculos do registro</summary>
+                  <p>
+                    Vínculos: {old.purchaseId ? "compra; " : ""}
+                    {old.recurrenceId ? "recorrência; " : ""}
+                    {
+                      l.settlements.filter((p) => p.operationId === old.id)
+                        .length
+                    }{" "}
+                    liquidações;{" "}
+                    {
+                      allReceipts(state).filter((r) => r.target.id === old.id)
+                        .length
+                    }{" "}
+                    comprovantes. Registros com vínculos ou correções são
+                    protegidos contra exclusão; regularize ou cancele
+                    preservando o histórico.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={
+                      saving ||
+                      filesValidating ||
+                      files.length > 0 ||
+                      paymentDirty ||
+                      catalogDirty
+                    }
+                    onClick={() => {
+                      try {
+                        if (
+                          allReceipts(state).some((r) => r.target.id === old.id)
+                        )
+                          throw Error(
+                            "Registro possui comprovantes vinculados; exclua os vínculos explicitamente ou preserve o histórico com cancelamento.",
+                          );
+                        const next = {
+                          ...state,
+                          entryLedger: deleteOperation(l, old.id),
+                        };
+                        if (
+                          !confirm(
+                            `Excluir definitivamente ${old.description}? A exclusão não pode ser desfeita. Registros vinculados são protegidos; exporte um backup antes.`,
+                          )
+                        )
+                          return;
+                        if (!onCommit(next))
+                          throw Error(
+                            "Não foi possível excluir. Revise os dados atuais.",
+                          );
+                        onDeleted();
+                      } catch (e) {
+                        errorFocus({
+                          _form:
+                            e instanceof Error
+                              ? e.message
+                              : "Exclusão recusada.",
+                        });
+                      }
+                    }}
+                  >
+                    Excluir registro sem vínculos
+                  </Button>
+                </details>
+              )}
               {isEdit && old.type !== "card" && (
                 <details className="entry-section">
                   <summary>Gerenciar pagamentos e histórico</summary>
@@ -902,6 +990,7 @@ export function EntryComposer({
                 ? () => {
                     setPreview(undefined);
                     setAck(false);
+                    setPaidAck(false);
                   }
                 : close
             }
@@ -911,7 +1000,12 @@ export function EntryComposer({
           {preview ? (
             <Button
               type="button"
-              disabled={!ack || saving || filesValidating}
+              disabled={
+                !ack ||
+                (!!preview.paidInvoiceImpacts?.length && !paidAck) ||
+                saving ||
+                filesValidating
+              }
               onClick={() => save(preview)}
             >
               Confirmar e salvar

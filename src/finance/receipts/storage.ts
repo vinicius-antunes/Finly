@@ -82,6 +82,19 @@ const journalRows = () =>
     const r = tx.objectStore("journal").getAll();
     r.onsuccess = () => done(r.result);
   });
+/** Preserve the actual raw CAS token, including whitespace/property order in older stored JSON. */
+export function currentSnapshot(s: State): string {
+  const raw = localStorage.getItem(V2_KEY);
+  try {
+    if (raw !== null && JSON.stringify(JSON.parse(raw)) === JSON.stringify(s))
+      return raw;
+  } catch {
+    /* report stale/invalid storage below */
+  }
+  throw Error(
+    "Os dados mudaram em outra aba ou não podem ser lidos. Revise antes de salvar.",
+  );
+}
 /** Every writer of binary data and garbage collector shares this origin-wide lock. Fail closed when unavailable. */
 export async function receiptLock<T>(fn: () => Promise<T>): Promise<T> {
   if (!navigator.locks)

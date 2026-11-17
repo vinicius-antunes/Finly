@@ -1,3 +1,5 @@
+import { possibleDuplicates } from "../commands.ts";
+import { invoiceBalance } from "../finance.ts";
 import type { State } from "../../model.ts";
 import type { EntryType, Settlement, Operation } from "../contracts.ts";
 import type { AgreementTerms } from "../reimbursements/contracts.ts";
@@ -82,6 +84,7 @@ export type EntryDraft = {
   rate: string;
   original: string;
   final: string;
+  customInstallments: { amount: string; period: string }[];
   manualPeriod: boolean;
   responsibility: "personal" | "other" | "shared";
   people: PersonDraft[];
@@ -105,6 +108,25 @@ export function initialDraft(
   const l = s.entryLedger!,
     o = l?.operations.find((o) => o.id === operationId),
     a = l?.agreements?.find((a) => a.operationIds.includes(operationId ?? ""));
+  const usableAccount = (id: string | undefined) =>
+    l.accounts.some(
+      (a) => a.id === id && !a.archived && a.type !== "credit_card",
+    );
+  const recentAccount =
+    type === "transfer"
+      ? l.transfers.filter((t) => usableAccount(t.fromAccountId)).at(-1)
+          ?.fromAccountId
+      : (l.operations
+          .filter((o) => o.type === type && usableAccount(o.accountId))
+          .at(-1)?.accountId ??
+        l.settlements
+          .filter(
+            (p) =>
+              l.operations.some(
+                (o) => o.id === p.operationId && o.type === type,
+              ) && usableAccount(p.accountId),
+          )
+          .at(-1)?.accountId);
   const d: EntryDraft = {
     id: crypto.randomUUID(),
     type: o?.type ?? type,
@@ -115,11 +137,14 @@ export function initialDraft(
     categoryId: o?.categoryId ?? "",
     accountId:
       (o?.type === "card" ? undefined : o?.accountId) ??
+      recentAccount ??
       l?.accounts.find((a) => a.type !== "credit_card" && !a.archived)?.id ??
       "",
     cardId:
       o?.cardId ??
-      l?.operations.filter((o) => o.cardId).at(-1)?.cardId ??
+      l?.operations
+        .filter((o) => l.cards.some((c) => c.id === o.cardId && !c.archived))
+        .at(-1)?.cardId ??
       l?.cards.find((c) => !c.archived)?.id ??
       "",
     method: "Pix",
@@ -128,7 +153,11 @@ export function initialDraft(
     paymentAmount: "",
     paymentDate: today(),
     salary: o?.salary ?? false,
-    destinationId: "",
+    destinationId:
+      type === "transfer"
+        ? (l.transfers.filter((t) => usableAccount(t.toAccountId)).at(-1)
+            ?.toAccountId ?? "")
+        : "",
     confirmed: o?.confirmed ?? true,
     paymentMode: "single",
     count: 1,
@@ -144,6 +173,7 @@ export function initialDraft(
     rate: "",
     original: "",
     final: "",
+    customInstallments: [],
     manualPeriod: !!o,
     responsibility: "personal",
     people: [],
@@ -214,6 +244,9 @@ export function quoteDraft(d: EntryDraft) {
     mode: d.valueMode,
     valueCents: amount(d.amount, "amount"),
     count: d.paymentMode === "installments" ? d.count : 1,
+    customInstallments: d.customInstallments.length
+      ? d.customInstallments.map((r) => amount(r.amount, "customInstallments"))
+      : undefined,
     downCents: d.down ? amount(d.down, "down", true) : 0,
     originalCents: d.original ? amount(d.original, "original") : undefined,
     finalCents: d.final ? amount(d.final, "final") : undefined,
@@ -225,6 +258,13 @@ export function quoteDraft(d: EntryDraft) {
 }
 export type PreparedEntry = {
   source: string;
+  warnings?: string[];
+  paidInvoiceImpacts?: {
+    id: string;
+    paid: number;
+    before: number;
+    after: number;
+  }[];
   next: State;
   complex: boolean;
   rows: {
@@ -249,6 +289,9 @@ function prepareEntryUnsafe(
     errors.description = "Informe a descrição.";
   if (!dateOK(d.date)) errors.date = "Informe uma data válida.";
   if (!periodOK(d.period)) errors.period = "Informe uma competência válida.";
+  if (d.customInstallments.some((r) => !periodOK(r.period)))
+    errors.customInstallments =
+      "Confira as competências das parcelas personalizadas.";
   const cash = s.entryLedger.accounts.filter(
     (a) => a.type !== "credit_card" && !a.archived,
   );
@@ -495,12 +538,20 @@ function prepareEntryUnsafe(
             cardId: d.cardId,
             operationDate: d.date,
             firstPeriod: d.manualPeriod ? d.period : undefined,
+            periods: d.customInstallments.length
+              ? d.customInstallments.map((r) => r.period)
+              : undefined,
             confirmed: d.confirmed,
             responsibility: d.responsibility,
             quote: {
               mode: d.valueMode,
               valueCents: value,
               count: d.paymentMode === "installments" ? d.count : 1,
+              customInstallments: d.customInstallments.length
+                ? d.customInstallments.map((r) =>
+                    amount(r.amount, "customInstallments"),
+                  )
+                : undefined,
               downCents: q!.downCents,
               originalCents: d.original
                 ? amount(d.original, "original")
@@ -669,10 +720,39 @@ function prepareEntryUnsafe(
       JSON.stringify(o) !==
         JSON.stringify(s.entryLedger!.operations.find((x) => x.id === o.id)),
   );
+  const warnings = old
+    ? []
+    : changed.flatMap((o) =>
+        possibleDuplicates(s.entryLedger!, o).length
+          ? [
+              `Possível duplicata: ${o.description} · ${o.period}. Confira os registros existentes; você pode continuar se for outra movimentação.`,
+            ]
+          : [],
+      );
+  const paidInvoiceImpacts = s
+    .entryLedger!.invoices.filter(
+      (i) =>
+        invoiceBalance(s.entryLedger!, i.id).paid > 0 &&
+        changed.some(
+          (o) =>
+            i.installmentIds.includes(o.id) ||
+            (i.cardId === o.cardId && i.period === o.period),
+        ),
+    )
+    .map((i) => ({
+      id: i.id,
+      paid: invoiceBalance(s.entryLedger!, i.id).paid,
+      before: invoiceBalance(s.entryLedger!, i.id).total,
+      after: invoiceBalance(l, i.id).total,
+    }));
   return {
     source: JSON.stringify(s),
+    warnings,
+    paidInvoiceImpacts,
     next,
     complex:
+      warnings.length > 0 ||
+      paidInvoiceImpacts.length > 0 ||
       !!old ||
       d.type === "card" ||
       d.type === "transfer" ||
@@ -826,6 +906,10 @@ export function draftKey(d: EntryDraft) {
     "useReserve",
   ])
     copy[key] = normalize(String(copy[key]));
+  copy.customInstallments = d.customInstallments.map((r) => ({
+    ...r,
+    amount: normalize(r.amount),
+  }));
   copy.people = d.people.map((p) => ({
     ...p,
     amount: normalize(p.amount),

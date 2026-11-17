@@ -1,7 +1,23 @@
 import type { State, Entry } from "../../model.ts";
-import { settled } from "../finance.ts";
+import { settlementTotals } from "../finance.ts";
 /** UI-only adapter; these rows are never written into legacy transactions. */
 export function entryViews(s: State): Entry[] {
+  const l = s.entryLedger,
+    paid = l ? settlementTotals(l) : new Map<string, number>();
+  const categories = new Map(l?.categories.map((c) => [c.id, c.name]) ?? []),
+    claims = new Map<
+      string,
+      NonNullable<State["entryLedger"]>["claims"][number]
+    >(),
+    notes = new Map<string, string>(),
+    thirdParty = new Set(
+      l?.claims.flatMap((c) => (c.purchaseId ? [c.purchaseId] : [])) ?? [],
+    );
+  for (const c of l?.claims ?? [])
+    if (!claims.has(c.operationId)) claims.set(c.operationId, c);
+  for (const a of l?.agreements ?? [])
+    for (const id of a.operationIds)
+      if (!notes.has(id)) notes.set(id, a.terms.note);
   return [
     ...s.transactions.map((x) => ({
       ...x,
@@ -22,36 +38,26 @@ export function entryViews(s: State): Entry[] {
               ? ("income" as const)
               : ("reimbursement" as const),
       accountId: o.accountId ?? "",
-      category:
-        s.entryLedger!.categories.find((c) => c.id === o.categoryId)?.name ??
-        "",
-      owner: s.entryLedger!.claims.some(
-        (c) => c.purchaseId === o.purchaseId && o.purchaseId,
-      )
-        ? "third"
-        : "self",
+      category: categories.get(o.categoryId ?? "") ?? "",
+      owner: thirdParty.has(o.purchaseId ?? "") ? "third" : "self",
       status: o.cancelled
         ? "cancelled"
-        : settled(s.entryLedger!, o.id) === o.amountCents
+        : (paid.get(o.id) ?? 0) === o.amountCents
           ? "received"
-          : settled(s.entryLedger!, o.id) > 0
+          : (paid.get(o.id) ?? 0) > 0
             ? "partial"
             : "planned",
       confirmed: o.confirmed ?? true,
       note: [
-        o.note ??
-          s.entryLedger!.agreements?.find((a) => a.operationIds.includes(o.id))
-            ?.terms.note ??
-          "",
-        s.entryLedger!.claims.find((c) => c.operationId === o.id)
-          ?.personLabel ?? "",
+        o.note ?? notes.get(o.id) ?? "",
+        claims.get(o.id)?.personLabel ?? "",
       ]
         .filter(Boolean)
         .join(" · "),
       part: o.installmentNumber,
       parts: o.installmentCount,
       ledgerManaged: true,
-      ledgerPaidCents: settled(s.entryLedger!, o.id),
+      ledgerPaidCents: paid.get(o.id) ?? 0,
     })),
   ];
 }

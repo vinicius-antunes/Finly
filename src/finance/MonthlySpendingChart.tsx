@@ -1,5 +1,5 @@
 import { MagicCard } from "@/components/visual/MagicCard";
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { useReducedMotion } from "motion/react";
 import {
@@ -21,13 +21,17 @@ export function MonthlySpendingChart({
   period: string;
 }) {
   const gradient = "spending-" + useId().replace(/:/g, "");
-  const data = monthlySpending(entries, period),
+  const data = useMemo(
+      () => monthlySpending(entries, period),
+      [entries, period],
+    ),
     reduce = useReducedMotion();
   return (
     <MagicCard className="home-panel monthly-spending">
       <h2>Gastos mensais</h2>
       <p className="muted">Últimas seis competências · despesas registradas</p>
       <ChartContainer
+        role="region"
         config={config}
         className="monthly-bars"
         aria-label="Gastos das últimas seis competências"

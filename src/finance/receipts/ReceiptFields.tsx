@@ -16,7 +16,7 @@ import {
   type Receipt,
   type Target,
 } from "./model";
-import { getBlob, coordinatedSave } from "./storage";
+import { getBlob, coordinatedSave, currentSnapshot } from "./storage";
 import type { State } from "../model";
 import { EntryDialog } from "../entry-system/ui/EntryDialog";
 export function FilePreview({
@@ -317,7 +317,7 @@ export function ReceiptManager({
         ...allReceipts(state),
         ...pending.map((p) => ({ ...p.receipt, target })),
       ]);
-      await coordinatedSave(next, pending, base.current, onCommit);
+      await coordinatedSave(next, pending, currentSnapshot(state), onCommit);
       setPending([]);
       onClose();
     } catch (e) {

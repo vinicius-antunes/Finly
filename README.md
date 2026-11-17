@@ -1,87 +1,75 @@
 # Finly — Controle financeiro pessoal
 
-> **Entrada atual:** o Finly React abre diretamente na Home. Um v2 vazio é criado somente se a chave estiver ausente; dados existentes são preservados. Importação é opcional em Ajustes. [Inicialização, recuperação e testes](docs/DIRECT_HOME_STARTUP.md). Instruções anteriores de ativação descrevem o fluxo histórico, já substituído.
+Esta branch, `codex/finly-navegacao-ux`, contém a aplicação React e a consolidação das sete fases de **Novo lançamento**. A integração com `main` ou `Finly-React` e qualquer release pública dependem de autorização. A versão pública não foi alterada por esta entrega.
 
+## Executar a aplicação React
 
-> **Atualização funcional na Finly-React:** o modo v2 agora permite operações diretamente no React após ativação explícita. Consulte [matriz, importação, testes e limites](docs/REACT_EQUIVALENCE.md). Os trechos antigos que descrevem a prévia somente de leitura registram a etapa anterior; ela permanece disponível antes da ativação. O legado e a main continuam preservados.
+Requer Node.js 24 e npm.
 
+```sh
+npm ci
+npm run dev -- --port 5173
+```
 
-Aplicação web local, com HTML, CSS e JavaScript, sem instalação, servidor ou conta. Este repositório contém uma **base pública higienizada v1.1.1** e o **plano da v1.2**. As funcionalidades v1.2 descritas no roadmap **ainda não foram implementadas**.
+Abra o endereço informado pelo Vite. Para hospedagem estática, execute `npm run build` e publique `dist/`. Não há backend, login, integração bancária, telemetria ou sincronização automática. Uma instalação nova começa vazia; dados existentes nunca são substituídos durante a inicialização.
 
-## Executar
+## Funcionalidades disponíveis nesta branch
 
-1. Abra `index.html` em um navegador moderno, ou publique os arquivos estáticos no GitHub Pages.
-2. Ao iniciar pela primeira vez, o aplicativo não contém transações pessoais nem dados bancários.
-3. Acesse **Ajustes e backup** para configurar renda, reserva, cartão, vencimento e metas.
-4. Se usava a v1.1, exporte o backup JSON **no arquivo antigo**, guarde-o localmente e importe no Finly. Nunca envie o backup para um repositório público.
+- Visão Geral compacta com projeção, variação efetiva registrada, referências de reserva, cofrinhos, compromissos e gastos por competência.
+- Navegação com sete destinos, Sidebar por hover/fixação/teclado e drawer em dispositivos touch.
+- Novo lançamento com cinco abas: Despesa, Receita, Cartão, Reembolso e Transferência; campos contextuais, prévias e proteção contra descarte.
+- Contas, cartões e categorias personalizados; sugestões da última origem válida e campos desconhecidos mantidos como desconhecidos.
+- Pagamentos/recebimentos parciais, identificação salarial explícita, transferências neutras e histórico de estornos/correções.
+- Contratos de cartão com fechamento/vencimento, centavos finais exatos, entrada, estimativas de juros, total contratado e ajustes individuais de parcelas/competências.
+- Recorrências mensais/anuais, previsão sob comando explícito, alteração de valor, pausa, retomada e cancelamento sem pagamentos automáticos.
+- Reembolsos por responsável, vários cronogramas e recebimentos, sem confundir promessa com dinheiro recebido.
+- Planejamentos com aportes manuais, histórico, simulação e uso confirmado da reserva em uma única gravação financeira.
+- Comprovantes locais em IndexedDB, miniaturas/download, integridade, diagnóstico de órfãos e backup completo ZIP.
+- Lançamentos paginados com busca, totais e CSV sobre **todos os resultados filtrados**, preservando o contexto da edição.
+- Graphite Green, Escuro Padrão e Claro, com preferências locais, efeitos de luz opcionais e movimento reduzido.
 
-## Recursos existentes
+O novo motor é preparado **explicitamente** em Novo lançamento, com exportação, prévia e confirmação. Registros anteriores mantêm edição compatível; não são recriados nem convertidos silenciosamente.
 
-- Lançamentos de cartão, despesas fora do cartão, receitas e reembolsos.
-- Parcelamento: ao selecionar mais de uma parcela, informa-se **o valor por parcela**; o total é multiplicado automaticamente e cada parcela entra no mês seguinte.
-- Faturas mensais com situação manual, previsões recorrentes e compras de terceiros.
-- Controle simples de reserva e simulação de compra à vista/parcelada.
-- Backup JSON, importação JSON e exportação CSV.
-- Dados salvos apenas no `localStorage` do navegador.
+## Dinheiro registrado, projeção e reservas
 
-Não existe sincronização automática, integração com bancos, anexos, múltiplos cartões, importação de **extratos** CSV ou dashboard personalizável nesta versão. A exportação de lançamentos em CSV **já existe**, mas a importação de extratos é parte do plano v1.2.
+Valores são calculados e persistidos em centavos inteiros. Compra, parcela, pagamento da fatura, reembolso e transferência são entidades distintas. A quitação não cria outra despesa; transferências e aportes não criam receitas/despesas. Salário recebido identificado substitui a referência da competência, inclusive quando parcial, conforme a regra aprovada.
 
+**Saldo atual registrado** é a variação líquida dos eventos efetivos do período, não o saldo bancário: não são inventados saldos de abertura. No legado sem data efetiva, somente situações explicitamente recebidas/pagas são consideradas na competência conhecida. **Saldo projetado** segue as regras aprovadas de compromissos e previsão; não representa dinheiro disponível no banco. Referência geral de reserva e saldos dos cofrinhos aparecem separadamente; o Finly não presume que sejam valores adicionais ou sobrepostos.
 
-## Dados e segurança
+O gráfico mostra seis competências de despesas registradas e compras confirmadas. Não inclui quitação, transferência, receita ou reembolso como despesa, nem contém exemplos financeiros na instalação pública.
 
-O projeto **não acompanha informações financeiras reais**. Um backup exportado contém dados pessoais em texto legível; não envie esse JSON, prints reais, extratos ou comprovantes para o GitHub. O `localStorage` não é criptografado. Para troca de dispositivo ou migração para Pages, exporte e importe o backup manualmente. O app não envia dados a serviços externos nesta versão.
+## Backup e proteção dos dados
 
+Em **Configurações → Backup**:
 
-## Licenciamento
+1. **JSON:** dados financeiros e metadados dos comprovantes, sem binários. Aceita backups v1/v2 com prévia e confirmação.
+2. **Backup completo ZIP:** dados, comprovantes e manifesto SHA-256; valida todos os arquivos antes de restaurar. Não realiza mesclagem silenciosa.
+3. **Armazenamento local:** quantidade, espaço, quota estimada, integridade, ausências e órfãos. Limpeza definitiva exige confirmação.
 
-O projeto não inclui licença de código nesta preparação. Escolha uma licença antes de convidar contribuições ou permitir reutilização. Ideias funcionais de outros aplicativos não exigem copiar código; caso copie trechos de um projeto AGPL, verifique obrigações de licença antes.
+Limites iniciais: 10 MiB por arquivo, 200 vínculos, 100 MiB de comprovantes locais, 4 MiB por JSON e 106 MiB por ZIP. JPG/PNG/WebP têm prévia; PDF usa download sem interpretador ativo incorporado. Gravação coordenada de arquivos requer IndexedDB, Web Crypto, Web Locks e contexto seguro (HTTPS ou localhost).
 
-## Aviso
+Guarde backups privados fora do repositório. Limpar o navegador, trocar de domínio/dispositivo ou o descarte de armazenamento pelo navegador pode remover dados. Não há criptografia, garantia de permanência ou prova de autenticidade do exportador pelo hash. A chave antiga `saldoclaro-v1` permanece intacta.
 
-Projeções são estimativas com dados inseridos manualmente; não substituem o extrato bancário ou aconselhamento financeiro.
+## Verificação e relatórios
 
-## Aparência
+```sh
+npm run check
+npm run build
+npm run test:static
+node tests/check_integration.mjs
+python3 tests/check_integration_browser.py
+python3 tests/check_accessibility.py
+python3 tests/check_public_release.py
+```
 
-Dark Aurora é o tema padrão. Em **Ajustes e backup → Aparência**, escolha Escuro ou Claro; a preferência fica salva separadamente dos dados financeiros. Mantenha a pasta `assets` ao copiar ou publicar o aplicativo. Veja [etapas do redesign e testes](docs/DARK_AURORA.md); metas múltiplas e plano mensal continuam dependentes da migração v2.
+Testes Chromium usam Python Playwright, Pillow e Chromium; `axe-core` é dependência somente de teste. A matriz completa, as demais suítes, medições, capturas e o parecer técnico estão na [Fase 7](docs/new-entry/PHASE_7.md).
 
-O redesign Premium reorganiza dashboard, navegação mobile, formulário, tabelas e filtros; inclui notificações locais, sem push. Consulte [as capturas com dados fictícios e as instruções do Cloudflare Pages](docs/DARK_AURORA.md). A prévia da branch é independente da produção em `main`.
+[Fundamentos e migração](docs/new-entry/PHASE_1.md) · [Motor financeiro](docs/new-entry/PHASE_2.md) · [Cartões e recorrências](docs/new-entry/PHASE_3.md) · [Reembolsos e cofrinhos](docs/new-entry/PHASE_4.md) · [Formulário](docs/new-entry/PHASE_5.md) · [Comprovantes e ZIP](docs/new-entry/PHASE_6.md).
 
-## React: fases visuais 0–2
+## Legado e planejamento futuro
 
-Somente na branch existente `Finly-React`: três temas, shadcn Button/Card, Aurora e spotlight discreto dos cartões. A interface continua prévia somente de leitura, com versão completa em `/legacy/`. [Auditoria, licenças e capturas](docs/REACT_VISUAL_PHASES.md). Fases 3–5 aguardam autorização. Para instalar de forma reproduzível, use `npm ci`. A hospedagem da `main` permanece independente.
+`index.html` e `public/legacy/` preservam a aplicação HTML de referência v1.1.1. Ela pode ser aberta separadamente e mantém seu próprio armazenamento. Documentos antigos descrevem etapas históricas; o estado atual desta branch é o relatório da Fase 7. O [roadmap v1.2](docs/ROADMAP_v1.2.md) inclui outros recursos planejados e não deve ser confundido com a entrega destas sete fases. Não há importação bancária CSV, integração automática, OCR ou serviço de nuvem implementado.
 
-## Graphite Green — execução autorizada das nove seleções
+## Privacidade e licenças
 
-A identidade vigente passa a Graphite Green usando o CSS Tweakcn fornecido; o antigo valor de preferência `aurora` continua aceito como alias. As seis integrações iniciais foram preservadas (tema, Light Rays, Bento, donut, Tremor e Text Morph). Por decisão posterior do proprietário, Sidebar e Card Spotlight da Aceternity foram substituídos por **shadcn/ui Sidebar e Magic UI Magic Card**, com fontes e licenças MIT verificados. O Stateful Button foi removido do escopo. [Adaptações e evidências das substituições](docs/graphite/MIT_REPLACEMENTS.md). O legado e a leitura financeira continuam preservados. [Matriz, mapa de tokens, testes e evidências](docs/graphite/IMPLEMENTATION.md).
-
-Na `Finly-React`, a Sidebar inicia recolhida e expande ao passar o mouse. O botão **Alternar menu** permite fixá-la aberta; touch continua usando o drawer. [Comportamento, testes e vídeo](docs/graphite/SIDEBAR_HOVER.md).
-
-O Light Rays agora é o fundo global da interface Graphite Green, contínuo entre as telas React. O checkbox **Efeitos de luz** controla também o fallback estático. [Camadas, desempenho e comparativo antes/depois](docs/graphite/GLOBAL_LIGHT_RAYS.md).
-
-A Home funcional React segue a organização da main, com aparência Graphite Green e controles de tema em Ajustes. [Comparação estrutural, capturas completas e testes](docs/HOME_MAIN_REACT.md).
-
-Na branch isolada `codex/finly-navegacao-ux`, a navegação tem sete destinos, histórico do navegador e Configurações por abas. [Mapa, evidências e testes](docs/navigation-ux/REPORT.md).
-
-Na branch `codex/finly-navegacao-ux`, backup e importação usam uma única janela com seleção, conferência e confirmação. [Fluxo, segurança, antes/depois e testes](docs/backup-import/REPORT.md).
-
-Na mesma branch, Lançamentos usa filtros compactos, indicadores separados, tabela no desktop e cartões no celular. Edição preserva o contexto, e ações de situação e duplicação respeitam os vínculos financeiros. [Correções, capturas e testes](docs/entries/REPORT.md).
-
-O cabeçalho adapta o botão de menu à capacidade de hover, usa sino com contador e painel de notificações locais e apresenta sucessos em toast temporário. [Comportamento, capturas e testes](docs/header/REPORT.md).
-
-A Visão Geral agora é um dashboard executivo em três linhas, com seis meses de gastos registrados e atalhos para os detalhes. [Cálculos, comparação visual e testes](docs/dashboard/REPORT.md).
-
-A Visão Geral adapta as proporções à altura do desktop e compartilha o brilho MagicCard entre os nove widgets. Os dados do gráfico permanecem acessíveis sem lista expansível. [Evidências e testes](docs/dashboard-tuning/REPORT.md).
-
-Planejamentos agora reúne objetivos e cofrinhos com histórico confirmado, alocação por competência e simulações à vista/parceladas/com entrada. O saldo projetado original permanece separado. [Regras, compatibilidade, capturas, testes e limites](docs/planning/REPORT.md).
-
-A reformulação completa de Novo lançamento está em execução por fases. A Fase 1 prepara contratos e prévia de migração isolados, sem ativação ou mudança visual. [Escopo entregue, testes e fases pendentes](docs/new-entry/PHASE_1.md).
-
-A Fase 2 de Novo lançamento acrescenta o motor opcional de liquidações parciais, salário identificado, transferências neutras e correções auditadas, com integração de projeções e backup. O novo cadastro visual permanece na Fase 5. [Regras, testes e limites](docs/new-entry/PHASE_2.md).
-
-A Fase 3 de Novo lançamento implementa o motor de cartões, contratos exatos em centavos, juros explícitos, entradas e recorrências sob demanda. Consultas estão nas abas existentes; o novo modal permanece na Fase 5. [Regras, exemplos, testes e limites](docs/new-entry/PHASE_3.md).
-
-A Fase 4 de Novo lançamento acrescenta acordos de reembolso por responsável, cronogramas, recebimentos parciais e correções, além de comandos de compra com uso confirmado dos cofrinhos em uma única gravação. O cadastro visual pelo novo modal segue na Fase 5. [Modelo, integração, testes e limites](docs/new-entry/PHASE_4.md).
-
-A Fase 5 conecta o Novo lançamento a um modal responsivo com cinco abas, ativação com backup/prévia, edição e correções, pagamentos parciais, compras/recorrências/acordos, transferências e uso confirmado de cofrinhos. Os novos registros entram nas consultas principais; dados antigos mantêm edição compatível. [Componentes, regras, evidências e limites](docs/new-entry/PHASE_5.md). Comprovantes e ZIP estão descritos na Fase 6 abaixo.
-
-A Fase 6 acrescenta comprovantes locais em IndexedDB, vínculos com lançamentos e pagamentos, verificação de integridade e backup completo ZIP com manifesto SHA-256. O JSON continua compatível e preserva metadados; os arquivos binários exigem ZIP. [Arquitetura, limites, testes e capturas](docs/new-entry/PHASE_6.md).
+Nunca publique dados reais, credenciais, comprovantes, extratos, backups ou capturas privadas. Veja [segurança e privacidade](docs/SECURITY_PRIVACY.md). As dependências e componentes externos mantêm suas [licenças e atribuições](docs/licenses/). O projeto não concede uma licença própria de reutilização neste estágio.

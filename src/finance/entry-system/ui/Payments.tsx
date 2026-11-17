@@ -9,7 +9,7 @@ import {
   type PendingReceipt,
   type Target,
 } from "../../receipts/model";
-import { coordinatedSave } from "../../receipts/storage";
+import { coordinatedSave, currentSnapshot } from "../../receipts/storage";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { State } from "../../model";
@@ -117,7 +117,7 @@ export function Payments({
             ...files.map((p) => ({ ...p.receipt, target: t })),
           ]),
           files,
-          JSON.stringify(state),
+          currentSnapshot(state),
           onCommit,
         );
       else if (!onCommit(next))

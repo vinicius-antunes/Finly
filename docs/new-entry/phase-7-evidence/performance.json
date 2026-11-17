@@ -1,0 +1,98 @@
+{
+  "baseCommit": "3f26f44bc4c91448853050003d715e57c0855f44",
+  "method": "Node 24, média de três execuções por função; Chromium 1440x900 com movimento reduzido; tempos de navegação/renderização reais em ambiente compartilhado. Resultados indicativos, sem SLA.",
+  "nodeBefore": [
+    {
+      "entries": 100,
+      "serializedBytes": 29534,
+      "validateMs": 7.01,
+      "metricsMs": 0.19,
+      "chartMs": 0.25
+    },
+    {
+      "entries": 1000,
+      "serializedBytes": 292334,
+      "validateMs": 32.6,
+      "metricsMs": 0.44,
+      "chartMs": 13.76
+    },
+    {
+      "entries": 5000,
+      "serializedBytes": 1476334,
+      "validateMs": 575.88,
+      "metricsMs": 1.54,
+      "chartMs": 255.17
+    }
+  ],
+  "nodeAfter": [
+    {
+      "entries": 100,
+      "serializedBytes": 29534,
+      "validateMs": 3.93,
+      "metricsMs": 0.44,
+      "chartMs": 0.24
+    },
+    {
+      "entries": 1000,
+      "serializedBytes": 292334,
+      "validateMs": 15.4,
+      "metricsMs": 0.81,
+      "chartMs": 0.47
+    },
+    {
+      "entries": 5000,
+      "serializedBytes": 1476334,
+      "validateMs": 107.71,
+      "metricsMs": 4.08,
+      "chartMs": 3.85
+    }
+  ],
+  "browserBefore": [
+    {
+      "entries": 100,
+      "homeMs": 2000.6,
+      "entriesMs": 1571.8,
+      "renderedDesktopRows": 100,
+      "sourceUnchanged": true
+    },
+    {
+      "entries": 1000,
+      "homeMs": 2249.7,
+      "entriesMs": 6351.0,
+      "renderedDesktopRows": 1000,
+      "sourceUnchanged": true
+    },
+    {
+      "entries": 5000,
+      "homeMs": 2590.0,
+      "entriesMs": 34035.3,
+      "renderedDesktopRows": 5000,
+      "sourceUnchanged": true
+    }
+  ],
+  "browserAfter": [
+    {
+      "entries": 100,
+      "homeMs": 1153.1,
+      "entriesMs": 364.0,
+      "renderedDesktopRows": 50,
+      "sourceUnchanged": true
+    },
+    {
+      "entries": 1000,
+      "homeMs": 1237.7,
+      "entriesMs": 485.4,
+      "renderedDesktopRows": 50,
+      "sourceUnchanged": true
+    },
+    {
+      "entries": 5000,
+      "homeMs": 1449.3,
+      "entriesMs": 570.4,
+      "renderedDesktopRows": 50,
+      "sourceUnchanged": true
+    }
+  ],
+  "browserBeforeStage": "Antes da paginação e da otimização de entryViews; já com as primeiras otimizações de domínio e os ajustes visuais da Fase 7.",
+  "nodeBeforeStage": "Código financeiro da Fase 6 (base 3f26f44), antes dos índices de liquidações e projeção."
+}

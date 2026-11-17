@@ -1,3 +1,4 @@
+from visual_helpers import seed, go
 #!/usr/bin/env python3
 """Global Light Rays: synthetic browser evidence and layering/performance regressions."""
 import functools
@@ -29,29 +30,20 @@ URL = f'http://127.0.0.1:{server.server_port}'
 
 
 def prepare(context):
-    context.add_init_script(f"""
-      localStorage.setItem('saldoclaro-v1', JSON.stringify({json.dumps(FIXTURE)}));
-      localStorage.setItem('finly-react-theme', 'graphite');
-      window.financialWrites = [];
-      const original = Storage.prototype.setItem;
-      Storage.prototype.setItem = function(k,v) {{
-        if (k === 'saldoclaro-v1' || k === 'finly-v2') financialWrites.push(k);
-        return original.call(this,k,v);
-      }};
-    """)
+    seed(context,FIXTURE)
 
 
 def ready(page):
     page.goto(URL)
     page.locator('input[type="month"]').fill('2026-11')
     page.evaluate('document.fonts.ready')
-    page.wait_for_selector('.recharts-sector')
+    page.locator('.monthly-spending table').wait_for(state='attached')
 
 
 def viewport_background(page):
     assert page.locator('.rays-backdrop').count() == 1
     assert page.locator('.balance-hero .rays-backdrop').count() == 0
-    assert page.locator('.finly-shell > .rays-backdrop').count() == 1
+    assert page.locator('.finance-app > .rays-backdrop').count() == 1
     assert page.locator('.rays-backdrop').get_attribute('aria-hidden') == 'true'
     assert page.locator('.rays-backdrop').evaluate('''e => {
       const r = e.getBoundingClientRect(), s = getComputedStyle(e);
@@ -65,9 +57,7 @@ def navigate(page, label, mobile=False):
     if mobile:
         page.get_by_role('button', name='Alternar menu', exact=True).click()
         page.get_by_role('dialog').wait_for()
-    page.get_by_role('button', name=label, exact=True).click()
-    if mobile and label == 'Planejamentos':
-        page.get_by_role('button', name='Recursos disponíveis', exact=True).click()
+    page.get_by_role('link', name=label, exact=True).click()
     if mobile:
         page.get_by_role('dialog').wait_for(state='hidden')
     page.mouse.move(1100 if not mobile else 370, 100)
@@ -109,12 +99,14 @@ try:
             page.evaluate('window.scrollTo(0,600)')
             viewport_background(page)
             page.evaluate('window.scrollTo(0,0)')
+            go(page,'configuracoes/aparencia')
             toggle = page.get_by_label('Efeitos de luz')
             toggle.uncheck()
             assert page.locator('.rays-backdrop').is_hidden()
             assert page.locator('.light-rays__canvas').count() == 0
             navigate(page, 'Lançamentos', device == 'mobile')
             assert page.locator('.rays-backdrop').is_hidden()
+            go(page,'configuracoes/aparencia')
             toggle.check()
             viewport_background(page)
             for label in ('Escuro Padrão', 'Claro'):
@@ -128,7 +120,7 @@ try:
             if device == 'desktop':
                 page.mouse.move(25,220)
                 page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288")
-                assert page.get_by_role('button', name='Planejamentos', exact=True).evaluate('e => {const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+20,r.y+20))}')
+                assert page.get_by_role('link', name='Planejamentos', exact=True).evaluate('e => {const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+20,r.y+20))}')
             else:
                 page.get_by_role('button', name='Alternar menu', exact=True).click()
                 dialog = page.get_by_role('dialog')

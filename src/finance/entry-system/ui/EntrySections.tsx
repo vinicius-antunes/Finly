@@ -1,6 +1,7 @@
+import { monthOffset } from "../credit/dates";
 import type { ReactNode } from "react";
 import { parseMoney } from "./money";
-import { FormField } from "./fields";
+import { FormField, MoneyInput } from "./fields";
 import { money, type State } from "../../model";
 import { balance } from "../../planning/data";
 import type { LedgerDraft } from "../contracts";
@@ -24,7 +25,12 @@ type Fields = {
   monetary: (
     label: string,
     key:
-      "amount" | "paymentAmount" | "down" | "original" | "final" | "useReserve",
+      | "amount"
+      | "paymentAmount"
+      | "down"
+      | "original"
+      | "final"
+      | "useReserve",
   ) => ReactNode;
 };
 type SectionProps = {
@@ -71,7 +77,19 @@ export function InstallmentFields({
                   min={1}
                   max={120}
                   value={d.count}
-                  onChange={(e) => patch({ count: Number(e.target.value) })}
+                  onChange={(e) => {
+                    if (
+                      d.customInstallments.length &&
+                      !confirm(
+                        "Alterar a quantidade e limpar os ajustes individuais?",
+                      )
+                    )
+                      return;
+                    patch({
+                      count: Number(e.target.value),
+                      customInstallments: [],
+                    });
+                  }}
                 />
               )}
             </FormField>
@@ -106,6 +124,85 @@ export function InstallmentFields({
         )}
         {monetary("Valor final contratado (opcional)", "final")}
       </div>
+      {d.paymentMode === "installments" && (
+        <details
+          className="entry-section"
+          tabIndex={-1}
+          data-field="customInstallments"
+        >
+          <summary>Valores e competências individuais</summary>
+          <label>
+            <input
+              type="checkbox"
+              checked={d.customInstallments.length > 0}
+              disabled={
+                !d.customInstallments.length &&
+                (!quote || !/^20\d\d-\d\d$/.test(first))
+              }
+              onChange={(e) => {
+                if (
+                  !e.target.checked &&
+                  !confirm("Descartar os ajustes individuais das parcelas?")
+                )
+                  return;
+                patch({
+                  customInstallments: e.target.checked
+                    ? quote!.installments.map((value, i) => ({
+                        amount: money(value),
+                        period: monthOffset(first, i),
+                      }))
+                    : [],
+                });
+              }}
+            />{" "}
+            Personalizar valores e competências
+          </label>
+          {d.customInstallments.map((r, i) => (
+            <div className="entry-grid" key={i}>
+              <FormField label={`Valor da parcela ${i + 1}`}>
+                {(a) => (
+                  <MoneyInput
+                    {...a}
+                    value={r.amount}
+                    onChange={(amount) =>
+                      patch({
+                        customInstallments: d.customInstallments.map((p, n) =>
+                          n === i ? { ...p, amount } : p,
+                        ),
+                      })
+                    }
+                  />
+                )}
+              </FormField>
+              <FormField label={`Competência da parcela ${i + 1}`}>
+                {(a) => (
+                  <input
+                    {...a}
+                    type="month"
+                    value={r.period}
+                    onChange={(e) =>
+                      patch({
+                        customInstallments: d.customInstallments.map((p, n) =>
+                          n === i ? { ...p, period: e.target.value } : p,
+                        ),
+                      })
+                    }
+                  />
+                )}
+              </FormField>
+            </div>
+          ))}
+          {errors.customInstallments && (
+            <p role="alert" className="field-error">
+              {errors.customInstallments}
+            </p>
+          )}
+          <p className="entry-hint">
+            A soma deve fechar o total contratado; a data original da compra é
+            preservada.
+          </p>
+        </details>
+      )}
       {quote ? (
         <div className="entry-preview">
           <p>
@@ -118,7 +215,23 @@ export function InstallmentFields({
             {quote.installments.map(money).join(" + ")}
           </p>
           <p>Juros / diferença: {money(quote.interestCents)}</p>
-          <p>Primeira fatura: {first}</p>
+          {d.interestMethod !== "none" && (
+            <>
+              <p>
+                Estimativa pela taxa: {money(quote.estimatedCents)} ·
+                Divergência para o contratado: {money(quote.divergenceCents)}
+              </p>
+              <p className="entry-hint">
+                Taxa mensal aplicada ao principal após a entrada.{" "}
+                {d.interestMethod === "simple-monthly"
+                  ? "Simples: principal × (1 + taxa × meses)."
+                  : "Composto: principal × (1 + taxa) elevado aos meses."}{" "}
+                O total contratado informado prevalece. Não é CET ou sistema
+                Price.
+              </p>
+            </>
+          )}
+          <p>Primeira fatura: {d.customInstallments[0]?.period ?? first}</p>
         </div>
       ) : (
         d.amount && <p className="field-error">{quoteError}</p>
@@ -215,6 +328,8 @@ export function EntryPreview({
   isEdit,
   ack,
   setAck,
+  paidAck,
+  setPaidAck,
 }: {
   d: EntryDraft;
   ledger: LedgerDraft;
@@ -222,10 +337,41 @@ export function EntryPreview({
   isEdit: boolean;
   ack: boolean;
   setAck: (v: boolean) => void;
+  paidAck: boolean;
+  setPaidAck: (v: boolean) => void;
 }) {
   return (
     <section className="entry-preview">
       <h3>Confira antes de salvar</h3>
+      {preview.warnings?.map((w) => (
+        <p role="status" key={w} className="warning-banner">
+          {w}
+        </p>
+      ))}
+      {!!preview.paidInvoiceImpacts?.length && (
+        <section
+          className="warning-banner"
+          aria-label="Impacto em faturas com pagamentos"
+        >
+          <h4>Esta alteração afeta uma fatura com pagamentos</h4>
+          {preview.paidInvoiceImpacts.map((i) => (
+            <p key={i.id}>
+              Total anterior {money(i.before)} → novo total {money(i.after)}.
+              Pagamentos preservados: {money(i.paid)}. Restante após correção:{" "}
+              {money(i.after - i.paid)}.
+            </p>
+          ))}
+          <label>
+            <input
+              type="checkbox"
+              checked={paidAck}
+              onChange={(e) => setPaidAck(e.target.checked)}
+            />{" "}
+            Reconheço o impacto na fatura e a preservação dos pagamentos
+            originais.
+          </label>
+        </section>
+      )}
       {preview.rows.map((r, i) => (
         <div key={i} className="entry-summary-row">
           <span>

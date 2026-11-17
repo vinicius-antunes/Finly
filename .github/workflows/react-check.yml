@@ -44,6 +44,7 @@ jobs:
           node tests/check_reimbursements.mjs
           node tests/check_entry_ui.mjs
           node tests/check_receipts.mjs
+          node tests/check_integration.mjs
       - name: Build estático
         run: npm run build
       - name: Verificar salvaguardas e fallback
@@ -57,9 +58,16 @@ jobs:
           test -f dist/legacy/index.html
           test -f dist/legacy/assets/aurora.css
           test -f dist/legacy/assets/theme.js
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Instalar navegador para comprovantes e restauração real
         run: |
           python3 -m pip install playwright Pillow
           python3 -m playwright install --with-deps chromium
       - name: Comprovantes e backup ZIP no Chromium
-        run: python3 tests/check_receipts_browser.py
+        run: |
+          python3 tests/check_receipts_browser.py
+          python3 tests/check_integration_browser.py
+          python3 tests/check_accessibility.py

@@ -276,10 +276,8 @@ export async function inspectFile(
   };
 }
 export async function verifyBlob(r: Receipt, blob: Blob) {
-  if (
-    blob.size !== r.size ||
-    (await digest(await blob.arrayBuffer())) !== r.sha256
-  )
+  if (blob.size !== r.size) throw Error(`Integridade inválida: ${r.name}`);
+  const inspected = await inspectFile(blob, r.name, r.mime);
+  if (inspected.receipt.sha256 !== r.sha256)
     throw Error(`Integridade inválida: ${r.name}`);
-  await inspectFile(blob, r.name, r.mime);
 }

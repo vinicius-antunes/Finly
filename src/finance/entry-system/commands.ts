@@ -121,6 +121,10 @@ export function possibleDuplicates(l: LedgerDraft, o: Operation) {
         x.amountCents === o.amountCents &&
         x.operationDate === o.operationDate &&
         x.accountId === o.accountId &&
+        x.cardId === o.cardId &&
+        x.period === o.period &&
+        (x.operationDate ?? x.expectedDate) ===
+          (o.operationDate ?? o.expectedDate) &&
         norm(x.description) === norm(o.description),
     )
     .map((x) => x.id);

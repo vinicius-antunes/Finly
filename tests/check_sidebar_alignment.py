@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parent.parent
 ART = ROOT / 'docs/graphite/sidebar-alignment'
 ART.mkdir(parents=True, exist_ok=True)
 BEFORE = '--before' in sys.argv
-GEOMETRY = '''() => ['Visão geral','Lançamentos','Planejamentos','Sobre a migração'].map(label => {
-  const button = document.querySelector(`button[aria-label="${label}"]`);
+GEOMETRY = '''() => ['Visão geral','Lançamentos','Planejamentos','Configurações'].map(label => {
+  const button = document.querySelector(`a[aria-label="${label}"]`);
   const rect = button.getBoundingClientRect(), icon = button.querySelector('svg').getBoundingClientRect();
   const text = button.querySelector('span'), arrow = button.querySelector('.planning-chevron');
   return {label, slot:button.dataset.slot, active:button.dataset.active,
@@ -56,10 +56,14 @@ try:
             page.mouse.move(1100,100)
             page.goto(f'http://127.0.0.1:{server.server_port}')
             page.evaluate('document.fonts.ready')
+            baseline=page.evaluate("localStorage.getItem('finly-v2')")
             prefix = f'{theme}-{"before" if BEFORE else "after"}'
             results[f'{theme}-inactive'] = collapsed(page)
             screenshot(page, f'{prefix}-inactive')
-            page.get_by_role('button', name='Planejamentos', exact=True).click()
+            page.mouse.move(28,220)
+            page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288")
+            page.get_by_role('link', name='Planejamentos', exact=True).click()
+            page.wait_for_function("document.querySelector('a[aria-label=\"Planejamentos\"]').getAttribute('aria-current')==='page'")
             page.mouse.move(1100,100)
             page.locator('h1').click()
             results[f'{theme}-active'] = collapsed(page)
@@ -77,8 +81,7 @@ try:
                 expanded = page.evaluate(GEOMETRY)
                 assert all(abs(row['center'] - expanded[0]['center']) < .1 for row in expanded), expanded
                 assert all(not row['textHidden'] for row in expanded)
-                assert not expanded[2]['arrowHidden']
-                assert page.get_by_role('button', name='Recursos disponíveis', exact=True).is_visible()
+                assert page.get_by_role('link',name='Planejamentos',exact=True).get_attribute('href').startswith('#/planejamentos')
                 screenshot(page, f'{prefix}-expanded')
                 page.mouse.move(1100,100)
                 collapsed(page)
@@ -87,11 +90,12 @@ try:
                 assert len(frames) > 2
                 assert all(max(frame)-min(frame) < .1 for frame in frames), frames
                 results[f'{theme}-transition-max-delta'] = max(max(frame)-min(frame) for frame in frames)
-                page.get_by_role('button', name='Visão geral', exact=True).click()
+                page.get_by_role('link', name='Visão geral', exact=True).click()
                 page.mouse.move(1100,100)
                 page.locator('h1').click()
                 collapsed(page)
-                assert not page.evaluate("localStorage.getItem('saldoclaro-v1') || localStorage.getItem('finly-v2')")
+                assert page.evaluate("localStorage.getItem('finly-v2')")==baseline
+                assert not page.evaluate("localStorage.getItem('saldoclaro-v1')")
             context.close()
         browser.close()
     (ART / f'{"before" if BEFORE else "after"}-measurements.json').write_text(json.dumps(results, ensure_ascii=False, indent=2)+'\n')

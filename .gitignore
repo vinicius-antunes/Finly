@@ -13,3 +13,4 @@ test-results/
 *.backup.json
 *backup-financeiro*.json
 *.tsbuildinfo
+__pycache__/

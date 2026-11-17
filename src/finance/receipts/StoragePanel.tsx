@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { State } from "../model";
 import { bytesLabel, allReceipts, type Target } from "./model";
-import { storageHealth, cleanOrphans, listBlobs } from "./storage";
+import {
+  storageHealth,
+  cleanOrphans,
+  listBlobs,
+  currentSnapshot,
+} from "./storage";
 import type { prepareExport } from "./zip";
 import { ReceiptManager } from "./ReceiptFields";
 export function StoragePanel({
@@ -182,7 +187,7 @@ export function StoragePanel({
                 )
               )
                 return;
-              await cleanOrphans(JSON.stringify(state));
+              await cleanOrphans(currentSnapshot(state));
               await check();
               setNotice("Arquivos órfãos removidos.");
             })
@@ -284,7 +289,8 @@ export function StoragePanel({
                   void run(async () => {
                     if (
                       previewSource !== JSON.stringify(state) ||
-                      localStorage.getItem("finly-v2") !== previewSource
+                      JSON.stringify(JSON.parse(currentSnapshot(state))) !==
+                        previewSource
                     )
                       throw Error(
                         "Os dados mudaram. Confira o backup novamente.",
