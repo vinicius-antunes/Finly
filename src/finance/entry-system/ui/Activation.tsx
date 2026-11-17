@@ -4,8 +4,61 @@ import { EntryDialog } from "./EntryDialog";
 import type { State } from "../../model";
 import { download } from "../../storage";
 import { previewEntryMigration, type MigrationPreview } from "../migration";
-import { activateEntryLedger } from "../state";
-export function Activation({
+import { activateEntryLedger, isEmptyEntryInstallation } from "../state";
+export function Activation(props: Parameters<typeof ProtectedActivation>[0]) {
+  // Storage access failure is an error, never evidence of an empty installation.
+  const [status, setStatus] = useState<"checking" | "legacy" | "error">(
+    "checking",
+  );
+  useEffect(() => {
+    let live = true;
+    async function prepare() {
+      try {
+        const legacyRaw = localStorage.getItem("saldoclaro-v1");
+        if (!isEmptyEntryInstallation(props.state, legacyRaw)) {
+          if (live) setStatus("legacy");
+          return;
+        }
+        const next = await activateEntryLedger(props.state, null, {
+          emptyInstallation: true,
+          legacyRaw,
+        });
+        if (!live) return;
+        if (
+          localStorage.getItem("saldoclaro-v1") !== legacyRaw ||
+          !props.onCommit(next)
+        )
+          throw Error("Não foi possível salvar");
+      } catch {
+        if (live) setStatus("error");
+      }
+    }
+    void prepare();
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (status === "legacy") return <ProtectedActivation {...props} />;
+  return (
+    <EntryDialog
+      title="Novo lançamento"
+      description="Inicialização segura do formulário."
+      onClose={props.onClose}
+    >
+      <div className="entry-body">
+        {status === "checking" ? (
+          <p role="status">Abrindo formulário…</p>
+        ) : (
+          <p role="alert">
+            Não foi possível inicializar o formulário. Seus dados foram
+            preservados. Atualize a página antes de tentar novamente.
+          </p>
+        )}
+      </div>
+    </EntryDialog>
+  );
+}
+function ProtectedActivation({
   state,
   onCommit,
   onClose,
