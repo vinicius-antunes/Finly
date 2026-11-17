@@ -1324,3 +1324,28 @@ h2{
   .executive-dashboard p { margin-block:4px; }
   .executive-dashboard .budget-amount { margin-block:6px; }
 }
+/* Shared header: align the control row, independently of the month label. */
+.finance-app .home-heading .home-header-actions {
+  display:grid;
+  grid-template-columns:minmax(200px,auto) auto;
+  align-items:end;
+  gap:16px;
+}
+.finance-app .home-heading .home-toolbar { margin:0; display:block; min-width:0; }
+.finance-app .home-heading .home-toolbar .finance-field { gap:8px; }
+.finance-app .home-heading .home-header-actions>.home-toolbar .month-trigger,
+.finance-app .home-heading .home-header-actions>button {
+  height:42px;
+  min-height:42px;
+  margin:0;
+  padding-block:8px;
+  font-size:.875rem;
+  line-height:1.4;
+  display:flex;
+  align-items:center;
+}
+.finance-app .home-heading .home-header-actions>button { justify-content:center; }
+@media(max-width:640px) {
+  .finance-app .home-heading .home-header-actions { grid-template-columns:minmax(0,1fr); gap:12px; width:100%; }
+  .finance-app .home-heading .home-header-actions>button { width:100%; }
+}
