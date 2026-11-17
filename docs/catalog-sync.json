@@ -1,0 +1,41 @@
+{
+  "sources": [
+    {
+      "source": "shadcn",
+      "url": "https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/public/r/index.json",
+      "status": "snapshot",
+      "count": 65
+    },
+    {
+      "source": "reactbits",
+      "url": "https://raw.githubusercontent.com/DavidHDev/react-bits/main/public/r/registry.json",
+      "status": "snapshot",
+      "count": 1278
+    },
+    {
+      "source": "magicui",
+      "url": "https://raw.githubusercontent.com/magicuidesign/magicui/main/registry.json",
+      "status": "snapshot",
+      "count": 259
+    },
+    {
+      "source": "tweakcn",
+      "url": "https://raw.githubusercontent.com/jnsahaj/tweakcn/main/public/r/registry.json",
+      "status": "snapshot",
+      "count": 36
+    }
+  ],
+  "counts": {
+    "shadcn": 65,
+    "reactbits": 1278,
+    "magicui": 259,
+    "tweakcn": 36,
+    "recharts": 72,
+    "aceternity": 3
+  },
+  "integrated": 13,
+  "limitations": [
+    "Aceternity: enumeration blocked; 3 references only, not a complete catalogue",
+    "React Bits current license restricts UI tools/redistribution; reference only"
+  ]
+}

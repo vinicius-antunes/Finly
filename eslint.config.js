@@ -1,0 +1,1 @@
+import tseslint from 'typescript-eslint';export default tseslint.config(...tseslint.configs.recommended,{ignores:['src/vendor/**','src/components/ui/**','dist/**'],rules:{'@typescript-eslint/no-explicit-any':'off'}});
