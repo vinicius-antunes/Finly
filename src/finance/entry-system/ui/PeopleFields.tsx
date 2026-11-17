@@ -1,3 +1,4 @@
+import { MonthPicker } from "@/components/ui/month-picker";
 import { Button } from "@/components/ui/button";
 import { FormField, MoneyInput, today } from "./fields";
 import { newPerson, type PersonDraft } from "./draft";
@@ -82,7 +83,7 @@ export function PeopleFields({
                 </FormField>
                 <FormField label="Mês de referência do reembolso">
                   {(a) => (
-                    <input
+                    <MonthPicker
                       {...a}
                       type="month"
                       value={p.period}
@@ -116,7 +117,7 @@ export function PeopleFields({
                       </FormField>
                       <FormField label={`Mês de referência previsto ${j + 1}`}>
                         {(a) => (
-                          <input
+                          <MonthPicker
                             {...a}
                             type="month"
                             value={r.period}

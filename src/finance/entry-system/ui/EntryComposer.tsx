@@ -1,3 +1,4 @@
+import { PeriodInput } from "@/components/ui/month-picker";
 import { deleteOperation } from "../commands";
 import { ReceiptFields, SavedReceipts } from "../../receipts/ReceiptFields";
 import {
@@ -249,7 +250,7 @@ export function EntryComposer({
   ) => (
     <FormField label={label} name={key} error={errors[key]} wide={wide}>
       {(p) => (
-        <input
+        <PeriodInput
           {...p}
           type={inputType}
           maxLength={

@@ -1,3 +1,4 @@
+from month_picker_helpers import select_month
 from backup_helpers import restore_backup
 """Home parity with main; synthetic fixtures and full-page Chromium captures."""
 import functools,http.server,json,threading,subprocess
@@ -48,7 +49,7 @@ try:
     if w==1440:
      rects=page.locator('.home-primary-grid>*').evaluate_all('(es)=>es.map(e=>e.getBoundingClientRect().toJSON())');assert len(rects)==3;assert rects[0]['width']>rects[1]['width'];assert page.locator('.executive-dashboard').evaluate('(e)=>e.getBoundingClientRect().bottom')<1000;assert abs(rects[0]['y']-rects[1]['y'])<1
    page.set_viewport_size({'width':1440,'height':1000});assert page.evaluate("localStorage.getItem('finly-v2')")==baseline
-  page.get_by_label('Mês de referência',exact=True).fill('2026-10');assert page.locator('.home-balance>strong').inner_text().replace('\xa0',' ')=='R$ 1.800,00';page.get_by_label('Mês de referência',exact=True).fill('2026-11')
+  select_month(page.get_by_label('Mês de referência',exact=True), '2026-10');assert page.locator('.home-balance>strong').inner_text().replace('\xa0',' ')=='R$ 1.800,00';select_month(page.get_by_label('Mês de referência',exact=True), '2026-11')
   page.get_by_role('button',name='Consultar Fatura do cartão',exact=True).click();page.get_by_label('Status da fatura',exact=True).select_option('paid');state=json.loads(page.evaluate("localStorage.getItem('finly-v2')"));assert len(state['transactions'])==8 and state['invoiceStatuses']['2026-11']=='paid'
   nav('Visão geral');page.get_by_role('button',name='Consultar Reembolsos a receber').click();page.get_by_role('button',name='Marcar recebido',exact=True).click();nav('Visão geral');assert page.locator('.home-balance>strong').inner_text().replace('\xa0',' ')=='R$ 1.990,00';nav('Reembolsos');page.get_by_role('button',name='Desfazer recebimento',exact=True).click();nav('Visão geral')
   page.get_by_role('button',name='Ajustar referências →',exact=True).click();page.get_by_role('heading',name='Referências financeiras').wait_for();nav('Visão geral');page.get_by_role('button',name='Consultar Despesas fora do cartão').click();page.get_by_role('heading',name='Lançamentos',exact=True).wait_for();nav('Visão geral');page.get_by_role('button',name='1 pendências sem mês de referência →').click();page.get_by_role('heading',name='Pendências sem mês de referência (fora da fatura)').wait_for();assert page.get_by_label('Mês de referência de Cobrança sem mês de referência',exact=True).is_visible();nav('Visão geral');page.get_by_role('button',name='Notificações',exact=False).click();page.get_by_role('dialog').wait_for();page.keyboard.press('Escape')

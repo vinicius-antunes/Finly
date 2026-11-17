@@ -1,0 +1,93 @@
+.month-picker {
+  display: block;
+  min-width: 0;
+  position: relative;
+}
+.month-native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0;
+  pointer-events: none;
+  padding: 0 !important;
+  border: 0 !important;
+}
+.month-trigger {
+  width: 100%;
+  justify-content: flex-start;
+  min-width: 0;
+  font: inherit;
+}
+.month-trigger span {
+  flex: 1;
+  white-space: normal;
+  text-align: left;
+}
+.month-panel {
+  position: fixed;
+  margin: 0;
+  width: 280px;
+  max-width: calc(100vw - 16px);
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 12px 40px #0004;
+}
+.month-year {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 8px 0;
+}
+.month-grid [aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.month-footer {
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.month-panel:popover-open {
+  animation: month-open 0.14s ease-out;
+}
+@keyframes month-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .month-panel:popover-open {
+    animation: none;
+  }
+}
+@supports (transition-behavior: allow-discrete) {
+  .month-panel {
+    transition:
+      opacity 0.12s,
+      display 0.12s allow-discrete,
+      overlay 0.12s allow-discrete;
+    opacity: 0;
+  }
+  .month-panel:popover-open {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .month-panel {
+    transition: none;
+  }
+}

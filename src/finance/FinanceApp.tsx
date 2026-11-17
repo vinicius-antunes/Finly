@@ -1,3 +1,4 @@
+import { MonthPicker } from "@/components/ui/month-picker";
 import { StoragePanel } from "./receipts/StoragePanel";
 import { ReceiptManager } from "./receipts/ReceiptFields";
 import { allReceipts, entryTargets, type Target } from "./receipts/model";
@@ -427,7 +428,7 @@ function EntryForm({
           />
         </Field>
         <Field label="Mês de referência">
-          <input
+          <MonthPicker
             required
             name="period"
             type="month"
@@ -908,7 +909,7 @@ export function FinanceApp({
               {" "}
               <div className="finance-actions home-toolbar">
                 <Field label="Mês de referência">
-                  <input
+                  <MonthPicker
                     type="month"
                     value={period}
                     onChange={(e) => {
@@ -1635,7 +1636,7 @@ function PendingRow({
       <p>
         {x.description} · {money(x.amountCents)} · {x.chargedAt} · {x.note}
       </p>
-      <input
+      <MonthPicker
         aria-label={"Mês de referência de " + x.description}
         type="month"
         value={p}

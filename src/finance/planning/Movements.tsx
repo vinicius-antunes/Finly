@@ -1,3 +1,4 @@
+import { MonthPicker } from "@/components/ui/month-picker";
 import { useState, type FormEvent } from "react";
 import { cents, money } from "../model";
 import { balance, type Goal } from "./data";
@@ -87,7 +88,7 @@ export function Movements({
         </label>
         <label>
           Mês de referência financeiro
-          <input type="month" name="period" defaultValue={period} required />
+          <MonthPicker type="month" name="period" defaultValue={period} required />
         </label>
         {kind === "correction" && (
           <label>

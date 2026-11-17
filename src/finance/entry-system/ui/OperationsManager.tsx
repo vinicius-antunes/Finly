@@ -1,3 +1,4 @@
+import { MonthPicker } from "@/components/ui/month-picker";
 import { ReceiptManager } from "../../receipts/ReceiptFields";
 import { linked, type Target } from "../../receipts/model";
 import { Paperclip } from "lucide-react";
@@ -326,7 +327,7 @@ function RecurrenceControls({
             </Button>
             <label>
               Prever até
-              <input
+              <MonthPicker
                 aria-label="Gerar ocorrências até"
                 type="month"
                 value={to}

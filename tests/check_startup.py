@@ -1,3 +1,4 @@
+from month_picker_helpers import select_month
 from entries_helpers import new_entry
 from backup_helpers import restore_backup
 import re
@@ -22,7 +23,7 @@ try:
   assert page.get_by_text('Ativar Finly funcional',exact=True).count()==0
   assert page.locator('a[href*="legacy"]').count()==0 and page.locator('.home-intro').count()==0
   assert page.get_by_role('button',name='Mês anterior',exact=True).count()==0 and page.get_by_role('button',name='Próximo mês',exact=True).count()==0
-  page.get_by_label('Mês de referência',exact=True).fill('2024-01');assert page.get_by_label('Mês de referência',exact=True).input_value()=='2024-01';page.get_by_label('Mês de referência',exact=True).fill('2030-12')
+  select_month(page.get_by_label('Mês de referência',exact=True), '2024-01');assert page.get_by_label('Mês de referência',exact=True).input_value()=='2024-01';select_month(page.get_by_label('Mês de referência',exact=True), '2030-12')
   page.evaluate('document.fonts.ready');page.screenshot(path=str(ART/'empty-desktop.png'),full_page=True);page.set_viewport_size({'width':390,'height':844});page.screenshot(path=str(ART/'empty-mobile.png'),full_page=True);page.set_viewport_size({'width':1440,'height':1000})
   new_entry(page);d=page.get_by_role('dialog');d.get_by_label('Descrição',exact=True).fill('Primeiro lançamento sintético');d.get_by_label(re.compile(r'^Valor.*\(R\$\)$')).fill('33');d.get_by_role('button',name=re.compile('^Salvar (lançamento|alterações)$')).click();d.wait_for(state='hidden');saved=page.evaluate("localStorage.getItem('finly-v2')");assert len(json.loads(saved)['transactions'])==1
   page.reload();page.get_by_role('heading',name='Lançamentos',exact=True).wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==saved and page.evaluate('v2Writes.length')==0;assert page.evaluate("localStorage.getItem('saldoclaro-v1')")=='original legado intocado'

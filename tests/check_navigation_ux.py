@@ -1,3 +1,4 @@
+from month_picker_helpers import select_month
 from entries_helpers import new_entry, advanced_entries
 from backup_helpers import restore_backup
 import re
@@ -35,7 +36,7 @@ try:
    page.get_by_role('tab',name=tab,exact=True).click();assert page.get_by_role('tabpanel').is_visible();page.screenshot(path=str(ART/('settings-'+tab+'.png')),full_page=True)
   page.get_by_role('tab',name='Financeiro',exact=True).focus();page.keyboard.press('ArrowRight');assert page.get_by_role('tab',name='Aparência',exact=True).get_attribute('aria-selected')=='true'
   page.get_by_role('tab',name='Aparência',exact=True).evaluate('(e)=>{if(e!==document.activeElement)throw Error("Tab focus lost")}')
-  nav('Visão geral');page.get_by_label('Mês de referência',exact=True).fill('2026-12');nav('Fatura do cartão');nav('Reembolsos');page.go_back();page.get_by_role('heading',name='Fatura do cartão',exact=True).wait_for();page.go_forward();page.get_by_role('heading',name='Reembolsos',exact=True).wait_for();assert page.get_by_label('Mês de referência',exact=True).input_value()=='2026-12'
+  nav('Visão geral');select_month(page.get_by_label('Mês de referência',exact=True), '2026-12');nav('Fatura do cartão');nav('Reembolsos');page.go_back();page.get_by_role('heading',name='Fatura do cartão',exact=True).wait_for();page.go_forward();page.get_by_role('heading',name='Reembolsos',exact=True).wait_for();assert page.get_by_label('Mês de referência',exact=True).input_value()=='2026-12'
   for slug,label in routes:
    page.goto(url+'/#/'+slug+'?competencia=2026-11');page.get_by_role('heading',name='Meus planejamentos' if label=='Planejamentos' else label,exact=True).wait_for();assert page.evaluate("localStorage.getItem('finly-v2')")==raw
   assert page.evaluate('financialWrites')==[]

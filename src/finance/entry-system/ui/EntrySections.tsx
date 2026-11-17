@@ -1,3 +1,4 @@
+import { MonthPicker } from "@/components/ui/month-picker";
 import { monthOffset } from "../credit/dates";
 import type { ReactNode } from "react";
 import { parseMoney } from "./money";
@@ -176,7 +177,7 @@ export function InstallmentFields({
               </FormField>
               <FormField label={`Mês de referência da parcela ${i + 1}`}>
                 {(a) => (
-                  <input
+                  <MonthPicker
                     {...a}
                     type="month"
                     value={r.period}

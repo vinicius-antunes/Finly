@@ -1,3 +1,4 @@
+from month_picker_helpers import select_month
 """Real Chromium/IndexedDB/download/ZIP flows; exclusively synthetic in-memory documents."""
 import functools, http.server, threading, subprocess, json, io, zipfile, hashlib
 from pathlib import Path
@@ -29,7 +30,7 @@ try:
   def basic(d,name):
    d.get_by_label('Descrição',exact=True).fill(name);d.get_by_label('Valor (R$)',exact=True).fill('100');
    field='Data da compra' if d.get_by_role('tab',name='Cartão',exact=True).get_attribute('aria-selected')=='true' else 'Data prevista' if d.get_by_role('tab',name='Receita',exact=True).get_attribute('aria-selected')=='true' or d.get_by_role('tab',name='Reembolso',exact=True).get_attribute('aria-selected')=='true' else 'Data da operação';d.get_by_label(field,exact=True).fill('2026-11-15')
-   if d.get_by_label('Mês de referência',exact=True).count():d.get_by_label('Mês de referência',exact=True).fill('2026-11')
+   if d.get_by_label('Mês de referência',exact=True).count():select_month(d.get_by_label('Mês de referência',exact=True), '2026-11')
   def attach(container,files):
    f=container.locator('.receipt-fields').first
    if f.get_attribute('open') is None:f.locator('summary').click()

@@ -1,3 +1,4 @@
+import { MonthPicker } from "@/components/ui/month-picker";
 import { useState, lazy, Suspense } from "react";
 import { cents, money, type State } from "../model";
 import { balance, type Goal } from "./data";
@@ -120,7 +121,7 @@ export function Simulator({
         )}
         <label>
           Primeiro mês de referência
-          <input
+          <MonthPicker
             type="month"
             value={first}
             onChange={(e) => setFirst(e.target.value)}
