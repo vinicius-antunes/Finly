@@ -31,7 +31,7 @@ function Summary({ state }: { state: State }) {
           ["Recorrências", s.ledgerRecurrences],
           ["Grupos de parcelas / recorrências", s.groups],
           ["Reembolsos", s.refunds],
-          ["Pendências sem competência", s.pending],
+          ["Pendências sem mês de referência", s.pending],
           ["Compras previstas a conferir", s.forecasts],
           ["Situações de faturas", s.invoices],
         ].map(([label, value]) => (
@@ -42,11 +42,11 @@ function Summary({ state }: { state: State }) {
         ))}
       </dl>
       <p>
-        <strong>Competências abrangidas</strong>
+        <strong>Meses de referência abrangidos</strong>
         <br />
         {s.periods.length
           ? s.periods.join(" · ")
-          : "Nenhuma competência registrada."}
+          : "Nenhum mês de referência registrado."}
       </p>
       <p>
         <strong>Configurações financeiras incluídas</strong>

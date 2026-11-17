@@ -42,7 +42,7 @@ try:
   assert now['entryLedger']['agreements']==old['entryLedger']['agreements']
   d=open_form('Reembolso');d.get_by_label('Descrição',exact=True).fill('Cronograma personalizado sintético');d.get_by_label('Valor (R$)',exact=True).fill('80');d.get_by_label('Modalidade do reembolso',exact=True).select_option('custom')
   for i,(amount,period) in enumerate([('30','2026-11'),('50','2026-12')],start=1):
-   d.get_by_role('button',name='Adicionar previsão',exact=True).click();d.get_by_label(f'Valor previsto {i}',exact=True).fill(amount);d.get_by_label(f'Competência prevista {i}',exact=True).fill(period)
+   d.get_by_role('button',name='Adicionar previsão',exact=True).click();d.get_by_label(f'Valor previsto {i}',exact=True).fill(amount);d.get_by_label(f'Mês de referência previsto {i}',exact=True).fill(period)
   before=len(state()['entryLedger']['agreements']);d.get_by_role('button',name='Salvar lançamento',exact=True).click();d.get_by_label('Conferi os valores, vínculos e o impacto financeiro.').check()
   d.get_by_role('button',name='Confirmar e salvar',exact=True).evaluate('(e)=>{e.click();e.click()}');d.wait_for(state='hidden')
   assert len(state()['entryLedger']['agreements'])==before+1

@@ -130,7 +130,7 @@ export function InstallmentFields({
           tabIndex={-1}
           data-field="customInstallments"
         >
-          <summary>Valores e competências individuais</summary>
+          <summary>Valores e meses de referência individuais</summary>
           <label>
             <input
               type="checkbox"
@@ -155,7 +155,7 @@ export function InstallmentFields({
                 });
               }}
             />{" "}
-            Personalizar valores e competências
+            Personalizar valores e meses de referência
           </label>
           {d.customInstallments.map((r, i) => (
             <div className="entry-grid" key={i}>
@@ -174,7 +174,7 @@ export function InstallmentFields({
                   />
                 )}
               </FormField>
-              <FormField label={`Competência da parcela ${i + 1}`}>
+              <FormField label={`Mês de referência da parcela ${i + 1}`}>
                 {(a) => (
                   <input
                     {...a}

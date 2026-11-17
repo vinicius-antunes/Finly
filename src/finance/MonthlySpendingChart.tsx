@@ -29,12 +29,12 @@ export function MonthlySpendingChart({
   return (
     <MagicCard className="home-panel monthly-spending">
       <h2>Gastos mensais</h2>
-      <p className="muted">Últimas seis competências · despesas registradas</p>
+      <p className="muted">Últimos seis meses de referência · despesas registradas</p>
       <ChartContainer
         role="region"
         config={config}
         className="monthly-bars"
-        aria-label="Gastos das últimas seis competências"
+        aria-label="Gastos dos últimos seis meses de referência"
       >
         <BarChart
           accessibilityLayer
@@ -87,10 +87,10 @@ export function MonthlySpendingChart({
         </BarChart>
       </ChartContainer>
       <table className="sr-only">
-        <caption>Gastos por competência, em reais</caption>
+        <caption>Gastos por mês de referência, em reais</caption>
         <thead>
           <tr>
-            <th scope="col">Competência</th>
+            <th scope="col">Mês de referência</th>
             <th scope="col">Gastos</th>
           </tr>
         </thead>

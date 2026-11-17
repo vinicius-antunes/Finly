@@ -546,7 +546,7 @@ export function EntryComposer({
                     {(d.type !== "reimbursement" ||
                       !d.people[0] ||
                       d.people[0].mode === "single") &&
-                      text("Competência", "period", "month")}
+                      text("Mês de referência", "period", "month")}
                     {account(
                       d.type === "transfer"
                         ? "Conta de origem"

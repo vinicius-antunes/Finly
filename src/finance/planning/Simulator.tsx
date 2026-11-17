@@ -119,7 +119,7 @@ export function Simulator({
           </label>
         )}
         <label>
-          Primeira competência
+          Primeiro mês de referência
           <input
             type="month"
             value={first}
@@ -210,7 +210,7 @@ export function Simulator({
             <Impact data={result.impact} />
           </Suspense>
           <p>
-            Gráfico: primeiras 12 competências. Tabela: todas as parcelas
+            Gráfico: primeiros 12 meses de referência. Tabela: todas as parcelas
             simuladas.
           </p>
           <div className="planning-table">

@@ -72,7 +72,7 @@ export function validateFinancialLedger(
   const ids = new Set<string>();
   for (const inv of l.invoices) {
     const key = inv.cardId + ":" + inv.period;
-    if (ids.has(key)) throw Error("Fatura duplicada por cartão/competência");
+    if (ids.has(key)) throw Error("Fatura duplicada por cartão/mês de referência");
     ids.add(key);
     const b = invoiceBalance(l, inv.id);
     if (b.paid < 0 || b.remaining < 0)

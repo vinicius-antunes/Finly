@@ -3,11 +3,11 @@ import { dateOK, periodOK } from "../schema.ts";
 import { validateFinancialLedger } from "../finance.ts";
 export function monthOffset(period: string, delta: number) {
   if (!periodOK(period) || !Number.isInteger(delta))
-    throw Error("Competência inválida");
+    throw Error("Mês de referência inválido");
   const [y, m] = period.split("-").map(Number),
     d = new Date(Date.UTC(y, m - 1 + delta, 1));
   const result = d.toISOString().slice(0, 7);
-  if (!periodOK(result)) throw Error("Competência fora do intervalo suportado");
+  if (!periodOK(result)) throw Error("Mês de referência fora do intervalo suportado");
   return result;
 }
 export function dateInMonth(period: string, day: number) {
@@ -20,7 +20,7 @@ export function dateInMonth(period: string, day: number) {
 export function firstInvoice(card: Card, date: string, manualPeriod?: string) {
   if (!dateOK(date)) throw Error("Data da compra inválida");
   if (manualPeriod !== undefined) {
-    if (!periodOK(manualPeriod)) throw Error("Competência manual inválida");
+    if (!periodOK(manualPeriod)) throw Error("Mês de referência manual inválido");
     return {
       period: manualPeriod,
       dueDate: card.dueDay ? dateInMonth(manualPeriod, card.dueDay) : undefined,
@@ -29,7 +29,7 @@ export function firstInvoice(card: Card, date: string, manualPeriod?: string) {
   }
   if (!card.closingDay || !card.dueDay || !card.onClosingDay)
     throw Error(
-      "Configure fechamento, vencimento e regra de fechamento, ou informe a competência manual",
+      "Configure fechamento, vencimento e regra de fechamento, ou informe o mês de referência manual",
     );
   let closingMonth = date.slice(0, 7);
   const closing = dateInMonth(closingMonth, card.closingDay);

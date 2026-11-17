@@ -294,8 +294,8 @@ export function EntriesWorkspace({
       <p className="entries-context" role="status">
         {selected.length} lançamentos ·{" "}
         {filters.all
-          ? "Todos os meses, agrupados por competência"
-          : `Competência ${period}`}{" "}
+          ? "Todos os meses, agrupados por mês de referência"
+          : `Mês de referência ${period}`}{" "}
         · Indicadores dos registros filtrados, não representam saldo.
       </p>
       <div className="entries-indicators">
@@ -397,7 +397,7 @@ export function EntriesWorkspace({
                 value={filters.all ? "all" : "current"}
                 onChange={(e) => update({ all: e.target.value === "all" })}
               >
-                <option value="current">Competência atual</option>
+                <option value="current">Mês de referência atual</option>
                 <option value="all">Todos os meses</option>
               </select>
             </label>
@@ -423,8 +423,8 @@ export function EntriesWorkspace({
                 value={filters.order}
                 onChange={(e) => update({ order: e.target.value })}
               >
-                <option value="period-desc">Competência mais recente</option>
-                <option value="period-asc">Competência mais antiga</option>
+                <option value="period-desc">Mês de referência mais recente</option>
+                <option value="period-asc">Mês de referência mais antigo</option>
                 <option value="description">Descrição A–Z</option>
                 <option value="amount-asc">Menor valor</option>
                 <option value="amount-desc">Maior valor</option>
@@ -529,7 +529,7 @@ export function EntriesWorkspace({
                   {filters.all && (
                     <tr className="entry-group">
                       <th colSpan={5}>
-                        Competência {p} ·{" "}
+                        Mês de referência {p} ·{" "}
                         {selected.filter((x) => x.period === p).length}{" "}
                         registros
                       </th>
@@ -564,7 +564,7 @@ export function EntriesWorkspace({
           <div className="entries-mobile">
             {groups.map((p) => (
               <section key={p}>
-                {filters.all && <h2>Competência {p}</h2>}
+                {filters.all && <h2>Mês de referência {p}</h2>}
                 {pageRows
                   .filter((x) => x.period === p)
                   .map((x) => (

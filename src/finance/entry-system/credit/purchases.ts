@@ -82,7 +82,7 @@ export function registerPurchase(l: LedgerDraft, input: PurchaseInput) {
     periods.length !== quote.installments.length ||
     periods.some((x) => !periodOK(x))
   )
-    throw Error("Competências inválidas");
+    throw Error("Meses de referência inválidos");
   const next = structuredClone(l);
   const installmentIds = quote.installments.map((amountCents, index) => {
     const id = `purchase:${input.id}:part:${index + 1}`,
@@ -297,7 +297,7 @@ export function applyInstallments(
     if (invoice && invoiceBalance(l, invoice.id).paid > 0) {
       if (c.period !== o.period)
         throw Error(
-          "Parcela de fatura com pagamento não pode mudar de competência",
+          "Parcela de fatura com pagamento não pode mudar de mês de referência",
         );
       if (!approval.acknowledgePaidInvoices)
         throw Error("Confirme o impacto na fatura com pagamentos");

@@ -21,7 +21,7 @@ try:
   def basic(di,name,amount='100,01'):
    di.get_by_label('Descrição',exact=True).fill(name);di.get_by_label('Valor (R$)',exact=True).fill(amount)
    field=di.get_by_label('Data da compra' if di.get_by_role('tab',name='Cartão',exact=True).get_attribute('aria-selected')=='true' else 'Data prevista' if di.get_by_role('tab',name='Receita',exact=True).get_attribute('aria-selected')=='true' or di.get_by_role('tab',name='Reembolso',exact=True).get_attribute('aria-selected')=='true' else 'Data da operação',exact=True);field.fill('2026-11-09')
-   if di.get_by_label('Competência',exact=True).count():di.get_by_label('Competência',exact=True).fill('2026-11')
+   if di.get_by_label('Mês de referência',exact=True).count():di.get_by_label('Mês de referência',exact=True).fill('2026-11')
   def finish(di,review=True):
    di.get_by_role('button',name='Salvar lançamento',exact=True).click()
    if review:di.get_by_label('Conferi os valores, vínculos e o impacto financeiro.').check();di.get_by_role('button',name='Confirmar e salvar',exact=True).click()

@@ -426,7 +426,7 @@ function EntryForm({
             onChange={(e) => setAmount(e.target.value)}
           />
         </Field>
-        <Field label="Competência">
+        <Field label="Mês de referência">
           <input
             required
             name="period"
@@ -761,7 +761,7 @@ export function FinanceApp({
       })),
     ...s.pending.map((x) => ({
       id: x.id,
-      text: "Competência a confirmar: " + x.description,
+      text: "Mês de referência a confirmar: " + x.description,
     })),
   ];
   const title = Object.fromEntries(
@@ -773,7 +773,7 @@ export function FinanceApp({
         <table className="entries-table">
           <thead>
             <tr>
-              <th>Descrição / competência</th>
+              <th>Descrição / mês de referência</th>
               <th>Tipo / responsável</th>
               <th>Valor</th>
               <th>Situação</th>
@@ -907,7 +907,7 @@ export function FinanceApp({
             <div className="home-header-actions">
               {" "}
               <div className="finance-actions home-toolbar">
-                <Field label="Competência">
+                <Field label="Mês de referência">
                   <input
                     type="month"
                     value={period}
@@ -1102,7 +1102,7 @@ export function FinanceApp({
                         Excluir grupo
                       </Button>
                       <p className="muted">
-                        Competências:{" "}
+                        Meses de referência:{" "}
                         {Array.from(new Set(es.map((x) => x.period)))
                           .sort()
                           .join(" · ")}
@@ -1415,7 +1415,7 @@ export function FinanceApp({
           )}{" "}
           {screen === "invoice" && s.pending.length > 0 && (
             <section className="category-panel">
-              <h2>Pendências sem competência (fora da fatura)</h2>
+              <h2>Pendências sem mês de referência (fora da fatura)</h2>
               {s.pending.map((x) => (
                 <PendingRow
                   key={x.id}
@@ -1636,7 +1636,7 @@ function PendingRow({
         {x.description} · {money(x.amountCents)} · {x.chargedAt} · {x.note}
       </p>
       <input
-        aria-label={"Competência de " + x.description}
+        aria-label={"Mês de referência de " + x.description}
         type="month"
         value={p}
         onChange={(e) => setP(e.target.value)}

@@ -69,7 +69,7 @@ export function HomeOverview({
     ...(s.pending.length
       ? [
           {
-            text: `${s.pending.length} pendências sem competência`,
+            text: `${s.pending.length} pendências sem mês de referência`,
             action: onInvoicePage,
           },
         ]

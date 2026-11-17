@@ -80,7 +80,7 @@ export function PeopleFields({
                     />
                   )}
                 </FormField>
-                <FormField label="Competência do reembolso">
+                <FormField label="Mês de referência do reembolso">
                   {(a) => (
                     <input
                       {...a}
@@ -114,7 +114,7 @@ export function PeopleFields({
                           />
                         )}
                       </FormField>
-                      <FormField label={`Competência prevista ${j + 1}`}>
+                      <FormField label={`Mês de referência previsto ${j + 1}`}>
                         {(a) => (
                           <input
                             {...a}

@@ -24,7 +24,7 @@ try:
    else:
     page.mouse.move(25,350);page.wait_for_function("document.querySelector('[data-slot=sidebar-container]').getBoundingClientRect().width===288")
    page.get_by_role('link',name=name,exact=True).click();page.mouse.move(1100,100)
-  page.get_by_label('Competência',exact=True).fill('2026-11')
+  page.get_by_label('Mês de referência',exact=True).fill('2026-11')
   new_entry(page);dialog=page.get_by_role('dialog');dialog.get_by_label('Descrição',exact=True).fill('Compra parcelada sintética');dialog.get_by_label(re.compile(r'^Valor.*\(R\$\)$')).fill('25,00');dialog.get_by_label('Responsável',exact=True).select_option('third');dialog.get_by_label('Parcelas',exact=True).fill('3');dialog.get_by_role('button',name=re.compile('^Salvar (lançamento|alterações)$')).click();dialog.wait_for(state='hidden')
   state=json.loads(page.evaluate("localStorage.getItem('finly-v2')"));assert len(state['transactions'])==7;assert sum(x['amountCents'] for x in state['transactions'] if x['legacyKind']=='credit')==7500
   nav('Lançamentos');advanced_entries(page);page.get_by_label('Período da listagem',exact=True).select_option('all');assert page.locator('.entry-row').count()==7

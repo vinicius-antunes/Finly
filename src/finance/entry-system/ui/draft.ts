@@ -288,10 +288,10 @@ function prepareEntryUnsafe(
   if (d.type !== "transfer" && !d.description.trim())
     errors.description = "Informe a descrição.";
   if (!dateOK(d.date)) errors.date = "Informe uma data válida.";
-  if (!periodOK(d.period)) errors.period = "Informe uma competência válida.";
+  if (!periodOK(d.period)) errors.period = "Informe um mês de referência válido.";
   if (d.customInstallments.some((r) => !periodOK(r.period)))
     errors.customInstallments =
-      "Confira as competências das parcelas personalizadas.";
+      "Confira os meses de referência das parcelas personalizadas.";
   const cash = s.entryLedger.accounts.filter(
     (a) => a.type !== "credit_card" && !a.archived,
   );
@@ -874,7 +874,7 @@ export function prepareEntry(
         ? "useReserve"
         : /reembolso|acordo|cronograma/i.test(message)
           ? "people"
-          : /fatura|fechamento|competência/i.test(message)
+          : /fatura|fechamento|competência|mês de referência/i.test(message)
             ? "period"
             : /liquidação|pagamento.*excede/i.test(message)
               ? "paymentAmount"

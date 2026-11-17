@@ -337,11 +337,11 @@ export async function migrate(raw: string): Promise<State> {
   return out;
 }
 export function offset(period: string, n: number) {
-  if (!monthOK(period)) throw Error("Competência inválida");
+  if (!monthOK(period)) throw Error("Mês de referência inválido");
   const [y, m] = period.split("-").map(Number),
     d = new Date(Date.UTC(y, m - 1 + n, 1));
   const next = d.toISOString().slice(0, 7);
-  if (!monthOK(next)) throw Error("Competência fora do intervalo");
+  if (!monthOK(next)) throw Error("Mês de referência fora do intervalo");
   return next;
 }
 export function generate(

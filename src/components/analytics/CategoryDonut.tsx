@@ -18,8 +18,8 @@ export function CategoryDonut({entries}: {entries: LegacyEntry[]}) {
  const total = data.reduce((s,e) => s+e.cents,0);
  return <section className="category-panel" aria-labelledby="category-title">
    <div className="section-heading"><div><p className="eyebrow">CATEGORIAS</p><h2 id="category-title">Para onde foram as despesas?</h2></div><span className="period-tag">Fora do cartão</span></div>
-   <p className="muted chart-note">Despesas cadastradas na competência. Não inclui compras no cartão, receitas ou reembolsos; não é fluxo de caixa.</p>
-   {!data.length ? <div className="empty-state">Sem despesas fora do cartão nesta competência.</div> : <div className="donut-body">
+   <p className="muted chart-note">Despesas cadastradas no mês de referência. Não inclui compras no cartão, receitas ou reembolsos; não é fluxo de caixa.</p>
+   {!data.length ? <div className="empty-state">Sem despesas fora do cartão neste mês de referência.</div> : <div className="donut-body">
     <div className="donut-visual"><ChartContainer config={{cents:{label:'Valor cadastrado'}}} className="category-chart">
      <PieChart><ChartTooltip cursor={false} content={<ChartTooltipContent formatter={(value) => formatMoney(Number(value))} hideLabel />} />
       <Pie data={data} dataKey="cents" nameKey="category" innerRadius={70} outerRadius={94} strokeWidth={4} isAnimationActive={false} />

@@ -86,7 +86,7 @@ export function Movements({
           <input type="date" name="date" defaultValue={today} required />
         </label>
         <label>
-          Competência financeira
+          Mês de referência financeiro
           <input type="month" name="period" defaultValue={period} required />
         </label>
         {kind === "correction" && (
@@ -124,7 +124,7 @@ export function Movements({
         <table>
           <thead>
             <tr>
-              <th>Data / competência</th>
+              <th>Data / mês de referência</th>
               <th>Tipo / observação / ID</th>
               <th>Valor</th>
               <th>Saldo resultante</th>

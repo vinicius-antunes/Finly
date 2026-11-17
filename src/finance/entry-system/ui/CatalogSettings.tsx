@@ -231,7 +231,7 @@ export function CatalogSettings({
                 );
                 if (
                   confirm(
-                    "Atualizar o cartão? As faturas históricas permanecem nas competências originais.",
+                    "Atualizar o cartão? As faturas históricas permanecem nos meses de referência originais.",
                   )
                 )
                   apply(() =>
