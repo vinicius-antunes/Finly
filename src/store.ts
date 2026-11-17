@@ -1,14 +1,253 @@
-import {create} from 'zustand';import {initialDesigns,type Design,type Item} from './model';
-export const KEY='finly-ui-lab:v1';
-const initialItems:Item[]=[{id:'balance',component:'magic-card',category:'cards'},{id:'trend',component:'chart-bar',category:'charts'},{id:'action',component:'button',category:'buttons'},{id:'field',component:'input',category:'forms'}];
-export type Snapshot={designs:Design[];current:string;items:Item[]};
-type State=Snapshot&{favorites:string[];selected:string;past:Snapshot[];future:Snapshot[];notice:string;change:(key:string,value:string|number,scope:string)=>void;pick:(id:string)=>void;select:(id:string)=>void;add:(component:string)=>void;move:(from:string,to:string)=>void;remove:(id:string)=>void;favorite:(id:string)=>void;saveAs:(name:string)=>void;rename:(name:string)=>void;reset:()=>void;undo:()=>void;redo:()=>void;message:(s:string)=>void};
-let loaded:Partial<State>={},loadError='';try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d.version!==1||!Array.isArray(d.designs)||!d.designs.every((x:Design)=>typeof x.name==='string'&&x.tokens&&Object.keys(x.tokens).every(k=>k in initialDesigns[0].tokens)&&Object.values(x.tokens).every(v=>typeof v==='string'?v.length<200:typeof v==='number'&&Number.isFinite(v)))||!Array.isArray(d.items))throw Error();loaded={designs:d.designs,current:d.designs.some((x:Design)=>x.id===d.current)?d.current:d.designs[0].id,items:d.items.filter((x:Item)=>typeof x.id==='string'&&typeof x.component==='string'),favorites:Array.isArray(d.favorites)?d.favorites.filter((v:unknown)=>typeof v==='string'):[]};}}catch{loadError='Configuração local inválida ou indisponível. O conteúdo original foi preservado; exporte seu design antes de salvar novos ajustes.';}
-const snapshot=(s:State):Snapshot=>structuredClone({designs:s.designs,current:s.current,items:s.items});
-export const useLab=create<State>((set,get)=>{function edit(next:Partial<State>){const s=get();set({...next,past:[...s.past.slice(-49),snapshot(s)],future:[]});}return {designs:structuredClone(initialDesigns),current:'graphite',items:initialItems,favorites:[],selected:'balance',past:[],future:[],notice:loadError,...loaded,change:(key,value,scope)=>{const s=get();const target=scope==='individual'?s.selected:scope;edit({designs:s.designs.map(d=>d.id!==s.current?d:scope==='global'?{...d,tokens:{...d.tokens,[key]:value}}:scope==='individual'?{...d,individual:{...d.individual,[target]:{...d.individual[target],[key]:value}}}:{...d,categories:{...d.categories,[scope]:{...d.categories[scope],[key]:value}}})});},pick:current=>edit({current}),select:selected=>set({selected}),add:component=>{const id=crypto.randomUUID();edit({items:[...get().items,{id,component,category:component.startsWith('chart')?'charts':component==='button'?'buttons':component==='input'?'forms':'cards'}],selected:id});},move:(from,to)=>{const items=[...get().items];const a=items.findIndex(x=>x.id===from),b=items.findIndex(x=>x.id===to);if(a<0||b<0)return;items.splice(b,0,items.splice(a,1)[0]);edit({items});},remove:id=>edit({items:get().items.filter(x=>x.id!==id)}),favorite:id=>set(s=>({favorites:s.favorites.includes(id)?s.favorites.filter(x=>x!==id):[...s.favorites,id]})),saveAs:name=>{const d=structuredClone(get().designs.find(d=>d.id===get().current)!);d.id=crypto.randomUUID();d.name=name;edit({designs:[...get().designs,d],current:d.id});},rename:name=>edit({designs:get().designs.map(d=>d.id===get().current?{...d,name}:d)}),reset:()=>edit({designs:get().designs.map(d=>d.id===get().current?{...structuredClone(initialDesigns.find(x=>x.id===d.id)??initialDesigns[0]),id:d.id,name:d.name}:d),items:initialItems}),undo:()=>{const s=get();if(s.past.length)set({...s.past.at(-1)!,past:s.past.slice(0,-1),future:[snapshot(s),...s.future]});},redo:()=>{const s=get();if(s.future.length)set({...s.future[0],past:[...s.past,snapshot(s)],future:s.future.slice(1)});},message:notice=>set({notice})};});
-let disabled=!!loadError;export function allowPersistence(){disabled=false;}
-let timer:ReturnType<typeof setTimeout>;useLab.subscribe(s=>{clearTimeout(timer);timer=setTimeout(()=>{if(disabled)return;try{localStorage.setItem(KEY,JSON.stringify({version:1,...snapshot(s),favorites:s.favorites}));}catch{disabled=true;useLab.setState({notice:'O armazenamento está cheio ou bloqueado. As alterações estão na sessão; use Exportar design.'});}},200);});
-export const activeDesign=()=>useLab.getState().designs.find(d=>d.id===useLab.getState().current)!;
+import { create } from "zustand";
+import {
+  validSaved,
+  initialDesigns,
+  type Design,
+  type Item,
+  type Tokens,
+} from "./model";
+export const KEY = "finly-ui-lab:v1";
+const initialItems: Item[] = [
+  { id: "balance", component: "magic-card", category: "cards" },
+  { id: "trend", component: "chart-bar", category: "charts" },
+  { id: "action", component: "button", category: "buttons" },
+  { id: "field", component: "input", category: "forms" },
+];
+export type Snapshot = { designs: Design[]; current: string; items: Item[] };
+type State = Snapshot & {
+  favorites: string[];
+  selected: string;
+  past: Snapshot[];
+  future: Snapshot[];
+  notice: string;
+  change: (key: string, value: string | number, scope: string) => void;
+  pick: (id: string) => void;
+  select: (id: string) => void;
+  add: (component: string) => void;
+  move: (from: string, to: string) => void;
+  remove: (id: string) => void;
+  favorite: (id: string) => void;
+  saveAs: (name: string) => void;
+  rename: (name: string) => void;
+  importTheme: (name: string, tokens: Tokens) => void;
+  reset: () => void;
+  undo: () => void;
+  redo: () => void;
+  message: (s: string) => void;
+};
+let loaded: Partial<State> = {},
+  loadError = "";
+try {
+  const raw = localStorage.getItem(KEY);
+  if (raw) {
+    const d = JSON.parse(raw);
+    if (!validSaved(d)) throw Error();
+    loaded = {
+      designs: d.designs,
+      current: d.designs.some((x: Design) => x.id === d.current)
+        ? d.current
+        : d.designs[0].id,
+      items: d.items.filter(
+        (x: Item) =>
+          typeof x.id === "string" && typeof x.component === "string",
+      ),
+      favorites: Array.isArray(d.favorites)
+        ? d.favorites.filter((v: unknown) => typeof v === "string")
+        : [],
+    };
+  }
+} catch (e) {
+  console.warn("[UI Lab] Configuração não carregada:", e);
+  loadError =
+    "Configuração local inválida ou indisponível. O conteúdo original foi preservado; exporte seu design antes de salvar novos ajustes.";
+}
+const snapshot = (s: State): Snapshot =>
+  structuredClone({ designs: s.designs, current: s.current, items: s.items });
+export const useLab = create<State>((set, get) => {
+  function edit(next: Partial<State>) {
+    const s = get();
+    set({ ...next, past: [...s.past.slice(-49), snapshot(s)], future: [] });
+  }
+  return {
+    designs: structuredClone(initialDesigns),
+    current: "graphite",
+    items: initialItems,
+    favorites: [],
+    selected: "balance",
+    past: [],
+    future: [],
+    notice: loadError,
+    ...loaded,
+    change: (key, value, scope) => {
+      const s = get();
+      const target = scope === "individual" ? s.selected : scope;
+      edit({
+        designs: s.designs.map((d) =>
+          d.id !== s.current
+            ? d
+            : scope === "global"
+              ? { ...d, tokens: { ...d.tokens, [key]: value } }
+              : scope === "individual"
+                ? {
+                    ...d,
+                    individual: {
+                      ...d.individual,
+                      [target]: { ...d.individual[target], [key]: value },
+                    },
+                  }
+                : {
+                    ...d,
+                    categories: {
+                      ...d.categories,
+                      [scope]: { ...d.categories[scope], [key]: value },
+                    },
+                  },
+        ),
+      });
+    },
+    pick: (current) => edit({ current }),
+    select: (selected) => set({ selected }),
+    add: (component) => {
+      if (get().items.length >= 24) {
+        set({
+          notice:
+            "Limite de 24 instâncias por composição para preservar o desempenho.",
+        });
+        return;
+      }
+      const id = crypto.randomUUID();
+      edit({
+        items: [
+          ...get().items,
+          {
+            id,
+            component,
+            category: component.startsWith("chart")
+              ? "charts"
+              : component === "button"
+                ? "buttons"
+                : component === "input"
+                  ? "forms"
+                  : "cards",
+          },
+        ],
+        selected: id,
+      });
+    },
+    move: (from, to) => {
+      const items = [...get().items];
+      const a = items.findIndex((x) => x.id === from),
+        b = items.findIndex((x) => x.id === to);
+      if (a < 0 || b < 0) return;
+      items.splice(b, 0, items.splice(a, 1)[0]);
+      edit({ items });
+    },
+    remove: (id) => edit({ items: get().items.filter((x) => x.id !== id) }),
+    favorite: (id) =>
+      set((s) => ({
+        favorites: s.favorites.includes(id)
+          ? s.favorites.filter((x) => x !== id)
+          : [...s.favorites, id],
+      })),
+    saveAs: (name) => {
+      const d = structuredClone(
+        get().designs.find((d) => d.id === get().current)!,
+      );
+      d.id = crypto.randomUUID();
+      d.name = name;
+      edit({ designs: [...get().designs, d], current: d.id });
+    },
+    importTheme: (name, tokens) => {
+      const d = structuredClone(
+        get().designs.find((x) => x.id === get().current)!,
+      );
+      d.id = crypto.randomUUID();
+      d.name = name;
+      d.tokens = { ...d.tokens, ...tokens };
+      d.categories = {};
+      d.individual = {};
+      edit({ designs: [...get().designs, d], current: d.id });
+    },
+    rename: (name) =>
+      edit({
+        designs: get().designs.map((d) =>
+          d.id === get().current ? { ...d, name } : d,
+        ),
+      }),
+    reset: () =>
+      edit({
+        designs: get().designs.map((d) =>
+          d.id === get().current
+            ? {
+                ...structuredClone(
+                  initialDesigns.find((x) => x.id === d.id) ??
+                    initialDesigns[0],
+                ),
+                id: d.id,
+                name: d.name,
+              }
+            : d,
+        ),
+        items: initialItems,
+      }),
+    undo: () => {
+      const s = get();
+      if (s.past.length)
+        set({
+          ...s.past.at(-1)!,
+          past: s.past.slice(0, -1),
+          future: [snapshot(s), ...s.future],
+        });
+    },
+    redo: () => {
+      const s = get();
+      if (s.future.length)
+        set({
+          ...s.future[0],
+          past: [...s.past, snapshot(s)],
+          future: s.future.slice(1),
+        });
+    },
+    message: (notice) => set({ notice }),
+  };
+});
+let disabled = !!loadError;
+export function allowPersistence() {
+  disabled = false;
+}
+let timer: ReturnType<typeof setTimeout>;
+useLab.subscribe((s) => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    if (disabled) return;
+    try {
+      localStorage.setItem(
+        KEY,
+        JSON.stringify({ version: 1, ...snapshot(s), favorites: s.favorites }),
+      );
+    } catch {
+      disabled = true;
+      useLab.setState({
+        notice:
+          "O armazenamento está cheio ou bloqueado. As alterações estão na sessão; use Exportar design.",
+      });
+    }
+  }, 200);
+});
+export const activeDesign = () =>
+  useLab.getState().designs.find((d) => d.id === useLab.getState().current)!;
 // Flush pending preferences on reload/close, not just after the debounce interval.
-function flush(){if(disabled)return;const s=useLab.getState();try{localStorage.setItem(KEY,JSON.stringify({version:1,...snapshot(s),favorites:s.favorites}));}catch{ /* Existing snapshot remains intact; the in-session export is still available. */ }}
-window.addEventListener('pagehide',flush);window.addEventListener('beforeunload',flush);
+function flush() {
+  if (disabled) return;
+  const s = useLab.getState();
+  try {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({ version: 1, ...snapshot(s), favorites: s.favorites }),
+    );
+  } catch {
+    /* Existing snapshot remains intact; the in-session export is still available. */
+  }
+}
+window.addEventListener("pagehide", flush);
+window.addEventListener("beforeunload", flush);

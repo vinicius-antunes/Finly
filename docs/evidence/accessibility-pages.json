@@ -1,0 +1,62 @@
+[
+  {
+    "route": "overview",
+    "width": 1440,
+    "violations": []
+  },
+  {
+    "route": "overview",
+    "width": 390,
+    "violations": []
+  },
+  {
+    "route": "library",
+    "width": 1440,
+    "violations": []
+  },
+  {
+    "route": "library",
+    "width": 390,
+    "violations": []
+  },
+  {
+    "route": "identity",
+    "width": 1440,
+    "violations": []
+  },
+  {
+    "route": "identity",
+    "width": 390,
+    "violations": []
+  },
+  {
+    "route": "playground",
+    "width": 1440,
+    "violations": []
+  },
+  {
+    "route": "playground",
+    "width": 390,
+    "violations": []
+  },
+  {
+    "route": "preview",
+    "width": 1440,
+    "violations": []
+  },
+  {
+    "route": "preview",
+    "width": 390,
+    "violations": []
+  },
+  {
+    "route": "presets",
+    "width": 1440,
+    "violations": []
+  },
+  {
+    "route": "presets",
+    "width": 390,
+    "violations": []
+  }
+]

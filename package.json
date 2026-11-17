@@ -9,7 +9,7 @@
     "lint": "eslint src",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "test:e2e": "python3 tests/browser.py",
+    "test:e2e": "python3 tests/browser.py && python3 tests/advanced.py && python3 tests/accessibility.py",
     "sync:catalog": "node scripts/sync-catalog.mjs"
   },
   "dependencies": {

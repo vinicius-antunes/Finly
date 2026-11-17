@@ -1,0 +1,32 @@
+[
+  {
+    "path": "src/components/ui/button.tsx",
+    "sha256": "a3193a30de70b739f7aca5fde6a37200b4c03fe1360123fa62febb07af163a6c",
+    "license": "MIT — shadcn/ui"
+  },
+  {
+    "path": "src/components/ui/card.tsx",
+    "sha256": "39480d5b63e46554f1cfcedaa91052c848bda5c45d7a5dda80fe91e7be604fb0",
+    "license": "MIT — shadcn/ui"
+  },
+  {
+    "path": "src/components/ui/input.tsx",
+    "sha256": "7bfd0eff6c53a38c99184394a09f55e7a86c725de12d6a300fa46b3765114091",
+    "license": "MIT — shadcn/ui"
+  },
+  {
+    "path": "src/vendor/magicui/magic-card.tsx",
+    "sha256": "b6ed8ac1dda703f9d7b1b89bbca0162d5ae17c8144c947d663cdac35c29b47a2",
+    "license": "MIT — Magic UI"
+  },
+  {
+    "path": "src/vendor/magicui/dot-pattern.tsx",
+    "sha256": "23020b74a7060b1d83a57a9c221b615790cc69d3e073e911a55e0b6584981e58",
+    "license": "MIT — Magic UI"
+  },
+  {
+    "path": "src/vendor/magicui/grid-pattern.tsx",
+    "sha256": "1d1caaf01de0a1ebfdffea1163535f8fbfdfbee33cd0a640e09388815d1823df",
+    "license": "MIT — Magic UI"
+  }
+]
