@@ -1,0 +1,290 @@
+{
+  "engine": "axe-core 4.14.1",
+  "runs": 39,
+  "violations": 0,
+  "checks": [
+    {
+      "theme": "graphite",
+      "screen": "visao-geral",
+      "passes": 27,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "lancamentos",
+      "passes": 29,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "fatura",
+      "passes": 24,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "reembolsos",
+      "passes": 24,
+      "incomplete": 2,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "parcelas",
+      "passes": 30,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "planejamentos",
+      "passes": 23,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "configuracoes/financeiro",
+      "passes": 29,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "configuracoes/backup",
+      "passes": 28,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "form-Despesa",
+      "passes": 28,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "form-Receita",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "form-Cartão",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "form-Reembolso",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "graphite",
+      "screen": "form-Transferência",
+      "passes": 30,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "visao-geral",
+      "passes": 25,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "lancamentos",
+      "passes": 29,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "fatura",
+      "passes": 24,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "reembolsos",
+      "passes": 24,
+      "incomplete": 2,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "parcelas",
+      "passes": 30,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "planejamentos",
+      "passes": 23,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "configuracoes/financeiro",
+      "passes": 29,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "configuracoes/backup",
+      "passes": 28,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "form-Despesa",
+      "passes": 28,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "form-Receita",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "form-Cartão",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "form-Reembolso",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "screen": "form-Transferência",
+      "passes": 30,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "visao-geral",
+      "passes": 27,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "lancamentos",
+      "passes": 29,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "fatura",
+      "passes": 24,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "reembolsos",
+      "passes": 24,
+      "incomplete": 2,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "parcelas",
+      "passes": 30,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "planejamentos",
+      "passes": 23,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "configuracoes/financeiro",
+      "passes": 29,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "configuracoes/backup",
+      "passes": 28,
+      "incomplete": 0,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "form-Despesa",
+      "passes": 28,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "form-Receita",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "form-Cartão",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "form-Reembolso",
+      "passes": 31,
+      "incomplete": 1,
+      "violations": []
+    },
+    {
+      "theme": "light",
+      "screen": "form-Transferência",
+      "passes": 30,
+      "incomplete": 1,
+      "violations": []
+    }
+  ],
+  "javascriptErrors": [],
+  "viewports": [
+    "1920x1080",
+    "1440x900",
+    "1366x768",
+    "1024",
+    "768",
+    "390",
+    "360"
+  ]
+}

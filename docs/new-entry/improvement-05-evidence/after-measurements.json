@@ -1,0 +1,56 @@
+[
+  {
+    "theme": "graphite",
+    "width": 1920,
+    "height": 1080,
+    "dashboardBottom": 862.515625
+  },
+  {
+    "theme": "graphite",
+    "width": 1440,
+    "height": 900,
+    "dashboardBottom": 828.671875
+  },
+  {
+    "theme": "graphite",
+    "width": 1366,
+    "height": 768,
+    "dashboardBottom": 742.5625
+  },
+  {
+    "theme": "dark",
+    "width": 1920,
+    "height": 1080,
+    "dashboardBottom": 862.515625
+  },
+  {
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "dashboardBottom": 828.671875
+  },
+  {
+    "theme": "dark",
+    "width": 1366,
+    "height": 768,
+    "dashboardBottom": 742.5625
+  },
+  {
+    "theme": "light",
+    "width": 1920,
+    "height": 1080,
+    "dashboardBottom": 862.515625
+  },
+  {
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "dashboardBottom": 828.671875
+  },
+  {
+    "theme": "light",
+    "width": 1366,
+    "height": 768,
+    "dashboardBottom": 742.5625
+  }
+]

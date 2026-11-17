@@ -1,0 +1,77 @@
+/* Shared React typography. Keep colors, effects, header alignment and finance untouched. */
+:root {
+  --type-body: .875rem;
+  --type-caption: .8125rem;
+  --type-section: 1rem;
+  --space-unit: 4px;
+  --space-label: calc(var(--space-unit) * 2);
+  --space-group: calc(var(--space-unit) * 4);
+  --tracking-normal: 0em;
+}
+.finance-app,
+.entry-dialog,
+.finance-dialog,
+.month-panel {
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: 1.5;
+}
+.finance-app { font-size: var(--type-body); }
+.finance-app .home-heading h1 {
+  font-size: clamp(1.5rem, 2.1vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+.finance-app main h2 {
+  font-size: var(--type-section);
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+.finance-app main h3 { font-size: .9375rem; line-height: 1.4; letter-spacing: normal; }
+.finance-app main p { line-height: 1.5; }
+.finance-app :is(.muted, .category-help, .chart-note),
+.entry-dialog :is(.muted, small, .entry-help),
+.finance-dialog .muted { font-size: var(--type-caption); line-height: 1.5; }
+.finance-app :is(.home-balance>strong, .home-reserve>strong, .home-indicator strong, .planning-stat strong, .planning-goal strong, .entries-indicators strong, .contract-indicators strong, .entry-value, .budget-amount strong),
+.entry-dialog :is(.entry-preview strong, input[inputmode=decimal]) {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: normal;
+  line-height: 1.3;
+}
+.finance-app :is(.planning-stat, .planning-goal, .contract-indicators>div) { gap: var(--space-label); }
+.finance-app .planning-stat h2 { margin: 0 0 var(--space-label); }
+.finance-app .planning-stat strong { display: block; }
+.finance-app .planning-summary { align-items: stretch; }
+.finance-app .planning-summary + p { margin: var(--space-group) 0 var(--space-label); line-height: 1.6; }
+.finance-app .planning-summary + p + p { margin: 0 0 var(--space-group); max-width: 90ch; }
+.finance-app .contract-indicators + p { margin: 12px 0; }
+.finance-app .contract-card header p { margin-top: var(--space-label); }
+.finance-app :is(.finance-field, .planning-form label, .contract-filters label),
+.entry-dialog .entry-field { gap: var(--space-label); }
+.finance-app :is(.finance-field>label, .planning-form label),
+.entry-dialog .entry-field>label { font-size: var(--type-body); font-weight: 500; line-height: 1.4; }
+.entry-dialog .entry-dialog-header h2,
+.finance-dialog h2 { font-size: 1.375rem; line-height: 1.3; letter-spacing: -.01em; }
+.entry-dialog .entry-dialog-header p { margin-top: var(--space-label); font-size: var(--type-body); line-height: 1.5; }
+.entry-dialog .entry-grid { gap: var(--space-group); }
+.entry-dialog .entry-section { margin-top: var(--space-group); }
+.entry-dialog .field-error { margin-top: 4px; line-height: 1.5; font-size: var(--type-caption); }
+.finance-app :is(th, td), .finance-dialog :is(th, td) { line-height: 1.5; }
+.finance-app :is(.entry-value, .entry-value>strong) { text-align: right; }
+.finance-app .empty-state p { margin: var(--space-label) 0 var(--space-group); }
+.finance-app .notification-item p { line-height: 1.5; }
+/* Preserve the approved nine-widget composition on short desktop screens. */
+@media (min-width: 1101px) and (max-height: 800px) {
+  .finance-app .executive-dashboard :is(.home-panel>.muted, .home-indicator small) { font-size: .75rem; line-height: 1.4; }
+  .finance-app .executive-dashboard p { margin-block: 4px; }
+  .finance-app .executive-dashboard h2 { line-height: 1.3; }
+}
+@media (max-width: 600px) {
+  .finance-app .planning-stat h2 { font-size: .875rem; }
+  .finance-app .planning-summary + p { margin-top: var(--space-group); }
+}
+.finance-app .brand-copy small { font-size: .625rem; line-height: 1.4; letter-spacing: .08em; }
+.finance-app [data-slot="sidebar-group-label"] { font-size: .6875rem; line-height: 1.4; letter-spacing: .08em; }
+.finance-app .planning-status { font-size: .75rem; line-height: 1.5; }
