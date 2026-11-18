@@ -2,7 +2,7 @@
 
 ## Resultado
 
-Aplicação independente em `/workspace/Finly-UI-Lab`, branch local `main`. O repositório original Finly permaneceu limpo no commit `07e6a2b38c6b1c22cfb83ef4cb606ed5578399df`, sem alterações de código, branches ou dados. Não houve publicação/deploy do Finly.
+Aplicação independente em `/workspace/Finly-UI-Lab`, branch `codex/finly-ui-lab` no repositório `vinicius-antunes/Finly`. O laboratório mantém aplicação e histórico próprios e ocupa sozinho a raiz dessa branch. O repositório original Finly permaneceu limpo no commit `07e6a2b38c6b1c22cfb83ef4cb606ed5578399df`, sem alterações de código ou dados nas branches existentes. Não houve publicação/deploy do Finly.
 
 As dez etapas de desenvolvimento estão registradas em [PROGRESS.md](PROGRESS.md). Há seis áreas de navegação, editor visual com três níveis, playground com componentes compilados, dez contextos de preview fictícios, temas, favoritos, comparação, histórico, reordenação por ponteiro/teclado e exportações de design. Formulários do preview são demonstrativos e não criam transações.
 
@@ -49,7 +49,7 @@ Todos os valores são sintéticos. Nenhum extrato, anexo ou backup pessoal foi u
 
 ## Limitações externas e itens não declarados como concluídos
 
-1. **GitHub:** mesmo após o proprietário informar a criação do repositório, o acesso Git pelo ambiente retornou `Repository not found`. A API também retornou `Forbidden`. Isso impede confirmar o remoto e fazer push; não indica que o repositório não exista para o proprietário. Commits e pacote locais ficam preservados para envio quando este ambiente tiver acesso ao repositório independente.
+1. **GitHub:** o destino independente inicialmente tentado retornou `Repository not found`. Por decisão posterior do proprietário, o destino passou a ser exclusivamente `vinicius-antunes/Finly`, branch `codex/finly-ui-lab`. Não há cópia do programa financeiro nesta branch nem merge nas branches existentes.
 2. **React Bits:** a licença atual e revisões anteriores examinadas contêm restrições de redistribuição/UI kits e ferramentas semelhantes. Nenhum código foi incorporado. Aurora, Light Rays e demais efeitos desta fonte não foram implementados por imitação nem declarados integrados.
 3. **Aceternity:** HTTP 403 impediu enumeração e licença adequada não foi confirmada. Apenas referências conhecidas são apresentadas, sem copiar código ou presumir gratuidade/MIT.
 4. **Catálogo:** snapshots não asseguram que todos os produtos externos existentes estejam listados. A enumeração cobre os índices oficiais acessíveis e a árvore de exemplos Recharts obtida; dependências ausentes nos índices são explicitadas, não inventadas.
@@ -57,4 +57,4 @@ Todos os valores são sintéticos. Nenhum extrato, anexo ou backup pessoal foi u
 
 ## Publicação
 
-Cloudflare Pages: conectar `Finly-UI-Lab`, branch `main`, raiz `/`, Node 24, comando `npm run build`, saída `dist`. Sem secrets/backend. Não houve deploy automático. Ver README para execução e sincronização de catálogos.
+Cloudflare Pages: criar um projeto Pages próprio e conectar `vinicius-antunes/Finly`, branch `codex/finly-ui-lab`, raiz `/`, Node 24, comando `npm run build`, saída `dist`. Sem secrets/backend. Não houve deploy automático. Ver README para execução e sincronização de catálogos.

@@ -9,4 +9,4 @@
 7. Previews: dez contextos visuais fictícios, sem motor ou transações financeiras.
 8. Presets/favoritos/exportação: snapshots versionados, flush e validação, JSON/CSS/resumo.
 9. Auditoria: Chromium desktop/mobile, correção de persistência imediata, contraste do rodapé e labels móveis.
-10. Qualidade/publicação: TypeScript, lint, Vitest, browser/axe, build estático e documentação Cloudflare. Push remoto depende do acesso do ambiente ao repositório criado pelo proprietário.
+10. Qualidade/publicação: TypeScript, lint, Vitest, browser/axe, build estático e documentação Cloudflare. Destino revisado pelo proprietário: branch exclusiva `codex/finly-ui-lab` do repositório Finly, com somente o código do laboratório. Nenhum merge nas branches do programa base.

@@ -1,6 +1,6 @@
 # Finly UI Lab
 
-Workspace estático e independente para explorar referências, editar identidade visual e experimentar composições do Finly. **Não é uma aplicação financeira:** valores e registros do preview são fictícios e não são persistidos como transações. Nenhum arquivo, branch ou armazenamento do Finly é alterado.
+Workspace estático e independente para explorar referências, editar identidade visual e experimentar composições do Finly. **Não é uma aplicação financeira:** valores e registros do preview são fictícios e não são persistidos como transações. O código e o armazenamento do aplicativo financeiro permanecem intactos. O laboratório fica exclusivamente na branch `codex/finly-ui-lab` do repositório `vinicius-antunes/Finly`, com aplicação e histórico próprios.
 
 ## Executar
 
@@ -64,12 +64,12 @@ A folha do laboratório é isolada da superfície dos previews. Tokens alterados
 
 ## Cloudflare Pages
 
-1. Conecte **o repositório independente** `Finly-UI-Lab`.
-2. Branch: `main`. Root directory: `/`.
+1. Crie um projeto Pages próprio para o laboratório e conecte `vinicius-antunes/Finly`. Não altere o projeto Pages do aplicativo financeiro.
+2. Branch de produção **desse projeto Pages do laboratório**: `codex/finly-ui-lab`. Root directory: `/` (o laboratório ocupa a raiz dessa branch).
 3. Build: `npm run build`. Saída: `dist`. Defina `NODE_VERSION=24`.
 4. O projeto não exige secrets, Functions ou backend. `_headers` e `_redirects` são copiados ao build.
 
-Não foi realizado deploy por este ambiente. O acesso Git ao novo repositório retornou `Repository not found`; isso pode indicar ausência de permissão da credencial deste ambiente, mesmo que o repositório exista na conta. O código e commits locais permanecem disponíveis para push quando o acesso for concedido.
+Não foi realizado deploy por este ambiente. A opção de repositório separado foi substituída, por decisão do proprietário, por uma branch exclusiva no repositório existente. O conteúdo dessa branch é somente o UI Lab; `main`, `Finly-React` e `codex/finly-navegacao-ux` não recebem mudanças. Para obter o laboratório, use `git clone --single-branch --branch codex/finly-ui-lab https://github.com/vinicius-antunes/Finly.git Finly-UI-Lab`.
 
 ## Escopo e limites
 

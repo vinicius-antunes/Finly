@@ -919,7 +919,7 @@ export default function App() {
         </div>
         <a
           className="source-link"
-          href="https://github.com/vinicius-antunes/Finly-UI-Lab"
+          href="https://github.com/vinicius-antunes/Finly/tree/codex/finly-ui-lab"
           target="_blank"
           rel="noreferrer"
         >
